@@ -9,7 +9,7 @@ import { LevelMeter } from './components/LevelMeter';
 import { RoomQRCode } from './components/RoomQRCode';
 
 export default function App() {
-  const [tokenServerUrl, setTokenServerUrl] = useState('http://localhost:4000');
+  const [tokenServerUrl, setTokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
   const [roomName, setRoomName] = useState('BOARDROOM-1');
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [volume, setVolume] = useState(0.75);

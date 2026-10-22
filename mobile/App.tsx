@@ -17,8 +17,8 @@ import { HoldToTalkButton } from './src/components/HoldToTalkButton';
 import { AudioLevelMeter } from './src/components/AudioLevelMeter';
 import { ConnectionBadge } from './src/components/ConnectionBadge';
 
-// Default configuration (can be updated to deployed token server)
-const DEFAULT_TOKEN_SERVER_URL = 'http://192.168.1.100:4000';
+// Default configuration pointing to the live Render deployment
+const DEFAULT_TOKEN_SERVER_URL = 'https://centralized-mic-token-server.onrender.com';
 
 export default function App() {
   const [tokenServerUrl, setTokenServerUrl] = useState(DEFAULT_TOKEN_SERVER_URL);
