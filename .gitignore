@@ -27,6 +27,10 @@ out/
 *.p12
 *.pem
 *.cer
+*.key
+google-services.json
+*credentials*.json
+*secret*.json
 
 # Logs
 npm-debug.log*
