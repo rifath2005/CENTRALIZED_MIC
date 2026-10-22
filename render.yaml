@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: centralized-mic-token-server
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: ALLOWED_ORIGIN
+        value: "*"
+      - key: TOKEN_TTL
+        value: "3600"

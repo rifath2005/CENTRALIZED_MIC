@@ -1,0 +1,52 @@
+# Dependency directories
+node_modules/
+*/node_modules/
+
+# Environment and sensitive credential files (CRITICAL: Never commit secrets)
+.env
+.env.*
+!.env.example
+*.env
+server/.env
+host/.env
+mobile/.env
+
+# Build outputs
+dist/
+*/dist/
+build/
+*/build/
+.next/
+out/
+.turbo/
+.cache/
+
+# Keystores, certificates, and keys
+*.keystore
+*.jks
+*.p12
+*.pem
+*.cer
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# React Native / iOS / Android specifics
+mobile/ios/Pods/
+mobile/ios/DerivedData/
+mobile/ios/*.xcworkspace/xcuserdata
+mobile/ios/*.xcodeproj/xcuserdata
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/.cxx/

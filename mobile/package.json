@@ -1,0 +1,24 @@
+{
+  "name": "wireless-mic-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start"
+  },
+  "dependencies": {
+    "@livekit/react-native": "^2.6.4",
+    "@livekit/react-native-webrtc": "^124.0.5",
+    "livekit-client": "^2.1.4",
+    "react": "18.2.0",
+    "react-native": "0.74.1",
+    "react-native-haptic-feedback": "^2.2.0",
+    "react-native-svg": "^15.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.79",
+    "@types/react-native": "^0.73.0",
+    "typescript": "^5.4.5"
+  }
+}
