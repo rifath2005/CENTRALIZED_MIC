@@ -91,8 +91,9 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
             type="button"
             style={{
               ...styles.testBtn,
-              backgroundColor: isTesting ? '#059669' : '#1e293b',
-              borderColor: isTesting ? '#10b981' : '#334155',
+              backgroundColor: isTesting ? '#f59e0b' : '#2c1445',
+              borderColor: isTesting ? '#fbbf24' : '#5d2a90',
+              color: isTesting ? '#0d0515' : '#fbbf24',
             }}
             onClick={handleTestSound}
             title="Play double chime tone through selected speakers"
@@ -125,13 +126,13 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     letterSpacing: '1px',
   },
   refreshBtn: {
     background: 'none',
     border: 'none',
-    color: '#38bdf8',
+    color: '#fbbf24',
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -145,8 +146,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   select: {
     flex: 1,
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: '#160a22',
+    border: '1px solid #441e6a',
     borderRadius: '8px',
     padding: '10px 14px',
     color: '#f8fafc',
@@ -157,8 +158,8 @@ const styles: Record<string, React.CSSProperties> = {
   testBtn: {
     padding: '10px 14px',
     borderRadius: '8px',
-    border: '1px solid #334155',
-    color: '#38bdf8',
+    border: '1px solid #5d2a90',
+    color: '#fbbf24',
     fontSize: '12px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -167,7 +168,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   warningNote: {
     fontSize: '11px',
-    color: '#f59e0b',
+    color: '#fbbf24',
     lineHeight: '1.4',
   },
 };

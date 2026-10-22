@@ -41,8 +41,8 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
         <QRCodeSVG
           value={pairingPayload}
           size={148}
-          bgColor="#090d16"
-          fgColor="#38bdf8"
+          bgColor="#160a22"
+          fgColor="#fbbf24"
           level="M"
           includeMargin={false}
         />
@@ -75,24 +75,25 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
+    backgroundColor: '#200f33',
+    border: '1px solid #441e6a',
     borderRadius: '14px',
     padding: '20px',
     display: 'flex',
     alignItems: 'center',
     gap: '20px',
     flexWrap: 'wrap',
+    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
   },
   qrWrapper: {
-    backgroundColor: '#090d16',
+    backgroundColor: '#160a22',
     padding: '12px',
     borderRadius: '12px',
-    border: '1px solid #1e293b',
+    border: '1px solid #441e6a',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
   },
   infoWrapper: {
     display: 'flex',
@@ -109,29 +110,31 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     letterSpacing: '1px',
   },
   qrScanPill: {
     fontSize: '9px',
     fontWeight: 800,
-    color: '#34d399',
-    backgroundColor: 'rgba(52, 211, 153, 0.12)',
-    padding: '2px 6px',
+    color: '#fbbf24',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    border: '1px solid rgba(245, 158, 11, 0.4)',
+    padding: '2px 8px',
     borderRadius: '4px',
     letterSpacing: '0.8px',
   },
   codeText: {
-    fontSize: '30px',
+    fontSize: '32px',
     fontWeight: 900,
-    color: '#38bdf8',
+    color: '#fbbf24',
     letterSpacing: '3px',
     margin: 0,
     fontFamily: 'monospace',
+    textShadow: '0 0 16px rgba(251, 191, 36, 0.3)',
   },
   instructions: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: '#cbd5e1',
     lineHeight: '1.4',
     margin: 0,
   },
@@ -141,9 +144,9 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '6px',
   },
   copyBtn: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    color: '#cbd5e1',
+    backgroundColor: '#2c1445',
+    border: '1px solid #5d2a90',
+    color: '#f8fafc',
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '11px',
@@ -152,9 +155,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s ease',
   },
   copyLinkBtn: {
-    backgroundColor: 'transparent',
-    border: '1px solid #334155',
-    color: '#94a3b8',
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    border: '1px solid rgba(245, 158, 11, 0.3)',
+    color: '#fbbf24',
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '11px',

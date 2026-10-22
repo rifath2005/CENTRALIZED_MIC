@@ -51,7 +51,7 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({ audioGraph }) => {
       <div style={styles.meterHeader}>
         <div style={styles.titleWithVal}>
           <span style={styles.meterTitle}>PA OUTPUT RMS &amp; PEAK</span>
-          <span style={{ ...styles.dbValue, color: isClipping ? '#ef4444' : '#38bdf8' }}>
+          <span style={{ ...styles.dbValue, color: isClipping ? '#f43f5e' : '#fbbf24' }}>
             {isClipping ? '🚨 CLIP!' : dbfs}
           </span>
         </div>
@@ -72,9 +72,9 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({ audioGraph }) => {
             width: `${levelPercent}%`,
             background:
               levelPercent > 85
-                ? 'linear-gradient(90deg, #10b981 0%, #f59e0b 70%, #ef4444 100%)'
+                ? 'linear-gradient(90deg, #10b981 0%, #fbbf24 70%, #f43f5e 100%)'
                 : levelPercent > 65
-                ? 'linear-gradient(90deg, #10b981 0%, #f59e0b 100%)'
+                ? 'linear-gradient(90deg, #10b981 0%, #fbbf24 100%)'
                 : '#10b981',
           }}
         />
@@ -85,7 +85,7 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({ audioGraph }) => {
             style={{
               ...styles.peakTick,
               left: `calc(${peakPercent}% - 2px)`,
-              backgroundColor: peakPercent > 85 ? '#ef4444' : peakPercent > 65 ? '#f59e0b' : '#34d399',
+              backgroundColor: peakPercent > 85 ? '#f43f5e' : peakPercent > 65 ? '#fbbf24' : '#10b981',
             }}
           />
         )}
@@ -97,7 +97,7 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({ audioGraph }) => {
         <span>-18</span>
         <span>-12</span>
         <span>-6</span>
-        <span style={{ color: '#ef4444' }}>0dB PEAK</span>
+        <span style={{ color: '#f43f5e' }}>0dB PEAK</span>
       </div>
     </div>
   );
@@ -105,8 +105,8 @@ export const LevelMeter: React.FC<LevelMeterProps> = ({ audioGraph }) => {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #1e293b',
+    backgroundColor: '#160a22',
+    border: '1px solid #441e6a',
     borderRadius: '10px',
     padding: '14px 16px',
     display: 'flex',
@@ -126,7 +126,7 @@ const styles: Record<string, React.CSSProperties> = {
   meterTitle: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     letterSpacing: '1px',
   },
   dbValue: {
@@ -137,18 +137,18 @@ const styles: Record<string, React.CSSProperties> = {
   limiterActiveBadge: {
     fontSize: '10px',
     fontWeight: 800,
-    color: '#f87171',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    color: '#fb7185',
+    backgroundColor: 'rgba(244, 63, 94, 0.15)',
     padding: '2px 8px',
     borderRadius: '4px',
-    border: '1px solid #ef4444',
+    border: '1px solid #f43f5e',
   },
   vuTrack: {
     height: '14px',
-    backgroundColor: '#090d16',
+    backgroundColor: '#0d0515',
     borderRadius: '6px',
     overflow: 'hidden',
-    border: '1px solid #1e293b',
+    border: '1px solid #441e6a',
     position: 'relative',
   },
   vuBar: {
@@ -169,7 +169,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     fontSize: '9px',
-    color: '#64748b',
+    color: '#94a3b8',
     fontFamily: 'monospace',
     fontWeight: 700,
   },

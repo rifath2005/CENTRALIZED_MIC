@@ -120,12 +120,12 @@ export const BoardroomRoster: React.FC<BoardroomRosterProps> = ({
                 key={member.identity}
                 style={{
                   ...styles.memberCard,
-                  borderColor: isSpeaker ? '#059669' : isQueued ? '#d97706' : '#1f2937',
+                  borderColor: isSpeaker ? '#10b981' : isQueued ? '#f59e0b' : '#441e6a',
                   backgroundColor: isSpeaker
-                    ? 'rgba(6, 78, 59, 0.35)'
+                    ? 'rgba(16, 185, 129, 0.15)'
                     : isQueued
-                    ? 'rgba(120, 53, 15, 0.2)'
-                    : '#1e293b',
+                    ? 'rgba(245, 158, 11, 0.15)'
+                    : '#160a22',
                 }}
               >
                 <div style={styles.memberLeft}>
@@ -167,10 +167,11 @@ export const BoardroomRoster: React.FC<BoardroomRosterProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
+    backgroundColor: '#200f33',
+    border: '1px solid #441e6a',
     borderRadius: '14px',
     padding: '20px',
+    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
   },
   headerRow: {
     display: 'flex',
@@ -178,7 +179,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginBottom: '16px',
     paddingBottom: '12px',
-    borderBottom: '1px solid #1f2937',
+    borderBottom: '1px solid #441e6a',
   },
   titleGroup: {
     display: 'flex',
@@ -188,7 +189,7 @@ const styles: Record<string, React.CSSProperties> = {
   badge: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     letterSpacing: '1px',
   },
   title: {
@@ -201,9 +202,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    border: '1px solid #059669',
-    color: '#34d399',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    border: '1px solid #f59e0b',
+    color: '#fbbf24',
     fontSize: '12px',
     fontWeight: 700,
     padding: '6px 14px',
@@ -213,7 +214,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#34d399',
+    backgroundColor: '#fbbf24',
   },
   searchContainer: {
     position: 'relative',
@@ -221,12 +222,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   searchInput: {
     width: '100%',
-    backgroundColor: '#0f172a',
-    border: '1px solid #334155',
+    backgroundColor: '#160a22',
+    border: '1px solid #441e6a',
     borderRadius: '8px',
     padding: '8px 12px',
     fontSize: '12px',
-    color: '#ffffff',
+    color: '#f8fafc',
     outline: 'none',
   },
   clearSearchBtn: {
@@ -236,16 +237,16 @@ const styles: Record<string, React.CSSProperties> = {
     transform: 'translateY(-50%)',
     background: 'none',
     border: 'none',
-    color: '#94a3b8',
+    color: '#cbd5e1',
     cursor: 'pointer',
     fontSize: '12px',
   },
   emptyState: {
     padding: '36px 16px',
     textAlign: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#160a22',
     borderRadius: '10px',
-    border: '1px dashed #334155',
+    border: '1px dashed #441e6a',
   },
   emptyIcon: {
     fontSize: '32px',
@@ -260,7 +261,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   emptySubtext: {
     fontSize: '12px',
-    color: '#64748b',
+    color: '#94a3b8',
     margin: 0,
     maxWidth: '360px',
     marginLeft: 'auto',
@@ -322,9 +323,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   grantFloorBtn: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    color: '#38bdf8',
+    backgroundColor: '#2c1445',
+    border: '1px solid #5d2a90',
+    color: '#fbbf24',
     borderRadius: '6px',
     padding: '4px 10px',
     fontSize: '11px',
@@ -336,8 +337,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#059669',
-    color: '#ffffff',
+    backgroundColor: '#10b981',
+    color: '#022c22',
     fontSize: '10px',
     fontWeight: 800,
     padding: '3px 8px',
@@ -348,14 +349,15 @@ const styles: Record<string, React.CSSProperties> = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#022c22',
   },
   statusQueued: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#d97706',
-    color: '#ffffff',
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    border: '1px solid #f59e0b',
+    color: '#fbbf24',
     fontSize: '10px',
     fontWeight: 800,
     padding: '3px 8px',
@@ -366,15 +368,15 @@ const styles: Record<string, React.CSSProperties> = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#fbbf24',
   },
   statusIdle: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    color: '#94a3b8',
+    backgroundColor: '#160a22',
+    border: '1px solid #441e6a',
+    color: '#cbd5e1',
     fontSize: '10px',
     fontWeight: 700,
     padding: '3px 8px',
@@ -384,6 +386,6 @@ const styles: Record<string, React.CSSProperties> = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: '#64748b',
+    backgroundColor: '#5d2a90',
   },
 };

@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Centralized Mic Host Receiver
+   Theme: Deep Aubergine, Ice Silver, and Marigold
+   ========================================================================== */
+
 /* Global Reset & Base */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -6,75 +11,80 @@
 }
 
 :root {
-  --bg-primary: #090d16;
-  --bg-card: #111827;
-  --bg-card-hover: #1f2937;
-  --bg-input: #1e293b;
-  --border-subtle: #1f2937;
-  --border-focus: #38bdf8;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent-blue: #2563eb;
-  --accent-cyan: #38bdf8;
-  --accent-green: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-red: #ef4444;
-}
+  /* Deep Aubergine Palette */
+  --bg-deepest: #0d0515;
+  --bg-surface-dark: #160a22;
+  --bg-surface-card: #200f33;
+  --bg-surface-elevated: #2c1445;
+  --bg-surface-hover: #371956;
+  --border-aubergine: #441e6a;
+  --border-aubergine-light: #5d2a90;
 
-/* High Contrast Mode for Day / Projector */
-body.high-contrast {
-  --bg-primary: #000000;
-  --bg-card: #0f172a;
-  --bg-card-hover: #1e293b;
-  --border-subtle: #334155;
-  --text-main: #ffffff;
-  --text-muted: #cbd5e1;
+  /* Ice Silver Palette */
+  --text-ice-white: #f8fafc;
+  --text-ice-silver: #cbd5e1;
+  --text-silver-muted: #94a3b8;
+  --border-silver-subtle: rgba(203, 213, 225, 0.15);
+  --silver-chip-bg: rgba(203, 213, 225, 0.08);
+
+  /* Marigold Palette */
+  --marigold-primary: #f59e0b;
+  --marigold-bright: #fbbf24;
+  --marigold-dark: #d97706;
+  --marigold-deep: #b45309;
+  --marigold-tint: rgba(245, 158, 11, 0.12);
+  --marigold-glow: 0 0 20px rgba(245, 158, 11, 0.4);
+
+  /* Functional Status Accents */
+  --status-emerald: #10b981;
+  --status-crimson: #f43f5e;
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-main);
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-deepest);
+  color: var(--text-ice-white);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
-/* Custom Scrollbar */
+/* Custom Ice Silver / Aubergine Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--bg-surface-dark);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--border-aubergine-light);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--marigold-primary);
 }
 
 /* Animations */
-@keyframes pulseGlow {
+@keyframes pulseMarigoldGlow {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
   }
   50% {
-    opacity: 0.7;
-    transform: scale(1.08);
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.9);
+    opacity: 0.8;
+    transform: scale(1.06);
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.85);
   }
 }
 
 @keyframes pulseRedAlert {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
   }
   50% {
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.9);
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.95);
   }
 }
 
@@ -83,12 +93,12 @@ body {
     height: 4px;
   }
   50% {
-    height: 24px;
+    height: 28px;
   }
 }
 
-.pulse-live {
-  animation: pulseGlow 1.8s infinite ease-in-out;
+.pulse-marigold {
+  animation: pulseMarigoldGlow 1.8s infinite ease-in-out;
 }
 
 .pulse-emergency {
@@ -100,14 +110,15 @@ body {
   display: flex;
   align-items: center;
   gap: 3px;
-  height: 24px;
+  height: 28px;
 }
 
 .wave-bar {
-  width: 3px;
-  background-color: #34d399;
+  width: 4px;
+  background-color: var(--marigold-bright);
   border-radius: 2px;
   animation: soundwave 1s infinite ease-in-out;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
 }
 
 .wave-bar:nth-child(2) { animation-delay: 0.15s; }
@@ -130,13 +141,20 @@ body {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .responsive-header {
     flex-direction: column !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .responsive-nav-tabs {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
   }
   .responsive-header-right {
     width: 100% !important;
     justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
   }
 }
