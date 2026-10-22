@@ -135,7 +135,7 @@ export default function App() {
     if (transmitterError) {
       const lower = transmitterError.toLowerCase();
       if (lower.includes('room') || lower.includes('not found') || lower.includes('exist') || lower.includes('404')) {
-        setFriendlyError("Room not found. Please verify the code and try again.");
+        setFriendlyError("Room code doesn't match any active room. Please check your code.");
       } else if (lower.includes('mic') || lower.includes('permission')) {
         setFriendlyError("Microphone permission is required to talk.");
       } else {
@@ -341,7 +341,10 @@ export default function App() {
                     </Text>
                   </View>
                   <TextInput
-                    style={styles.roomInput}
+                    style={[
+                      styles.roomInput,
+                      friendlyError ? styles.roomInputError : null,
+                    ]}
                     value={roomCode}
                     onChangeText={handleRoomCodeChange}
                     placeholder="e.g. BOARD-101"
@@ -682,6 +685,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#5b268f',
     textAlign: 'center',
+  },
+  roomInputError: {
+    borderColor: '#f43f5e',
+    backgroundColor: 'rgba(244, 63, 94, 0.12)',
   },
   nameInput: {
     backgroundColor: '#200f33',

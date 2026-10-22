@@ -58,6 +58,9 @@ export function useLiveKitTransmitter({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 404 || errorData.error === 'ROOM_NOT_FOUND') {
+          throw new Error('ROOM_NOT_FOUND');
+        }
         throw new Error(errorData.error || `Token server returned status ${response.status}`);
       }
 

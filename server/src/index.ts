@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import {
   HostTokenRequestSchema,
   ParticipantTokenRequestSchema,
@@ -51,6 +51,15 @@ function assertLiveKitConfig() {
   }
 }
 
+let roomServiceClient: RoomServiceClient | null = null;
+function getRoomServiceClient(): RoomServiceClient {
+  assertLiveKitConfig();
+  if (!roomServiceClient) {
+    roomServiceClient = new RoomServiceClient(LIVEKIT_URL!, LIVEKIT_API_KEY!, LIVEKIT_API_SECRET!);
+  }
+  return roomServiceClient;
+}
+
 /**
  * Health check endpoint
  */
@@ -61,6 +70,33 @@ app.get('/api/health', (_req: Request, res: Response) => {
     livekitConfigured: configured,
     timestamp: new Date().toISOString(),
   });
+});
+
+/**
+ * Room Verification Endpoint
+ * Cross-checks if a room code exists and is currently active with a host receiver.
+ */
+app.get('/api/room/verify', async (req: Request, res: Response) => {
+  try {
+    assertLiveKitConfig();
+    const rawRoom = String(req.query.room || '').trim().toUpperCase();
+    if (!rawRoom) {
+      return res.status(400).json({ exists: false, error: 'Room parameter missing' });
+    }
+    const client = getRoomServiceClient();
+    const rooms = await client.listRooms([rawRoom]);
+    const matched = rooms.find((r) => r.name.toUpperCase() === rawRoom);
+    if (!matched || matched.numParticipants === 0) {
+      return res.status(404).json({
+        exists: false,
+        error: 'ROOM_NOT_FOUND',
+        message: `Room "${rawRoom}" does not exist or is not active.`,
+      });
+    }
+    return res.status(200).json({ exists: true, participants: matched.numParticipants });
+  } catch (err) {
+    return res.status(500).json({ exists: false, error: 'VERIFICATION_ERROR' });
+  }
 });
 
 /**
@@ -139,6 +175,27 @@ app.post('/api/token/participant', async (req: Request, res: Response<TokenRespo
     }
 
     const { roomName, participantIdentity, participantName } = parseResult.data;
+    const sanitizedRoom = roomName.trim().toUpperCase();
+
+    // Verify room actually exists on LiveKit and has an active host receiver
+    try {
+      const client = getRoomServiceClient();
+      const rooms = await client.listRooms([sanitizedRoom]);
+      const matched = rooms.find((r) => r.name.toUpperCase() === sanitizedRoom);
+      if (!matched || matched.numParticipants === 0) {
+        return res.status(404).json({
+          error: 'ROOM_NOT_FOUND',
+          message: `Room "${sanitizedRoom}" does not exist or has no active host receiver.`,
+        });
+      }
+    } catch (checkErr) {
+      console.error('[Server] Room existence verification check error:', checkErr);
+      return res.status(500).json({
+        error: 'VERIFICATION_FAILED',
+        message: 'Unable to verify room availability with audio server.',
+      });
+    }
+
     const identity = participantIdentity || `phone-${crypto.randomBytes(4).toString('hex')}`;
     const displayName = participantName || `Mic-${identity.slice(-4)}`;
 
@@ -152,13 +209,15 @@ app.post('/api/token/participant', async (req: Request, res: Response<TokenRespo
     // - Can publish single audio track
     // - Can NOT subscribe to audio/video (cuts mobile decode pipeline and radio duty cycle)
     // - Can publish data (for floor request & release messages)
+    // - roomCreate: false explicitly blocks participant from creating empty ghost rooms!
     at.addGrant({
       roomJoin: true,
-      room: roomName,
+      room: sanitizedRoom,
       canPublish: true,
       canSubscribe: false,
       canPublishData: true,
       roomAdmin: false,
+      roomCreate: false,
     });
 
     const token = await at.toJwt();
