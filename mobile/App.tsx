@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Clipboard,
 } from 'react-native';
 import { useLiveKitTransmitter } from './src/hooks/useLiveKitTransmitter';
 import { useFloorControl } from './src/hooks/useFloorControl';
@@ -40,7 +41,7 @@ export default function App() {
   const [showPreflightCheck, setShowPreflightCheck] = useState(false);
   const [recentRooms, setRecentRooms] = useState<string[]>(['BOARDROOM-1', 'CONF-101']);
 
-  // Participant ID
+  // Unique participant ID
   const participantId = useMemo(
     () => `phone-${nameInput.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,7 +131,7 @@ export default function App() {
         if (parsed.server) {
           setTokenServerUrl(parsed.server);
         }
-        Alert.alert('QR Scanned Successfully', `Paired to room: ${targetRoom}`);
+        Alert.alert('Configuration Applied', `Paired to room: ${targetRoom}`);
         if (autoConnect) {
           setTimeout(() => connect(), 400);
         }
@@ -156,6 +157,20 @@ export default function App() {
     }
   };
 
+  // One-Tap Paste from Clipboard
+  const handlePasteFromClipboard = async () => {
+    try {
+      const text = await Clipboard.getString();
+      if (text && text.trim()) {
+        handleApplyPayload(text, true);
+      } else {
+        Alert.alert('Clipboard is Empty', 'Copy a room code or QR configuration first, then tap Paste & Join.');
+      }
+    } catch {
+      Alert.alert('Clipboard Error', 'Could not access clipboard contents.');
+    }
+  };
+
   // Launch Native Google Play Services Code Scanner
   const handleScanQRCode = async () => {
     try {
@@ -163,8 +178,8 @@ export default function App() {
       if (scannedCode) {
         handleApplyPayload(scannedCode, true);
       }
-    } catch (err) {
-      Alert.alert('Scanner Error', 'Could not initialize camera scanner. You can enter or paste the code manually.');
+    } catch {
+      Alert.alert('Scanner Error', 'Could not open camera scanner. You can enter or paste the code manually.');
     }
   };
 
@@ -201,13 +216,13 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#070B12" />
+      <StatusBar barStyle="light-content" backgroundColor="#0d0515" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
+          {/* Top Brand Header */}
           <View style={styles.header}>
             <View style={styles.headerTopRow}>
               <View style={styles.brandRow}>
@@ -238,22 +253,36 @@ export default function App() {
               <View style={styles.cardHeader}>
                 <Text style={styles.cardTitle}>Join Sound System</Text>
                 <Text style={styles.cardSubtitle}>
-                  Pair with host receiver via QR scan or room code
+                  Pair with venue receiver via QR scan, clipboard, or code
                 </Text>
               </View>
 
-              {/* Big Prominent Camera QR Scanner Button */}
-              <TouchableOpacity
-                style={styles.scanButton}
-                onPress={handleScanQRCode}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.scanButtonIcon}>📷</Text>
-                <View style={styles.scanButtonTextColumn}>
-                  <Text style={styles.scanButtonTitle}>SCAN HOST QR CODE</Text>
-                  <Text style={styles.scanButtonSub}>Point camera at computer or projector screen</Text>
-                </View>
-              </TouchableOpacity>
+              {/* Two-Button Quick Connect Grid: Scan & Paste */}
+              <View style={styles.quickPairRow}>
+                <TouchableOpacity
+                  style={styles.scanButton}
+                  onPress={handleScanQRCode}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.scanButtonIcon}>📷</Text>
+                  <View style={styles.scanButtonTextColumn}>
+                    <Text style={styles.scanButtonTitle}>SCAN QR</Text>
+                    <Text style={styles.scanButtonSub}>Point Camera</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.pasteButton}
+                  onPress={handlePasteFromClipboard}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.pasteButtonIcon}>📋</Text>
+                  <View style={styles.scanButtonTextColumn}>
+                    <Text style={styles.pasteButtonTitle}>PASTE &amp; JOIN</Text>
+                    <Text style={styles.pasteButtonSub}>From Clipboard</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.dividerRow}>
                 <View style={styles.dividerLine} />
@@ -269,17 +298,7 @@ export default function App() {
                     <Text style={styles.actionLink}>🎲 Unique</Text>
                   </TouchableOpacity>
                   <Text style={styles.actionSep}>•</Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      Alert.prompt
-                        ? Alert.prompt(
-                            'Paste Code or JSON',
-                            'Paste room code or QR JSON string:',
-                            (text) => text && handleApplyPayload(text)
-                          )
-                        : null;
-                    }}
-                  >
+                  <TouchableOpacity onPress={handlePasteFromClipboard}>
                     <Text style={styles.actionLink}>📋 Paste</Text>
                   </TouchableOpacity>
                 </View>
@@ -290,7 +309,7 @@ export default function App() {
                 value={roomInput}
                 onChangeText={(text) => handleApplyPayload(text)}
                 placeholder="e.g. BOARDROOM-1"
-                placeholderTextColor="#64748b"
+                placeholderTextColor="#7e6b99"
                 autoCapitalize="characters"
                 autoCorrect={false}
               />
@@ -333,7 +352,7 @@ export default function App() {
                 value={nameInput}
                 onChangeText={setNameInput}
                 placeholder="e.g. Sarah Jenkins (VP)"
-                placeholderTextColor="#64748b"
+                placeholderTextColor="#7e6b99"
                 autoCorrect={false}
               />
 
@@ -361,13 +380,13 @@ export default function App() {
                 onPress={() => setShowPreflightCheck(!showPreflightCheck)}
               >
                 <Text style={styles.preflightToggleText}>
-                  {showPreflightCheck ? '▲ Hide Mic Pre-Check' : '🎙️ Pre-Flight Mic Check'}
+                  {showPreflightCheck ? '▲ Hide Mic Advice' : '🎙️ Pre-Flight Mic Advice'}
                 </Text>
               </TouchableOpacity>
 
               {showPreflightCheck && (
                 <View style={styles.preflightBox}>
-                  <Text style={styles.preflightTitle}>Acoustic Pre-Flight Check</Text>
+                  <Text style={styles.preflightTitle}>Acoustic Near-Field Advice</Text>
                   <Text style={styles.preflightDesc}>
                     When you speak into the phone, hold it 5–10 cm from your lips.
                     Android hardware AEC will filter room speaker reflection automatically.
@@ -383,7 +402,7 @@ export default function App() {
                     value={tokenServerUrl}
                     onChangeText={setTokenServerUrl}
                     placeholder="https://centralized-mic-token-server.onrender.com"
-                    placeholderTextColor="#64748b"
+                    placeholderTextColor="#7e6b99"
                     autoCapitalize="none"
                     autoCorrect={false}
                   />
@@ -399,7 +418,7 @@ export default function App() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Render Cold-Start Helper */}
+              {/* Cold-Start Helper */}
               {connectionState === 'connecting' && connectingElapsed > 3 && (
                 <View style={styles.coldStartCard}>
                   <Text style={styles.coldStartTitle}>⏳ Connecting to LiveKit Server ({connectingElapsed}s)</Text>
@@ -436,7 +455,7 @@ export default function App() {
                     <Text
                       style={[
                         styles.speakerValue,
-                        { color: isSpeaking ? '#34d399' : currentSpeaker ? '#ffffff' : '#38bdf8' },
+                        { color: isSpeaking ? '#34d399' : currentSpeaker ? '#ffffff' : '#c084fc' },
                       ]}
                     >
                       {isSpeaking
@@ -504,13 +523,13 @@ export default function App() {
               {showAcousticTips && (
                 <View style={styles.acousticTipsBox}>
                   <Text style={styles.acousticTipItem}>
-                    • <strong>Near-Field (5–10 cm):</strong> Hold phone like a mic near your mouth to maximize vocal signal.
+                    • Near-Field (5–10 cm): Hold phone like a mic near your mouth to maximize vocal signal.
                   </Text>
                   <Text style={styles.acousticTipItem}>
-                    • <strong>Single Speaker:</strong> The room system only unmutes one phone at a time to prevent screeching feedback.
+                    • Single Speaker: The room system only unmutes one phone at a time to prevent screeching feedback.
                   </Text>
                   <Text style={styles.acousticTipItem}>
-                    • <strong>Auto Mute:</strong> Releasing the button or tapping mute immediately kills your audio stream.
+                    • Auto Mute: Releasing the button or tapping mute immediately kills your audio stream.
                   </Text>
                 </View>
               )}
@@ -538,7 +557,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#070B12',
+    backgroundColor: '#0d0515',
   },
   keyboardContainer: {
     flex: 1,
@@ -566,9 +585,9 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 10,
-    backgroundColor: '#0f172a',
+    backgroundColor: '#200f33',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -578,37 +597,37 @@ const styles = StyleSheet.create({
   appTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#38bdf8',
+    color: '#ffffff',
     letterSpacing: 1.5,
   },
   appSubtitle: {
     fontSize: 11,
-    color: '#94a3b8',
+    color: '#d8b4fe',
     marginTop: 1,
   },
   latencyBadge: {
-    backgroundColor: 'rgba(52, 211, 153, 0.12)',
+    backgroundColor: 'rgba(168, 85, 247, 0.15)',
     borderWidth: 1,
-    borderColor: '#059669',
+    borderColor: '#7e22ce',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   latencyBadgeText: {
-    color: '#34d399',
+    color: '#d8b4fe',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   card: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#160a24',
     borderRadius: 18,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#1e293b',
-    shadowColor: '#000',
+    borderColor: '#4d2179',
+    shadowColor: '#3b0764',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.45,
     shadowRadius: 10,
   },
   cardHeader: {
@@ -618,39 +637,75 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#f8fafc',
+    color: '#ffffff',
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: '#cbd5e1',
     textAlign: 'center',
   },
+  quickPairRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 18,
+  },
   scanButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: '#581c87',
     borderWidth: 1.5,
-    borderColor: '#0284c7',
+    borderColor: '#a855f7',
     borderRadius: 14,
-    padding: 16,
-    marginBottom: 18,
-    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    gap: 10,
+    shadowColor: '#a855f7',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
   },
   scanButtonIcon: {
-    fontSize: 28,
+    fontSize: 24,
   },
   scanButtonTextColumn: {
     flex: 1,
   },
   scanButtonTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
-    color: '#38bdf8',
-    letterSpacing: 1,
+    color: '#ffffff',
+    letterSpacing: 0.8,
   },
   scanButtonSub: {
-    fontSize: 11,
+    fontSize: 10,
+    color: '#e2d9f3',
+    marginTop: 2,
+  },
+  pasteButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#241038',
+    borderWidth: 1.5,
+    borderColor: '#7e22ce',
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    gap: 10,
+  },
+  pasteButtonIcon: {
+    fontSize: 24,
+  },
+  pasteButtonTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: 0.8,
+  },
+  pasteButtonSub: {
+    fontSize: 10,
     color: '#cbd5e1',
     marginTop: 2,
   },
@@ -662,10 +717,10 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#1e293b',
+    backgroundColor: '#3b165b',
   },
   dividerText: {
-    color: '#64748b',
+    color: '#a79bbd',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
@@ -680,7 +735,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: '#e2d9f3',
     letterSpacing: 1.2,
   },
   inputActions: {
@@ -690,15 +745,15 @@ const styles = StyleSheet.create({
   },
   actionLink: {
     fontSize: 11,
-    color: '#38bdf8',
+    color: '#c084fc',
     fontWeight: '700',
   },
   actionSep: {
-    color: '#475569',
+    color: '#6b2fa8',
     fontSize: 10,
   },
   input: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#200f33',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -706,7 +761,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#5b268f',
     marginBottom: 12,
   },
   recentRoomsRow: {
@@ -718,28 +773,28 @@ const styles = StyleSheet.create({
   },
   recentLabel: {
     fontSize: 10,
-    color: '#64748b',
+    color: '#a79bbd',
     fontWeight: '700',
   },
   recentChip: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#200f33',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#4d2179',
   },
   recentChipActive: {
-    borderColor: '#38bdf8',
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    borderColor: '#c084fc',
+    backgroundColor: 'rgba(168, 85, 247, 0.25)',
   },
   recentChipText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94a3b8',
+    color: '#cbd5e1',
   },
   recentChipTextActive: {
-    color: '#38bdf8',
+    color: '#ffffff',
   },
   sensitivityRow: {
     flexDirection: 'row',
@@ -750,7 +805,7 @@ const styles = StyleSheet.create({
   sensitivityLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: '#e2d9f3',
     letterSpacing: 1,
   },
   gainButtons: {
@@ -758,16 +813,16 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   gainPill: {
-    backgroundColor: '#1e293b',
+    backgroundColor: '#200f33',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#4d2179',
   },
   gainPillActive: {
-    backgroundColor: '#2563eb',
-    borderColor: '#38bdf8',
+    backgroundColor: '#7e22ce',
+    borderColor: '#c084fc',
   },
   gainPillText: {
     fontSize: 10,
@@ -782,14 +837,14 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   preflightToggleText: {
-    color: '#38bdf8',
+    color: '#c084fc',
     fontSize: 11,
     fontWeight: '700',
   },
   preflightBox: {
-    backgroundColor: '#070B12',
+    backgroundColor: '#0d0515',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
@@ -797,12 +852,12 @@ const styles = StyleSheet.create({
   preflightTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#cbd5e1',
+    color: '#ffffff',
     marginBottom: 4,
   },
   preflightDesc: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#cbd5e1',
     lineHeight: 15,
   },
   advancedConfig: {
@@ -813,7 +868,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   toggleConfigText: {
-    color: '#64748b',
+    color: '#a79bbd',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -826,7 +881,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   coldStartTitle: {
-    color: '#fcd34d',
+    color: '#fbbf24',
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 2,
@@ -837,24 +892,24 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   errorText: {
-    color: '#f87171',
+    color: '#fb7185',
     fontSize: 12,
     textAlign: 'center',
     marginBottom: 12,
   },
   connectButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#7e22ce',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 4,
-    shadowColor: '#2563eb',
+    shadowColor: '#a855f7',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.45,
     shadowRadius: 8,
   },
   connectButtonDisabled: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#3b165b',
     opacity: 0.7,
   },
   connectButtonText: {
@@ -870,11 +925,11 @@ const styles = StyleSheet.create({
   },
   statusCard: {
     width: '100%',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#160a24',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
     marginBottom: 10,
   },
   speakerRow: {
@@ -883,7 +938,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   speakerLabel: {
-    color: '#94a3b8',
+    color: '#d8b4fe',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
@@ -900,17 +955,17 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: '#3b165b',
   },
   queueLabel: {
-    color: '#f59e0b',
+    color: '#fbbf24',
     fontSize: 10,
     fontWeight: '800',
     marginBottom: 2,
     letterSpacing: 0.8,
   },
   queueValue: {
-    color: '#cbd5e1',
+    color: '#ffffff',
     fontSize: 11,
   },
   inCallGainRow: {
@@ -921,28 +976,28 @@ const styles = StyleSheet.create({
   },
   inCallGainLabel: {
     fontSize: 10,
-    color: '#94a3b8',
+    color: '#e2d9f3',
     fontWeight: '700',
   },
   inCallGainPill: {
-    backgroundColor: '#0f172a',
+    backgroundColor: '#200f33',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
   },
   inCallGainPillActive: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    borderColor: '#38bdf8',
+    backgroundColor: 'rgba(168, 85, 247, 0.25)',
+    borderColor: '#a855f7',
   },
   inCallGainText: {
     fontSize: 10,
-    color: '#64748b',
+    color: '#a79bbd',
     fontWeight: '700',
   },
   inCallGainTextActive: {
-    color: '#38bdf8',
+    color: '#ffffff',
   },
   acousticTipsPill: {
     marginVertical: 6,
@@ -950,14 +1005,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   acousticTipsPillText: {
-    color: '#38bdf8',
+    color: '#c084fc',
     fontSize: 11,
     fontWeight: '700',
   },
   acousticTipsBox: {
-    backgroundColor: '#090d16',
+    backgroundColor: '#160a24',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
     borderRadius: 10,
     padding: 12,
     marginBottom: 12,
@@ -976,11 +1031,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: '#f43f5e',
+    backgroundColor: 'rgba(244, 63, 94, 0.1)',
   },
   disconnectButtonText: {
-    color: '#f87171',
+    color: '#fb7185',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -990,7 +1045,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   footerNote: {
-    color: '#475569',
+    color: '#7e6b99',
     fontSize: 10,
     textAlign: 'center',
     lineHeight: 14,

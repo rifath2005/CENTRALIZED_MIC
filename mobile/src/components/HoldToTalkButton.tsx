@@ -166,11 +166,11 @@ export const HoldToTalkButton: React.FC<HoldToTalkButtonProps> = ({
   const getButtonConfig = () => {
     if (disabled) {
       return {
-        bg: '#111827',
-        border: '#1f2937',
+        bg: '#160a24',
+        border: '#3b165b',
         title: 'ROOM OFFLINE',
         subtitle: 'Connect to room to broadcast',
-        textColor: '#64748b',
+        textColor: '#7e6b99',
         ringColor: 'transparent',
       };
     }
@@ -187,33 +187,33 @@ export const HoldToTalkButton: React.FC<HoldToTalkButtonProps> = ({
         };
       case 'requesting':
         return {
-          bg: '#92400e',
-          border: '#f59e0b',
+          bg: '#4c1d95',
+          border: '#c084fc',
           title: 'REQUESTING...',
           subtitle: 'Acquiring microphone token',
           textColor: '#ffffff',
-          ringColor: 'rgba(245, 158, 11, 0.35)',
+          ringColor: 'rgba(192, 132, 252, 0.4)',
         };
       case 'queued':
         return {
-          bg: '#7c2d12',
-          border: '#ea580c',
+          bg: '#3b0764',
+          border: '#f59e0b',
           title: `WAITING IN LINE (#${queuePosition})`,
           subtitle: currentSpeakerName
             ? `${currentSpeakerName} is speaking. You are next.`
             : 'Holding your spot in line',
-          textColor: '#fef08a',
-          ringColor: 'rgba(234, 88, 12, 0.35)',
+          textColor: '#ffffff',
+          ringColor: 'rgba(245, 158, 11, 0.35)',
         };
       case 'idle':
       default:
         return {
-          bg: '#1d4ed8',
-          border: '#60a5fa',
+          bg: '#581c87',
+          border: '#a855f7',
           title: interactionMode === 'hold' ? 'HOLD TO TALK' : 'TAP TO SPEAK',
           subtitle: interactionMode === 'hold' ? 'Press & hold to project voice' : 'Tap to lock microphone on',
           textColor: '#ffffff',
-          ringColor: 'transparent',
+          ringColor: 'rgba(168, 85, 247, 0.35)',
         };
     }
   };
@@ -337,12 +337,12 @@ const styles = StyleSheet.create({
   },
   modeSwitcher: {
     flexDirection: 'row',
-    backgroundColor: '#0f172a',
+    backgroundColor: '#160a24',
     borderRadius: 22,
     padding: 3,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
   },
   modeButton: {
     paddingHorizontal: 16,
@@ -350,15 +350,15 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   modeButtonActive: {
-    backgroundColor: '#2563eb',
+    backgroundColor: '#7e22ce',
     elevation: 4,
-    shadowColor: '#2563eb',
-    shadowOpacity: 0.4,
+    shadowColor: '#a855f7',
+    shadowOpacity: 0.5,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
   },
   modeButtonText: {
-    color: '#94a3b8',
+    color: '#cbd5e1',
     fontSize: 11,
     fontWeight: '700',
   },

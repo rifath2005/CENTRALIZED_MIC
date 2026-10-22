@@ -25,26 +25,26 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
         };
       case 'connecting':
         return {
-          bg: '#451a03',
-          dot: '#f59e0b',
-          border: '#d97706',
+          bg: '#3b0764',
+          dot: '#c084fc',
+          border: '#7e22ce',
           label: 'CONNECTING...',
           qualityText: 'BRIDGING SFU',
         };
       case 'reconnecting':
         return {
-          bg: '#701a75',
-          dot: '#e879f9',
-          border: '#c026d3',
+          bg: '#581c87',
+          dot: '#d8b4fe',
+          border: '#a855f7',
           label: 'RECONNECTING',
           qualityText: 'HANDOFF',
         };
       case 'offline':
       default:
         return {
-          bg: '#0f172a',
-          dot: '#64748b',
-          border: '#1e293b',
+          bg: '#160a24',
+          dot: '#7e6b99',
+          border: '#4d2179',
           label: 'OFFLINE',
           qualityText: 'STANDBY',
         };

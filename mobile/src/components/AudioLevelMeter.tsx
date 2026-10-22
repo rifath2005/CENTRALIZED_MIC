@@ -51,8 +51,8 @@ export const AudioLevelMeter: React.FC<AudioLevelMeterProps> = ({
               style={[
                 styles.segment,
                 {
-                  backgroundColor: isLit ? color : '#1e293b',
-                  opacity: isLit ? 1 : 0.25,
+                  backgroundColor: isLit ? color : '#200f33',
+                  opacity: isLit ? 1 : 0.4,
                 },
               ]}
             />
@@ -93,21 +93,21 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
-    color: '#94a3b8',
+    color: '#e2d9f3',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.2,
   },
   boostPill: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    backgroundColor: 'rgba(168, 85, 247, 0.2)',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#0284c7',
+    borderColor: '#a855f7',
   },
   boostPillText: {
-    color: '#38bdf8',
+    color: '#d8b4fe',
     fontSize: 9,
     fontWeight: '800',
   },
@@ -121,13 +121,13 @@ const styles = StyleSheet.create({
     height: 14,
     width: '100%',
     maxWidth: 320,
-    backgroundColor: '#090d16',
+    backgroundColor: '#0d0515',
     borderRadius: 7,
     padding: 3,
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: '#4d2179',
   },
   segment: {
     flex: 1,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
   scaleText: {
     fontSize: 9,
-    color: '#64748b',
+    color: '#a79bbd',
     fontWeight: '700',
   },
 });
