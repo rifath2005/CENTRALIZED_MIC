@@ -19,7 +19,6 @@ export class AudioProcessingGraph {
   private analyserNode: AnalyserNode | null = null;
   private currentTrack: MediaStreamTrack | null = null;
   private currentStream: MediaStream | null = null;
-  private audioDestinationElement: HTMLAudioElement | null = null;
   private isUnlocked: boolean = false;
 
   constructor() {
@@ -112,6 +111,10 @@ export class AudioProcessingGraph {
     }
     this.currentTrack = null;
     this.currentStream = null;
+  }
+
+  public getCurrentTrack(): MediaStreamTrack | null {
+    return this.currentTrack;
   }
 
   /**

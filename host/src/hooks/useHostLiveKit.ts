@@ -5,6 +5,8 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
   RemoteParticipant,
+  TrackPublication,
+  Participant,
   Track,
 } from 'livekit-client';
 import { AudioProcessingGraph } from '../audio/AudioProcessingGraph';
@@ -90,7 +92,7 @@ export function useHostLiveKit({
           if (track.kind === Track.Kind.Audio) {
             console.log(`[HostLiveKit] Unsubscribed audio track from ${participant.identity}`);
             audioGraph.detachTrack();
-            setActiveSpeakerIdentity((prev) => (prev === participant.identity ? null : prev));
+            setActiveSpeakerIdentity((prev: string | null) => (prev === participant.identity ? null : prev));
           }
         }
       );
@@ -98,7 +100,7 @@ export function useHostLiveKit({
       // Handle track mute/unmute
       livekitRoom.on(
         RoomEvent.TrackMuted,
-        (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        (publication: TrackPublication, participant: Participant) => {
           if (publication.kind === Track.Kind.Audio) {
             console.log(`[HostLiveKit] Remote track MUTED by ${participant.identity}`);
             // If the current audio stream is muted by speaker releasing button, detach
@@ -109,7 +111,7 @@ export function useHostLiveKit({
 
       livekitRoom.on(
         RoomEvent.TrackUnmuted,
-        (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        (publication: TrackPublication, participant: Participant) => {
           if (publication.kind === Track.Kind.Audio && publication.track?.mediaStreamTrack) {
             console.log(`[HostLiveKit] Remote track UNMUTED by ${participant.identity}`);
             audioGraph.attachTrack(publication.track.mediaStreamTrack);
