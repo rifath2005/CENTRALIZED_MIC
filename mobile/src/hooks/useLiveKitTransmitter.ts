@@ -207,9 +207,31 @@ export function useLiveKitTransmitter({
         clearInterval(meterInterval);
       };
     } catch (err: unknown) {
-      console.error('[LiveKitTransmitter] Connection failed:', err);
-      const msg = err instanceof Error ? err.message : 'Failed to connect to room';
-      setError(msg);
+      console.error('[AirMic] Connection failed:', err);
+      const rawMsg = err instanceof Error ? err.message : '';
+      if (
+        rawMsg.includes('ROOM_NOT_FOUND') ||
+        rawMsg.includes('404') ||
+        rawMsg.includes('400') ||
+        rawMsg.toLowerCase().includes('room')
+      ) {
+        setError("Room doesn't exist or is closed. Please check your code.");
+      } else if (
+        rawMsg.includes('Network') ||
+        rawMsg.includes('fetch') ||
+        rawMsg.includes('Failed to fetch') ||
+        rawMsg.includes('50')
+      ) {
+        setError("Unable to reach stage server. Please check your connection.");
+      } else if (
+        rawMsg.includes('Permission') ||
+        rawMsg.includes('denied') ||
+        rawMsg.includes('Microphone')
+      ) {
+        setError("Microphone permission is required to speak.");
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
       setConnectionState('offline');
     }
   }, [roomName, participantName, fetchToken]);
