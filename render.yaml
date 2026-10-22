@@ -1,4 +1,5 @@
 services:
+  # 1. Token Service (Node.js/Express)
   - type: web
     name: centralized-mic-token-server
     runtime: node
@@ -18,3 +19,10 @@ services:
         value: "*"
       - key: TOKEN_TTL
         value: "3600"
+
+  # 2. Host Receiver Web Application (React / Web Audio)
+  - type: static
+    name: centralized-mic-receiver
+    rootDir: host
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
