@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Room,
   RoomEvent,
+  ParticipantEvent,
   LocalAudioTrack,
   createLocalAudioTrack,
   AudioPresets,
@@ -15,17 +16,24 @@ interface UseLiveKitTransmitterProps {
   tokenServerUrl: string;
   roomName: string;
   participantName: string;
+  participantIdentity?: string;
 }
 
 export function useLiveKitTransmitter({
   tokenServerUrl,
   roomName,
   participantName,
+  participantIdentity,
 }: UseLiveKitTransmitterProps) {
   const [room, setRoom] = useState<Room | null>(null);
   const [connectionState, setConnectionState] = useState<ConnectionState>('offline');
   const [audioLevel, setAudioLevel] = useState<number>(0);
+  const [connectionQuality, setConnectionQuality] = useState<'excellent' | 'good' | 'poor' | 'unknown'>('unknown');
+  const [micGain, setMicGain] = useState<number>(1.0);
   const [error, setError] = useState<string | null>(null);
+
+  const micGainRef = useRef<number>(1.0);
+  micGainRef.current = micGain;
 
   const localAudioTrackRef = useRef<LocalAudioTrack | null>(null);
   const currentTokenRef = useRef<string | null>(null);
@@ -44,6 +52,7 @@ export function useLiveKitTransmitter({
         body: JSON.stringify({
           roomName: rName,
           participantName: pName,
+          participantIdentity,
         }),
       });
 
@@ -55,7 +64,7 @@ export function useLiveKitTransmitter({
       const data = await response.json();
       return { token: data.token, url: data.url };
     },
-    [tokenServerUrl]
+    [tokenServerUrl, participantIdentity]
   );
 
   /**
@@ -163,15 +172,28 @@ export function useLiveKitTransmitter({
 
       // Audio level monitoring for transmitter UI feedback
       livekitRoom.localParticipant.on(
-        RoomEvent.LocalAudioSilenceDetected,
-        () => setAudioLevel(0)
+        ParticipantEvent.IsSpeakingChanged,
+        (speaking: boolean) => {
+          if (!speaking) setAudioLevel(0);
+        }
+      );
+
+      livekitRoom.localParticipant.on(
+        ParticipantEvent.ConnectionQualityChanged,
+        (quality: ConnectionQuality) => {
+          if (quality === ConnectionQuality.Excellent) setConnectionQuality('excellent');
+          else if (quality === ConnectionQuality.Good) setConnectionQuality('good');
+          else if (quality === ConnectionQuality.Poor) setConnectionQuality('poor');
+          else setConnectionQuality('unknown');
+        }
       );
 
       // Periodically sample participant audio level
       const meterInterval = setInterval(() => {
         if (livekitRoom.state === 'connected' && livekitRoom.localParticipant.isSpeaking) {
-          // LiveKit audioLevel ranges from 0.0 to 1.0
-          setAudioLevel(livekitRoom.localParticipant.audioLevel);
+          // LiveKit audioLevel ranges from 0.0 to 1.0, scaled by user mic gain boost
+          const raw = livekitRoom.localParticipant.audioLevel;
+          setAudioLevel(Math.min(raw * micGainRef.current, 1.0));
         } else {
           setAudioLevel(0);
         }
@@ -278,6 +300,9 @@ export function useLiveKitTransmitter({
     room,
     connectionState,
     audioLevel,
+    connectionQuality,
+    micGain,
+    setMicGain,
     error,
     connect,
     disconnect,

@@ -20,11 +20,14 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
   onBackToConsole,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
   const [isEditingCode, setIsEditingCode] = useState<boolean>(false);
   const [tempCode, setTempCode] = useState<string>(roomCode);
   const [editError, setEditError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [elapsedSpeakerSeconds, setElapsedSpeakerSeconds] = useState(0);
 
-  // Sync fullscreen state with document events
+  // Sync fullscreen state
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(Boolean(document.fullscreenElement));
@@ -36,6 +39,20 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
     };
   }, []);
 
+  // Speaker timer
+  useEffect(() => {
+    if (!currentSpeaker) {
+      setElapsedSpeakerSeconds(0);
+      return;
+    }
+    const updateTime = () => {
+      setElapsedSpeakerSeconds(Math.max(0, Math.floor((Date.now() - currentSpeaker.grantedAt) / 1000)));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [currentSpeaker]);
+
   const toggleFullscreen = async () => {
     try {
       if (!document.fullscreenElement) {
@@ -45,6 +62,16 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
       }
     } catch (err) {
       console.warn('[ProjectorView] Fullscreen toggle error:', err);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.warn('[ProjectorView] Copy error:', err);
     }
   };
 
@@ -70,57 +97,106 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
     server: tokenServerUrl,
   });
 
+  const formatTimer = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+  };
+
   return (
-    <div style={styles.projectorContainer}>
+    <div
+      style={{
+        ...styles.projectorContainer,
+        backgroundColor: isHighContrast ? '#000000' : '#050811',
+      }}
+    >
       {/* Top Floating Controls */}
-      <div style={styles.topBar}>
+      <header style={styles.topBar}>
         <button style={styles.navButton} onClick={onBackToConsole}>
-          ← BACK TO AUDIO CONSOLE
+          ← PA AUDIO CONSOLE
         </button>
 
         <div style={styles.topRightActions}>
+          {/* Day / High Contrast Toggle */}
+          <button
+            style={{
+              ...styles.secondaryBtn,
+              backgroundColor: isHighContrast ? '#38bdf8' : '#1e293b',
+              color: isHighContrast ? '#000000' : '#cbd5e1',
+            }}
+            onClick={() => setIsHighContrast(!isHighContrast)}
+            title="Toggle high contrast for bright projector lamps"
+          >
+            {isHighContrast ? '☀️ Bright Room Mode' : '🌙 Dark Room Mode'}
+          </button>
+
+          {/* Active attendee counter */}
           <div style={styles.attendancePill}>
-            <span style={styles.livePulseDot} />
-            <span>{memberCount} {memberCount === 1 ? 'Device' : 'Devices'} Connected</span>
+            <span className="pulse-live" style={styles.livePulseDot} />
+            <span>{memberCount} {memberCount === 1 ? 'Attendee' : 'Attendees'} Connected</span>
           </div>
 
           <button style={styles.fullscreenButton} onClick={toggleFullscreen}>
             {isFullscreen ? '⤢ EXIT FULLSCREEN' : '⤡ FULL SCREEN DISPLAY'}
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Showcase Grid */}
-      <div style={styles.showcaseCard}>
+      {/* Main Showcase Card */}
+      <div
+        style={{
+          ...styles.showcaseCard,
+          backgroundColor: isHighContrast ? '#050a14' : '#0d1322',
+          borderColor: isHighContrast ? '#334155' : '#1e293b',
+        }}
+      >
         {/* On-Air Banner if someone is holding floor */}
         {currentSpeaker && (
           <div style={styles.onAirBanner}>
-            <span style={styles.onAirDot} />
-            <span style={styles.onAirText}>
-              ON AIR: <strong>{currentSpeaker.name}</strong> is currently speaking
-            </span>
+            <div style={styles.onAirLeft}>
+              <span className="pulse-live" style={styles.onAirDot} />
+              <span style={styles.onAirText}>
+                ON AIR: <strong>{currentSpeaker.name}</strong> is currently speaking
+              </span>
+            </div>
+            <div style={styles.onAirRight}>
+              <div className="wave-container">
+                <div className="wave-bar" />
+                <div className="wave-bar" />
+                <div className="wave-bar" />
+                <div className="wave-bar" />
+                <div className="wave-bar" />
+              </div>
+              <span style={styles.onAirTimer}>{formatTimer(elapsedSpeakerSeconds)}</span>
+            </div>
           </div>
         )}
 
-        <div style={styles.contentGrid}>
+        <div className="responsive-projector-grid" style={styles.contentGrid}>
           {/* Left: Giant High-Visibility QR Code */}
           <div style={styles.qrSection}>
-            <div style={styles.qrFrame}>
+            <div
+              style={{
+                ...styles.qrFrame,
+                backgroundColor: isHighContrast ? '#ffffff' : '#090d16',
+                borderColor: isHighContrast ? '#38bdf8' : '#1e293b',
+              }}
+            >
               <QRCodeSVG
                 value={pairingPayload}
-                size={280}
-                bgColor="#090d16"
-                fgColor="#38bdf8"
+                size={260}
+                bgColor={isHighContrast ? '#ffffff' : '#090d16'}
+                fgColor={isHighContrast ? '#000000' : '#38bdf8'}
                 level="Q"
                 includeMargin={false}
               />
             </div>
-            <span style={styles.qrScanLabel}>POINT CAMERA TO PAIR INSTANTLY</span>
+            <span style={styles.qrScanLabel}>POINT CAMERA TO PAIR SMARTPHONE</span>
           </div>
 
           {/* Right: Code Details & Instructions */}
-          <div style={styles.detailsSection}>
-            <span style={styles.subHeader}>BOARDROOM WIRELESS MICROPHONE</span>
+          <div className="responsive-projector-details" style={styles.detailsSection}>
+            <span style={styles.subHeader}>BOARDROOM SOUND SYSTEM</span>
             <h1 style={styles.mainTitle}>Join Meeting Sound System</h1>
 
             {/* Room Code Display or Editor */}
@@ -135,7 +211,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
                       setIsEditingCode(true);
                     }}
                   >
-                    ✏️ Change Code
+                    ✏️ Edit Code
                   </button>
                 )}
               </div>
@@ -153,7 +229,7 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
                   {editError && <span style={styles.editErrorText}>{editError}</span>}
                   <div style={styles.editButtonsRow}>
                     <button style={styles.saveCodeBtn} onClick={handleSaveCode}>
-                      SAVE & SWITCH ROOM
+                      SAVE &amp; SWITCH ROOM
                     </button>
                     <button
                       style={styles.cancelCodeBtn}
@@ -167,8 +243,25 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
                   </div>
                 </div>
               ) : (
-                <div style={styles.codeBanner}>
-                  <span style={styles.bigCodeText}>{roomCode}</span>
+                <div style={styles.codeBannerRow}>
+                  <div style={styles.codeBanner}>
+                    <span style={styles.bigCodeText}>{roomCode}</span>
+                  </div>
+                  <button style={styles.copyCodeBtn} onClick={handleCopyCode}>
+                    {copied ? '✓ Copied!' : '📋 Copy'}
+                  </button>
+                  <button
+                    style={styles.randomCodeBtn}
+                    onClick={() => {
+                      const prefixes = ['BOARD', 'CONF', 'AUDIT', 'ROOM', 'MEET', 'STUDIO'];
+                      const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+                      const n = Math.floor(1000 + Math.random() * 9000);
+                      onUpdateRoomCode(`${p}-${n}`);
+                    }}
+                    title="Generate unique room code to avoid collisions online"
+                  >
+                    🎲 Unique Room
+                  </button>
                 </div>
               )}
             </div>
@@ -178,19 +271,19 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
               <div style={styles.stepItem}>
                 <span style={styles.stepNumber}>1</span>
                 <div>
-                  <strong>Open App:</strong> Launch the Wireless Mic app on iOS or Android.
+                  <strong>Open App:</strong> Launch the Centralized Mic app on iPhone or Android.
                 </div>
               </div>
               <div style={styles.stepItem}>
                 <span style={styles.stepNumber}>2</span>
                 <div>
-                  <strong>Pair:</strong> Scan the QR code or type code <code>{roomCode}</code>.
+                  <strong>Pair:</strong> Point phone camera at the QR code or enter code <code>{roomCode}</code>.
                 </div>
               </div>
               <div style={styles.stepItem}>
                 <span style={styles.stepNumber}>3</span>
                 <div>
-                  <strong>Speak:</strong> Press and hold the button to project through venue PA speakers.
+                  <strong>Speak:</strong> Press and hold the button to project speech through venue PA speakers.
                 </div>
               </div>
             </div>
@@ -204,15 +297,15 @@ export const ProjectorView: React.FC<ProjectorViewProps> = ({
 const styles: Record<string, React.CSSProperties> = {
   projectorContainer: {
     minHeight: '100vh',
-    backgroundColor: '#050811',
     color: '#f8fafc',
-    padding: '32px 48px',
+    padding: '24px 36px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     boxSizing: 'border-box',
     position: 'relative',
+    transition: 'background-color 0.3s ease',
   },
   topBar: {
     width: '100%',
@@ -220,16 +313,18 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '28px',
+    marginBottom: '24px',
+    gap: '12px',
+    flexWrap: 'wrap',
   },
   navButton: {
     backgroundColor: '#1e293b',
     border: '1px solid #334155',
-    color: '#94a3b8',
+    color: '#cbd5e1',
     padding: '10px 18px',
     borderRadius: '8px',
     fontSize: '12px',
-    fontWeight: 700,
+    fontWeight: 800,
     letterSpacing: '0.8px',
     cursor: 'pointer',
     transition: 'all 0.2s',
@@ -237,7 +332,17 @@ const styles: Record<string, React.CSSProperties> = {
   topRightActions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  secondaryBtn: {
+    border: '1px solid #334155',
+    padding: '8px 14px',
+    borderRadius: '8px',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
   },
   attendancePill: {
     display: 'flex',
@@ -248,7 +353,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#34d399',
     padding: '8px 16px',
     borderRadius: '20px',
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 800,
   },
   livePulseDot: {
@@ -256,13 +361,12 @@ const styles: Record<string, React.CSSProperties> = {
     height: '8px',
     borderRadius: '50%',
     backgroundColor: '#34d399',
-    boxShadow: '0 0 10px #34d399',
   },
   fullscreenButton: {
     backgroundColor: '#2563eb',
     border: 'none',
     color: '#ffffff',
-    padding: '10px 20px',
+    padding: '10px 18px',
     borderRadius: '8px',
     fontSize: '12px',
     fontWeight: 800,
@@ -272,37 +376,56 @@ const styles: Record<string, React.CSSProperties> = {
   showcaseCard: {
     width: '100%',
     maxWidth: '1100px',
-    backgroundColor: '#0d1322',
-    border: '1px solid #1e293b',
     borderRadius: '24px',
-    padding: '44px 52px',
+    border: '1px solid #1e293b',
+    padding: '36px 48px',
     boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
   },
   onAirBanner: {
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
+    justifyContent: 'space-between',
     backgroundColor: '#064e3b',
     border: '1px solid #059669',
-    borderRadius: '12px',
-    padding: '14px 20px',
-    marginBottom: '32px',
+    borderRadius: '14px',
+    padding: '16px 24px',
+    marginBottom: '28px',
+    gap: '16px',
+    flexWrap: 'wrap',
+  },
+  onAirLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
   },
   onAirDot: {
     width: '12px',
     height: '12px',
     borderRadius: '50%',
     backgroundColor: '#34d399',
-    boxShadow: '0 0 12px #34d399',
   },
   onAirText: {
-    fontSize: '16px',
+    fontSize: '18px',
     color: '#ffffff',
+  },
+  onAirRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  onAirTimer: {
+    fontSize: '16px',
+    fontWeight: 800,
+    color: '#34d399',
+    fontFamily: 'monospace',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    padding: '4px 10px',
+    borderRadius: '6px',
   },
   contentGrid: {
     display: 'grid',
     gridTemplateColumns: 'auto 1fr',
-    gap: '56px',
+    gap: '48px',
     alignItems: 'center',
   },
   qrSection: {
@@ -312,9 +435,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '16px',
   },
   qrFrame: {
-    backgroundColor: '#090d16',
     border: '4px solid #1e293b',
-    borderRadius: '20px',
+    borderRadius: '24px',
     padding: '24px',
     boxShadow: '0 12px 32px rgba(0, 0, 0, 0.5)',
   },
@@ -323,6 +445,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     color: '#38bdf8',
     letterSpacing: '1.5px',
+    textAlign: 'center',
   },
   detailsSection: {
     display: 'flex',
@@ -336,20 +459,20 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '8px',
   },
   mainTitle: {
-    fontSize: '34px',
+    fontSize: '32px',
     fontWeight: 900,
     color: '#ffffff',
     letterSpacing: '-0.5px',
-    margin: '0 0 24px 0',
+    margin: '0 0 20px 0',
   },
   codeContainer: {
-    marginBottom: '28px',
+    marginBottom: '24px',
   },
   codeHeader: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    marginBottom: '10px',
+    marginBottom: '8px',
   },
   codeLabel: {
     fontSize: '12px',
@@ -366,19 +489,45 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     textDecoration: 'underline',
   },
+  codeBannerRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
   codeBanner: {
     backgroundColor: '#090d16',
     border: '2px dashed #2563eb',
-    borderRadius: '16px',
-    padding: '16px 28px',
+    borderRadius: '14px',
+    padding: '14px 24px',
     display: 'inline-block',
   },
   bigCodeText: {
-    fontSize: '44px',
+    fontSize: '40px',
     fontWeight: 900,
     letterSpacing: '4px',
     color: '#38bdf8',
     fontFamily: 'monospace',
+  },
+  copyCodeBtn: {
+    backgroundColor: '#1e293b',
+    border: '1px solid #334155',
+    color: '#cbd5e1',
+    borderRadius: '8px',
+    padding: '12px 18px',
+    fontSize: '13px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  },
+  randomCodeBtn: {
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    border: '1px solid #0284c7',
+    color: '#38bdf8',
+    borderRadius: '8px',
+    padding: '12px 18px',
+    fontSize: '13px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
   },
   editCodeBox: {
     display: 'flex',
@@ -428,25 +577,25 @@ const styles: Record<string, React.CSSProperties> = {
   instructionsList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '14px',
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
+    gap: '12px',
+    backgroundColor: '#0f172a',
+    border: '1px solid #1e293b',
     borderRadius: '14px',
-    padding: '20px 24px',
+    padding: '18px 22px',
   },
   stepItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '14px',
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#cbd5e1',
   },
   stepNumber: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: '26px',
-    height: '26px',
+    width: '24px',
+    height: '24px',
     borderRadius: '50%',
     backgroundColor: '#2563eb',
     color: '#ffffff',

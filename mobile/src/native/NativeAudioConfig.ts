@@ -77,4 +77,20 @@ export const NativeAudio = {
       }
     }
   },
+
+  /**
+   * Scans QR code via Google Code Scanner bottom sheet
+   */
+  async scanQRCode(): Promise<string | null> {
+    if (Platform.OS === 'android' && AudioConfigModule?.scanQRCode) {
+      try {
+        const result = await AudioConfigModule.scanQRCode();
+        console.log('[NativeAudio] QR Code scanned:', result);
+        return result;
+      } catch (err) {
+        console.warn('[NativeAudio] QR Scan error or cancelled:', err);
+      }
+    }
+    return null;
+  },
 };

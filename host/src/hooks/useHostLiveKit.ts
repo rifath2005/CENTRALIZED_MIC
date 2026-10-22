@@ -5,6 +5,7 @@ import {
   RemoteTrack,
   RemoteTrackPublication,
   RemoteParticipant,
+  RemoteAudioTrack,
   TrackPublication,
   Participant,
   Track,
@@ -78,11 +79,7 @@ export function useHostLiveKit({
           if (track.kind === Track.Kind.Audio) {
             console.log(`[HostLiveKit] Subscribed to audio track from ${participant.identity}`);
             setActiveSpeakerIdentity(participant.identity);
-
-            // Connect track to Web Audio processing graph (Limiter + Highpass + Master Gain)
-            if (track.mediaStreamTrack) {
-              audioGraph.attachTrack(track.mediaStreamTrack);
-            }
+            audioGraph.attachRemoteTrack(track as RemoteAudioTrack);
           }
         }
       );
@@ -93,7 +90,7 @@ export function useHostLiveKit({
         (track: RemoteTrack, _publication: RemoteTrackPublication, participant: RemoteParticipant) => {
           if (track.kind === Track.Kind.Audio) {
             console.log(`[HostLiveKit] Unsubscribed audio track from ${participant.identity}`);
-            audioGraph.detachTrack();
+            audioGraph.detachRemoteTrack(track as RemoteAudioTrack);
             setActiveSpeakerIdentity((prev: string | null) => (prev === participant.identity ? null : prev));
           }
         }
@@ -105,8 +102,7 @@ export function useHostLiveKit({
         (publication: TrackPublication, participant: Participant) => {
           if (publication.kind === Track.Kind.Audio) {
             console.log(`[HostLiveKit] Remote track MUTED by ${participant.identity}`);
-            // If the current audio stream is muted by speaker releasing button, detach
-            audioGraph.detachTrack();
+            setActiveSpeakerIdentity((prev) => (prev === participant.identity ? null : prev));
           }
         }
       );
@@ -114,9 +110,9 @@ export function useHostLiveKit({
       livekitRoom.on(
         RoomEvent.TrackUnmuted,
         (publication: TrackPublication, participant: Participant) => {
-          if (publication.kind === Track.Kind.Audio && publication.track?.mediaStreamTrack) {
+          if (publication.kind === Track.Kind.Audio && publication.track) {
             console.log(`[HostLiveKit] Remote track UNMUTED by ${participant.identity}`);
-            audioGraph.attachTrack(publication.track.mediaStreamTrack);
+            audioGraph.attachRemoteTrack(publication.track as RemoteAudioTrack);
             setActiveSpeakerIdentity(participant.identity);
           }
         }
@@ -153,6 +149,17 @@ export function useHostLiveKit({
         }));
         setMembers(initialMembers);
         console.log(`[HostLiveKit] Host connected to room: ${roomName}. Initial members: ${initialMembers.length}`);
+
+        // Automatically attach any existing tracks from participants already in the room
+        livekitRoom.remoteParticipants.forEach((p) => {
+          p.audioTrackPublications.forEach((pub) => {
+            if (pub.track && pub.isSubscribed) {
+              console.log(`[HostLiveKit] Attaching pre-existing track from ${p.identity}`);
+              audioGraph.attachRemoteTrack(pub.track as RemoteAudioTrack);
+              setActiveSpeakerIdentity(p.identity);
+            }
+          });
+        });
       });
 
       livekitRoom.on(RoomEvent.Disconnected, () => {
@@ -160,7 +167,7 @@ export function useHostLiveKit({
         setIsConnecting(false);
         setActiveSpeakerIdentity(null);
         setMembers([]);
-        audioGraph.detachTrack();
+        audioGraph.detachRemoteTrack();
         console.log('[HostLiveKit] Host disconnected from room');
       });
 

@@ -131,6 +131,62 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
     broadcastFloorStatus(currentSpeakerRef.current, []);
   }, [broadcastFloorStatus]);
 
+  /**
+   * Host manual override: Grant floor directly to a specific participant
+   */
+  const grantFloorTo = useCallback(
+    async (participantId: string, participantName: string) => {
+      if (currentSpeakerRef.current && currentSpeakerRef.current.id !== participantId) {
+        if (room && room.state === 'connected') {
+          try {
+            const revokeMsg = JSON.stringify({
+              type: 'REVOKE_FLOOR',
+              participantId: currentSpeakerRef.current.id,
+              reason: 'Floor granted to another participant by host',
+            });
+            await room.localParticipant.publishData(new TextEncoder().encode(revokeMsg), {
+              reliable: true,
+              topic: 'floor-control',
+            });
+          } catch (err) {
+            console.warn('[FloorArbiter] Failed to publish revoke message:', err);
+          }
+        }
+      }
+
+      const remainingQueue = queueRef.current.filter((e) => e.id !== participantId);
+      const newSpeaker: SpeakerInfo = {
+        id: participantId,
+        name: participantName,
+        grantedAt: Date.now(),
+      };
+
+      currentSpeakerRef.current = newSpeaker;
+      queueRef.current = remainingQueue;
+      lastHeartbeatTimeRef.current = Date.now();
+      setCurrentSpeaker(newSpeaker);
+      setQueue(remainingQueue);
+
+      broadcastFloorStatus(newSpeaker, remainingQueue);
+    },
+    [room, broadcastFloorStatus]
+  );
+
+  /**
+   * Host manual override: Remove a specific participant from queue
+   */
+  const removeFromQueue = useCallback(
+    (participantId: string) => {
+      const remainingQueue = queueRef.current.filter((e) => e.id !== participantId);
+      if (remainingQueue.length !== queueRef.current.length) {
+        queueRef.current = remainingQueue;
+        setQueue(remainingQueue);
+        broadcastFloorStatus(currentSpeakerRef.current, remainingQueue);
+      }
+    },
+    [broadcastFloorStatus]
+  );
+
   // Main floor control message listener
   useEffect(() => {
     if (!room) return;
@@ -256,5 +312,7 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
     queue,
     forceRevokeCurrentSpeaker,
     clearQueue,
+    grantFloorTo,
+    removeFromQueue,
   };
 }

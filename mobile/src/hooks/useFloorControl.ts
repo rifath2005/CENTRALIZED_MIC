@@ -28,6 +28,7 @@ export function useFloorControl({
   const [holdState, setHoldState] = useState<FloorHoldState>('idle');
 
   const isHoldingButtonRef = useRef<boolean>(false);
+  const isToggleLockedRef = useRef<boolean>(false);
   const heartbeatTimerRef = useRef<NodeJS.Timeout | null>(null);
   const callbacksRef = useRef({ onFloorGranted, onFloorRevoked });
 
@@ -39,6 +40,7 @@ export function useFloorControl({
   const isSpeaking = currentSpeaker?.id === participantId;
   const queueIndex = queue.findIndex((entry) => entry.id === participantId);
   const queuePosition = queueIndex !== -1 ? queueIndex + 1 : null;
+  const isQueued = queueIndex !== -1;
 
   /**
    * Broadcast data helper using LiveKit reliable channel
@@ -60,25 +62,34 @@ export function useFloorControl({
   );
 
   /**
-   * Request the floor when user presses hold-to-talk button
+   * Request the floor (Hold-to-talk press or Toggle-to-talk tap)
    */
-  const requestFloor = useCallback(async () => {
-    isHoldingButtonRef.current = true;
-    setHoldState('requesting');
+  const requestFloor = useCallback(
+    async (isToggleMode: boolean = false) => {
+      if (isToggleMode) {
+        isToggleLockedRef.current = true;
+      } else {
+        isHoldingButtonRef.current = true;
+      }
 
-    await sendFloorMessage({
-      type: 'REQUEST_FLOOR',
-      participantId,
-      participantName,
-      timestamp: Date.now(),
-    });
-  }, [participantId, participantName, sendFloorMessage]);
+      setHoldState('requesting');
+
+      await sendFloorMessage({
+        type: 'REQUEST_FLOOR',
+        participantId,
+        participantName,
+        timestamp: Date.now(),
+      });
+    },
+    [participantId, participantName, sendFloorMessage]
+  );
 
   /**
-   * Release the floor when user releases the button
+   * Release the floor when user releases button or taps mute
    */
   const releaseFloor = useCallback(async () => {
     isHoldingButtonRef.current = false;
+    isToggleLockedRef.current = false;
     setHoldState('idle');
 
     if (heartbeatTimerRef.current) {
@@ -93,6 +104,21 @@ export function useFloorControl({
     });
 
     callbacksRef.current.onFloorRevoked();
+  }, [participantId, sendFloorMessage]);
+
+  /**
+   * Leave queue explicitly without disconnecting
+   */
+  const leaveQueue = useCallback(async () => {
+    isHoldingButtonRef.current = false;
+    isToggleLockedRef.current = false;
+    setHoldState('idle');
+
+    await sendFloorMessage({
+      type: 'RELEASE_FLOOR',
+      participantId,
+      timestamp: Date.now(),
+    });
   }, [participantId, sendFloorMessage]);
 
   // Handle incoming data messages from Host arbiter
@@ -120,18 +146,14 @@ export function useFloorControl({
           const amInQueue = status.queue.some((e) => e.id === participantId);
 
           if (amISpeaker) {
-            if (isHoldingButtonRef.current) {
-              setHoldState('speaking');
-              callbacksRef.current.onFloorGranted();
-            } else {
-              // Edge case: granted after user already released button
-              releaseFloor();
-            }
+            setHoldState('speaking');
+            callbacksRef.current.onFloorGranted();
           } else if (amInQueue) {
             setHoldState('queued');
             callbacksRef.current.onFloorRevoked();
           } else {
-            if (!isHoldingButtonRef.current) {
+            // Neither speaking nor in queue
+            if (!isHoldingButtonRef.current && !isToggleLockedRef.current) {
               setHoldState('idle');
             }
             callbacksRef.current.onFloorRevoked();
@@ -139,6 +161,7 @@ export function useFloorControl({
         } else if (data.type === 'REVOKE_FLOOR' && data.participantId === participantId) {
           setHoldState('idle');
           isHoldingButtonRef.current = false;
+          isToggleLockedRef.current = false;
           callbacksRef.current.onFloorRevoked();
         }
       } catch (err) {
@@ -151,9 +174,9 @@ export function useFloorControl({
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived);
     };
-  }, [room, participantId, releaseFloor]);
+  }, [room, participantId]);
 
-  // Periodic heartbeat while holding floor (every 1.5 seconds) to prevent stuck floor
+  // Periodic heartbeat while holding floor (every 1.5s) to prevent stuck floor
   useEffect(() => {
     if (isSpeaking) {
       heartbeatTimerRef.current = setInterval(() => {
@@ -182,9 +205,11 @@ export function useFloorControl({
     currentSpeaker,
     queue,
     isSpeaking,
+    isQueued,
     queuePosition,
     holdState,
     requestFloor,
     releaseFloor,
+    leaveQueue,
   };
 }

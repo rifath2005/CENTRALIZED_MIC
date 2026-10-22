@@ -1,10 +1,16 @@
 package com.wirelessmic;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Build;
 import androidx.annotation.NonNull;
+
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -86,6 +92,40 @@ public class AudioConfigModule extends ReactContextBaseJavaModule {
             promise.resolve(true);
         } catch (Exception e) {
             promise.reject("STOP_SERVICE_ERROR", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Scans QR Code using Google Play Services Code Scanner without requiring camera permissions.
+     */
+    @ReactMethod
+    public void scanQRCode(Promise promise) {
+        Activity currentActivity = getCurrentActivity();
+        if (currentActivity == null) {
+            promise.reject("ACTIVITY_NULL", "Current activity is null");
+            return;
+        }
+
+        try {
+            GmsBarcodeScannerOptions options = new GmsBarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                .enableAutoZoom()
+                .build();
+
+            GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(currentActivity, options);
+            scanner.startScan()
+                .addOnSuccessListener(barcode -> {
+                    String rawValue = barcode.getRawValue();
+                    promise.resolve(rawValue);
+                })
+                .addOnCanceledListener(() -> {
+                    promise.resolve(null);
+                })
+                .addOnFailureListener(e -> {
+                    promise.reject("SCAN_FAILED", e.getMessage(), e);
+                });
+        } catch (Exception e) {
+            promise.reject("SCANNER_INIT_ERROR", e.getMessage(), e);
         }
     }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface AudioUnlockGateProps {
   isUnlocked: boolean;
@@ -6,28 +6,58 @@ interface AudioUnlockGateProps {
 }
 
 export const AudioUnlockGate: React.FC<AudioUnlockGateProps> = ({ isUnlocked, onUnlock }) => {
+  const [isActivating, setIsActivating] = useState(false);
+
+  // When unlocked, return null so it doesn't pollute the layout or projector view
   if (isUnlocked) {
-    return (
-      <div style={styles.bannerUnlocked}>
-        <span style={styles.dotUnlocked}></span>
-        <span style={styles.textUnlocked}>
-          PA Audio Pipeline Running (Web Audio Context Active, 48kHz interactive buffer)
-        </span>
-      </div>
-    );
+    return null;
   }
+
+  const handleStart = async () => {
+    try {
+      setIsActivating(true);
+      await onUnlock();
+    } finally {
+      setIsActivating(false);
+    }
+  };
 
   return (
     <div style={styles.modalOverlay}>
       <div style={styles.modalContent}>
         <div style={styles.iconWrapper}>🔊</div>
-        <h2 style={styles.modalTitle}>Browser Autoplay Protection</h2>
+        <div style={styles.badge}>AUTOPLAY PROTECTION REQUIRED</div>
+        <h2 style={styles.modalTitle}>Activate PA Audio Pipeline</h2>
         <p style={styles.modalDescription}>
-          Modern browsers block automatic audio output until an explicit user gesture is provided.
-          Click below to initialize the Web Audio rendering pipeline and route incoming speech directly to the meeting room PA sound system.
+          Web browsers require an explicit user gesture before routing incoming WebRTC microphone streams
+          to your meeting room PA system or external soundcard.
         </p>
-        <button style={styles.unlockButton} onClick={onUnlock}>
-          START SESSION / UNMUTE SPEAKERS
+
+        <div style={styles.checklist}>
+          <div style={styles.checkItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span>Initializes 48kHz interactive low-latency audio buffer</span>
+          </div>
+          <div style={styles.checkItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span>Arms 80Hz rumble highpass filter &amp; 3ms peak limiter</span>
+          </div>
+          <div style={styles.checkItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span>Connects directly to LiveKit SFU receiver</span>
+          </div>
+        </div>
+
+        <button
+          style={{
+            ...styles.unlockButton,
+            opacity: isActivating ? 0.7 : 1,
+            cursor: isActivating ? 'wait' : 'pointer',
+          }}
+          onClick={handleStart}
+          disabled={isActivating}
+        >
+          {isActivating ? 'STARTING AUDIO PIPELINE...' : 'START SESSION & UNMUTE SPEAKERS'}
         </button>
       </div>
     </div>
@@ -35,62 +65,77 @@ export const AudioUnlockGate: React.FC<AudioUnlockGateProps> = ({ isUnlocked, on
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  bannerUnlocked: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    backgroundColor: 'rgba(5, 150, 105, 0.15)',
-    border: '1px solid #059669',
-    borderRadius: '8px',
-    padding: '8px 16px',
-    fontSize: '13px',
-    color: '#34d399',
-    fontWeight: 600,
-  },
-  dotUnlocked: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#34d399',
-    boxShadow: '0 0 8px #34d399',
-  },
-  textUnlocked: {
-    letterSpacing: '0.3px',
-  },
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    backgroundColor: 'rgba(5, 9, 20, 0.92)',
-    backdropFilter: 'blur(8px)',
+    backgroundColor: 'rgba(5, 9, 20, 0.94)',
+    backdropFilter: 'blur(10px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,
+    padding: '20px',
   },
   modalContent: {
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
-    borderRadius: '16px',
-    padding: '36px',
+    backgroundColor: '#0f172a',
+    border: '1px solid #1e293b',
+    borderRadius: '20px',
+    padding: '40px 36px',
     maxWidth: '520px',
+    width: '100%',
     textAlign: 'center',
-    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
   },
   iconWrapper: {
     fontSize: '48px',
+    marginBottom: '12px',
+  },
+  badge: {
+    display: 'inline-block',
+    fontSize: '11px',
+    fontWeight: 800,
+    letterSpacing: '1.2px',
+    color: '#38bdf8',
+    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    padding: '4px 12px',
+    borderRadius: '12px',
     marginBottom: '16px',
   },
   modalTitle: {
-    fontSize: '22px',
-    fontWeight: 800,
-    color: '#f8fafc',
+    fontSize: '24px',
+    fontWeight: 900,
+    color: '#ffffff',
+    letterSpacing: '-0.5px',
     marginBottom: '12px',
   },
   modalDescription: {
     fontSize: '14px',
     color: '#94a3b8',
     lineHeight: '1.6',
+    marginBottom: '24px',
+  },
+  checklist: {
+    backgroundColor: '#111827',
+    border: '1px solid #1f2937',
+    borderRadius: '12px',
+    padding: '16px',
     marginBottom: '28px',
+    textAlign: 'left',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  checkItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    fontSize: '12px',
+    color: '#cbd5e1',
+    fontWeight: 500,
+  },
+  checkIcon: {
+    color: '#34d399',
+    fontWeight: 800,
   },
   unlockButton: {
     width: '100%',
@@ -99,10 +144,10 @@ const styles: Record<string, React.CSSProperties> = {
     border: 'none',
     borderRadius: '12px',
     padding: '16px 24px',
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: 800,
-    letterSpacing: '1px',
-    cursor: 'pointer',
-    transition: 'background-color 0.2s',
+    letterSpacing: '0.8px',
+    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)',
+    transition: 'all 0.2s ease',
   },
 };

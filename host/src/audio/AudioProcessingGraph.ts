@@ -1,4 +1,5 @@
 import { LimiterSettings } from '../types';
+import { RemoteAudioTrack } from 'livekit-client';
 
 export const HARD_VOLUME_CEILING = 0.90; // Software-enforced maximum gain to prevent acoustic runaway
 
@@ -13,6 +14,8 @@ export const DEFAULT_LIMITER_SETTINGS: LimiterSettings = {
 export class AudioProcessingGraph {
   private ctx: AudioContext | null = null;
   private sourceNode: MediaStreamAudioSourceNode | null = null;
+  private mediaElementSource: MediaElementAudioSourceNode | null = null;
+  private audioElement: HTMLAudioElement | null = null;
   private highpassFilter: BiquadFilterNode | null = null;
   private compressorNode: DynamicsCompressorNode | null = null;
   private masterGainNode: GainNode | null = null;
@@ -20,6 +23,8 @@ export class AudioProcessingGraph {
   private currentTrack: MediaStreamTrack | null = null;
   private currentStream: MediaStream | null = null;
   private isUnlocked: boolean = false;
+  private isEmergencyMuted: boolean = false;
+  private preMuteVolume: number = 0.75;
 
   constructor() {
     // AudioContext will be initialized upon user gesture (unlock gate)
@@ -83,6 +88,86 @@ export class AudioProcessingGraph {
   }
 
   /**
+   * Dedicated hidden audio sink element ensuring Chromium actively decodes WebRTC Opus streams
+   */
+  private getAudioElement(): HTMLAudioElement {
+    if (!this.audioElement) {
+      let el = document.getElementById('centralized-mic-audio-sink') as HTMLAudioElement;
+      if (!el) {
+        el = document.createElement('audio');
+        el.id = 'centralized-mic-audio-sink';
+        el.autoplay = true;
+        // @ts-ignore
+        el.playsInline = true;
+        el.style.display = 'none';
+        document.body.appendChild(el);
+      }
+      this.audioElement = el;
+    }
+    return this.audioElement;
+  }
+
+  /**
+   * Attaches an incoming LiveKit RemoteAudioTrack:
+   * 1. Attaches to HTML5 audio element so browser WebRTC engine decodes and renders stream.
+   * 2. Routes audio element into Web Audio DSP graph (Limiter, 80Hz rumble cut, Peak VU meter).
+   */
+  public attachRemoteTrack(track: RemoteAudioTrack) {
+    const audioEl = this.getAudioElement();
+
+    try {
+      track.attach(audioEl);
+      audioEl.volume = this.preMuteVolume;
+      const playPromise = audioEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('[AudioGraph] HTML5 audio play:', err);
+        });
+      }
+      console.log('[AudioGraph] LiveKit track attached to HTMLAudioElement and playing');
+    } catch (err) {
+      console.warn('[AudioGraph] Error attaching LiveKit track to audio element:', err);
+    }
+
+    if (this.ctx && this.highpassFilter) {
+      if (!this.mediaElementSource) {
+        try {
+          this.mediaElementSource = this.ctx.createMediaElementSource(audioEl);
+          this.mediaElementSource.connect(this.highpassFilter);
+          console.log('[AudioGraph] AudioElement routed directly through Web Audio Limiter graph');
+        } catch (err) {
+          console.warn('[AudioGraph] createMediaElementSource note:', err);
+        }
+      }
+
+      if (track.mediaStreamTrack) {
+        this.attachTrack(track.mediaStreamTrack);
+      }
+
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
+    }
+  }
+
+  /**
+   * Detaches incoming LiveKit RemoteAudioTrack
+   */
+  public detachRemoteTrack(track?: RemoteAudioTrack) {
+    const audioEl = this.getAudioElement();
+    try {
+      if (track) {
+        track.detach(audioEl);
+      } else {
+        audioEl.srcObject = null;
+      }
+    } catch (err) {
+      console.warn('[AudioGraph] Error detaching track:', err);
+    }
+    this.detachTrack();
+  }
+
+  /**
    * Attaches an incoming WebRTC MediaStreamTrack to the Web Audio processing chain.
    */
   public attachTrack(track: MediaStreamTrack) {
@@ -95,10 +180,13 @@ export class AudioProcessingGraph {
 
     this.currentTrack = track;
     this.currentStream = new MediaStream([track]);
-    this.sourceNode = this.ctx.createMediaStreamSource(this.currentStream);
-    this.sourceNode.connect(this.highpassFilter);
-
-    console.log('[AudioGraph] Audio track attached to Web Audio limiter graph');
+    try {
+      this.sourceNode = this.ctx.createMediaStreamSource(this.currentStream);
+      this.sourceNode.connect(this.highpassFilter);
+      console.log('[AudioGraph] Audio track attached to Web Audio limiter graph');
+    } catch (err) {
+      console.warn('[AudioGraph] Error creating MediaStreamSource:', err);
+    }
   }
 
   /**
@@ -134,9 +222,67 @@ export class AudioProcessingGraph {
    * Sets master output volume with strict software clamp ceiling (<= HARD_VOLUME_CEILING)
    */
   public setMasterVolume(targetVolume: number) {
-    if (!this.ctx || !this.masterGainNode) return;
     const clamped = Math.min(Math.max(0, targetVolume), HARD_VOLUME_CEILING);
-    this.masterGainNode.gain.setValueAtTime(clamped, this.ctx.currentTime);
+    this.preMuteVolume = clamped;
+    if (this.audioElement) {
+      this.audioElement.volume = clamped;
+    }
+    if (!this.ctx || !this.masterGainNode) return;
+    if (!this.isEmergencyMuted) {
+      this.masterGainNode.gain.setValueAtTime(clamped, this.ctx.currentTime);
+    }
+  }
+
+  /**
+   * Toggles emergency master mute for instant PA feedback kill
+   */
+  public toggleEmergencyMute(): boolean {
+    this.isEmergencyMuted = !this.isEmergencyMuted;
+    if (this.audioElement) {
+      this.audioElement.muted = this.isEmergencyMuted;
+    }
+    if (!this.ctx || !this.masterGainNode) return this.isEmergencyMuted;
+
+    const now = this.ctx.currentTime;
+    if (this.isEmergencyMuted) {
+      this.masterGainNode.gain.cancelScheduledValues(now);
+      this.masterGainNode.gain.setValueAtTime(0, now);
+    } else {
+      this.masterGainNode.gain.cancelScheduledValues(now);
+      this.masterGainNode.gain.setValueAtTime(this.preMuteVolume, now);
+    }
+    return this.isEmergencyMuted;
+  }
+
+  public getIsEmergencyMuted(): boolean {
+    return this.isEmergencyMuted;
+  }
+
+  /**
+   * Plays a pleasant dual-tone chime (C5 -> E5) to test room speakers without speech
+   */
+  public playTestTone(): void {
+    if (!this.ctx || !this.masterGainNode) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now); // C5
+      osc.frequency.setValueAtTime(659.25, now + 0.12); // E5
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc.connect(gain);
+      gain.connect(this.masterGainNode);
+
+      osc.start(now);
+      osc.stop(now + 0.36);
+    } catch (err) {
+      console.warn('[AudioGraph] Error playing test tone:', err);
+    }
   }
 
   /**
