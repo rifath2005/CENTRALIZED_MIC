@@ -61,3 +61,10 @@ export interface AudioOutputDeviceInfo {
   deviceId: string;
   label: string;
 }
+
+export interface BoardroomMember {
+  identity: string;
+  name: string;
+  joinedAt: number;
+}
+

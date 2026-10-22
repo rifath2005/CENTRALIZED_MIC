@@ -10,6 +10,7 @@ import {
   Track,
 } from 'livekit-client';
 import { AudioProcessingGraph } from '../audio/AudioProcessingGraph';
+import { BoardroomMember } from '../types';
 
 interface UseHostLiveKitProps {
   tokenServerUrl: string;
@@ -26,6 +27,7 @@ export function useHostLiveKit({
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [activeSpeakerIdentity, setActiveSpeakerIdentity] = useState<string | null>(null);
+  const [members, setMembers] = useState<BoardroomMember[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const roomRef = useRef<Room | null>(null);
@@ -120,16 +122,44 @@ export function useHostLiveKit({
         }
       );
 
+      // Real-time Boardroom Member Tracking
+      livekitRoom.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
+        console.log(`[HostLiveKit] Boardroom member connected: ${participant.identity}`);
+        setMembers((prev) => {
+          if (prev.some((m) => m.identity === participant.identity)) return prev;
+          return [
+            ...prev,
+            {
+              identity: participant.identity,
+              name: participant.name || participant.identity,
+              joinedAt: Date.now(),
+            },
+          ];
+        });
+      });
+
+      livekitRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
+        console.log(`[HostLiveKit] Boardroom member disconnected: ${participant.identity}`);
+        setMembers((prev) => prev.filter((m) => m.identity !== participant.identity));
+      });
+
       livekitRoom.on(RoomEvent.Connected, () => {
         setIsConnected(true);
         setIsConnecting(false);
-        console.log(`[HostLiveKit] Host connected to room: ${roomName}`);
+        const initialMembers: BoardroomMember[] = Array.from(livekitRoom.remoteParticipants.values()).map((p) => ({
+          identity: p.identity,
+          name: p.name || p.identity,
+          joinedAt: Date.now(),
+        }));
+        setMembers(initialMembers);
+        console.log(`[HostLiveKit] Host connected to room: ${roomName}. Initial members: ${initialMembers.length}`);
       });
 
       livekitRoom.on(RoomEvent.Disconnected, () => {
         setIsConnected(false);
         setIsConnecting(false);
         setActiveSpeakerIdentity(null);
+        setMembers([]);
         audioGraph.detachTrack();
         console.log('[HostLiveKit] Host disconnected from room');
       });
@@ -141,6 +171,7 @@ export function useHostLiveKit({
       setError(err instanceof Error ? err.message : 'Failed to connect host');
       setIsConnecting(false);
       setIsConnected(false);
+      setMembers([]);
     }
   }, [roomName, fetchHostToken, audioGraph]);
 
@@ -157,6 +188,7 @@ export function useHostLiveKit({
     setIsConnected(false);
     setIsConnecting(false);
     setActiveSpeakerIdentity(null);
+    setMembers([]);
   }, [audioGraph]);
 
   useEffect(() => {
@@ -172,6 +204,8 @@ export function useHostLiveKit({
     isConnected,
     isConnecting,
     activeSpeakerIdentity,
+    members,
+    memberCount: members.length,
     error,
     connectHost,
     disconnectHost,
