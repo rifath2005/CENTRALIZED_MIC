@@ -8,15 +8,17 @@
     "start": "react-native start"
   },
   "dependencies": {
-    "@livekit/react-native": "^2.6.4",
-    "@livekit/react-native-webrtc": "^124.0.5",
-    "livekit-client": "^2.1.4",
+    "@livekit/react-native": "^2.12.0",
+    "@livekit/react-native-webrtc": "^144.2.0",
+    "livekit-client": "^2.19.0",
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-haptic-feedback": "^2.2.0",
     "react-native-svg": "^15.3.0"
   },
   "devDependencies": {
+    "@react-native/babel-preset": "^0.74.89",
+    "@react-native/metro-config": "^0.74.89",
     "@types/react": "^18.2.79",
     "@types/react-native": "^0.73.0",
     "typescript": "^5.4.5"
