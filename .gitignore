@@ -50,3 +50,6 @@ mobile/ios/*.xcodeproj/xcuserdata
 mobile/android/.gradle/
 mobile/android/app/build/
 mobile/android/.cxx/
+local.properties
+mobile/android/local.properties
+
