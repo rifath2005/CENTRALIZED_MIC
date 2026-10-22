@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AirMic — Instant Stage Microphone</title>
+  
+  <!-- iOS PWA meta tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AirMic">
+  <meta name="theme-color" content="#0d0515">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- LiveKit Client SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.1.4/dist/livekit-client.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg-primary: #0d0515;
+      --bg-surface: #160a22;
+      --bg-card: #200f33;
+      --border-color: #441e6a;
+      --border-accent: #5d2a90;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #cbd5e1;
+      --gold: #f59e0b;
+      --gold-light: #fbbf24;
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.4);
+      --red: #f43f5e;
+      --purple-glow: rgba(168, 85, 247, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overscroll-behavior: none;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    .container {
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    /* Screen management */
+    .screen {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header styling */
+    .brand-header {
+      text-align: center;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2e1053, #160a22);
+      border: 2px solid #6b21a8;
+      box-shadow: 0 0 25px var(--purple-glow);
+      margin-bottom: 12px;
+    }
+
+    .logo-badge svg {
+      width: 34px;
+      height: 34px;
+      fill: var(--gold-light);
+    }
+
+    .app-title {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .app-subtitle {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* Card Box */
+    .form-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-sub);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .text-input {
+      width: 100%;
+      background-color: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      outline: none;
+      transition: all 0.2s ease;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    .text-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.3);
+    }
+
+    .text-input.input-error {
+      border-color: var(--red);
+      background-color: rgba(244, 63, 94, 0.08);
+    }
+
+    .code-input {
+      letter-spacing: 2px;
+      font-family: monospace;
+      text-transform: uppercase;
+    }
+
+    /* Error Banner */
+    .error-banner {
+      display: none;
+      background-color: rgba(244, 63, 94, 0.12);
+      border: 1px solid var(--red);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #fecdd3;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 18px;
+      align-items: center;
+      gap: 10px;
+    }
+    .error-banner.visible {
+      display: flex;
+    }
+
+    /* Action Buttons */
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0d0515;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
+      transition: transform 0.1s ease, filter 0.2s ease;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+      filter: brightness(0.9);
+    }
+
+    .helper-text {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 18px;
+      line-height: 1.5;
+    }
+
+    /* Connecting Animation */
+    .connecting-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+    }
+
+    .pulse-ring-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+    }
+
+    .pulse-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid #a855f7;
+      animation: ripple 1.6s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
+    }
+
+    .pulse-ring:nth-child(2) {
+      animation-delay: 0.5s;
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(0.7); opacity: 0.9; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    .connecting-icon-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3b0764, #160a22);
+      border: 2px solid #9333ea;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+    }
+
+    .connecting-icon-circle svg {
+      width: 38px;
+      height: 38px;
+      fill: var(--gold-light);
+    }
+
+    .connecting-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .connecting-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Stage Screen */
+    .stage-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .btn-exit {
+      background: transparent;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      color: #fda4af;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Speaker Status Card */
+    .speaker-status-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+      transition: all 0.25s ease;
+    }
+
+    .speaker-status-card.on-air {
+      background-color: rgba(16, 185, 129, 0.12);
+      border-color: var(--green);
+      box-shadow: 0 0 20px var(--green-glow);
+    }
+
+    .speaker-status-card.in-queue {
+      background-color: rgba(245, 158, 11, 0.12);
+      border-color: var(--gold);
+    }
+
+    .status-title {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .status-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* VU Level Meter */
+    .vu-meter-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 24px;
+    }
+
+    .meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .meter-track {
+      height: 16px;
+      background-color: #08030d;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981 0%, #fbbf24 75%, #f43f5e 100%);
+      border-radius: 6px;
+      transition: width 0.06s ease-out;
+    }
+
+    /* Huge Push-To-Talk Button */
+    .ptt-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .ptt-btn {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #2d1347 0%, #150924 100%);
+      border: 4px solid var(--gold);
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.3), inset 0 2px 10px rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      outline: none;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      transition: transform 0.12s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ptt-btn:active, .ptt-btn.active {
+      transform: scale(0.95);
+    }
+
+    .ptt-btn.on-air {
+      border-color: var(--green);
+      background: radial-gradient(circle at 35% 35%, #064e3b 0%, #022c22 100%);
+      box-shadow: 0 0 45px var(--green-glow), inset 0 0 20px rgba(16, 185, 129, 0.3);
+      animation: onAirPulse 1.2s infinite ease-in-out;
+    }
+
+    @keyframes onAirPulse {
+      0%, 100% { box-shadow: 0 0 35px var(--green-glow); }
+      50% { box-shadow: 0 0 60px rgba(16, 185, 129, 0.7); }
+    }
+
+    .ptt-btn.in-queue {
+      border-color: var(--gold);
+      background: radial-gradient(circle at 35% 35%, #451a03 0%, #1c0a02 100%);
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.5);
+    }
+
+    .ptt-icon {
+      width: 58px;
+      height: 58px;
+      fill: var(--gold-light);
+      transition: fill 0.2s ease;
+    }
+
+    .ptt-btn.on-air .ptt-icon {
+      fill: #a7f3d0;
+    }
+
+    .ptt-label {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .ptt-btn.on-air .ptt-label {
+      color: #6ee7b7;
+    }
+
+    /* Mode Toggle */
+    .mode-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      transition: 0.25s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: var(--gold);
+      transition: 0.25s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #3b0764;
+      border-color: #9333ea;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #e9d5ff;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 14px;
+      letter-spacing: 0.2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <!-- 1. JOIN SCREEN -->
+    <div id="join-screen" class="screen active">
+      <div class="brand-header">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </div>
+        <h1 class="app-title">AirMic</h1>
+        <p class="app-subtitle">Instant Stage Microphone</p>
+      </div>
+
+      <div class="form-card">
+        <!-- Error Banner -->
+        <div id="error-banner" class="error-banner">
+          <span style="font-size: 16px;">⚠️</span>
+          <span id="error-text">Room code doesn't match any active room. Please check your code.</span>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="room-input">Room Code</label>
+          <input 
+            type="text" 
+            id="room-input" 
+            class="text-input code-input" 
+            placeholder="e.g. BOARDROOM-1" 
+            maxlength="10" 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="characters" 
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="name-input">Your Name (Optional)</label>
+          <input 
+            type="text" 
+            id="name-input" 
+            class="text-input" 
+            placeholder="e.g. Sarah" 
+            maxlength="20" 
+            autocomplete="name"
+          />
+        </div>
+
+        <button id="join-btn" class="btn-primary">Join Stage</button>
+
+        <p class="helper-text">
+          Instant low-latency connection.<br>No app download or account required.
+        </p>
+      </div>
+
+      <div class="footer-note">AirMic Stage System &bull; Powered by LiveKit & WebRTC</div>
+    </div>
+
+    <!-- 2. CONNECTING SCREEN -->
+    <div id="connecting-screen" class="screen">
+      <div class="connecting-box">
+        <div class="pulse-ring-wrapper">
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring"></div>
+          <div class="connecting-icon-circle">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </div>
+        </div>
+        <h2 class="connecting-title">Connecting to Stage...</h2>
+        <p class="connecting-sub">Preparing secure audio channel</p>
+      </div>
+    </div>
+
+    <!-- 3. STAGE MICROPHONE SCREEN -->
+    <div id="stage-screen" class="screen">
+      <!-- Top Bar -->
+      <div class="stage-top-bar">
+        <div class="pill-badge">
+          <div class="pill-dot"></div>
+          <span id="room-badge-text">ROOM: -</span>
+        </div>
+        <button id="disconnect-btn" class="btn-exit">✕ Exit</button>
+      </div>
+
+      <!-- Speaker Status Card -->
+      <div id="status-card" class="speaker-status-card">
+        <div id="status-title" class="status-title">STANDBY</div>
+        <div id="status-desc" class="status-desc">Press and hold the button below to speak</div>
+      </div>
+
+      <!-- Audio VU Meter -->
+      <div class="vu-meter-card">
+        <div class="meter-header">
+          <span>MICROPHONE LEVEL</span>
+          <span id="meter-db-text">-∞ dB</span>
+        </div>
+        <div class="meter-track">
+          <div id="meter-fill" class="meter-fill"></div>
+        </div>
+      </div>
+
+      <!-- Push To Talk Button -->
+      <div class="ptt-container">
+        <button id="ptt-button" class="ptt-btn" aria-label="Microphone Button">
+          <svg class="ptt-icon" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+          <span id="ptt-label" class="ptt-label">HOLD TO TALK</span>
+        </button>
+      </div>
+
+      <!-- Talk Mode Switch -->
+      <div class="mode-bar">
+        <span>Hold to Talk</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-mode-checkbox">
+          <span class="slider"></span>
+        </label>
+        <span>Tap to Toggle</span>
+      </div>
+
+      <div class="footer-note">Encrypted Opus 48kHz &bull; Hardware Echo Cancellation</div>
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    let room = null;
+    let localTrack = null;
+    let audioContext = null;
+    let analyserNode = null;
+    let meterAnimationId = null;
+    let isHolding = false;
+    let isToggleActive = false;
+    let isToggleMode = false;
+    let currentParticipantIdentity = '';
+    let currentParticipantName = '';
+    let currentSpeakerId = null;
+    let isFloorGranted = false;
+
+    // Elements
+    const joinScreen = document.getElementById('join-screen');
+    const connectingScreen = document.getElementById('connecting-screen');
+    const stageScreen = document.getElementById('stage-screen');
+    
+    const roomInput = document.getElementById('room-input');
+    const nameInput = document.getElementById('name-input');
+    const joinBtn = document.getElementById('join-btn');
+    const errorBanner = document.getElementById('error-banner');
+    const errorText = document.getElementById('error-text');
+
+    const roomBadgeText = document.getElementById('room-badge-text');
+    const disconnectBtn = document.getElementById('disconnect-btn');
+    const statusCard = document.getElementById('status-card');
+    const statusTitle = document.getElementById('status-title');
+    const statusDesc = document.getElementById('status-desc');
+    const meterFill = document.getElementById('meter-fill');
+    const meterDbText = document.getElementById('meter-db-text');
+    const pttButton = document.getElementById('ptt-button');
+    const pttLabel = document.getElementById('ptt-label');
+    const toggleModeCheckbox = document.getElementById('toggle-mode-checkbox');
+
+    // Extract query parameters (?room=CODE)
+    function initParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomParam = urlParams.get('room');
+      if (roomParam) {
+        roomInput.value = roomParam.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10);
+      }
+      
+      const savedName = localStorage.getItem('airmic_name');
+      if (savedName) {
+        nameInput.value = savedName;
+      }
+    }
+
+    function showScreen(name) {
+      joinScreen.classList.remove('active');
+      connectingScreen.classList.remove('active');
+      stageScreen.classList.remove('active');
+
+      if (name === 'join') joinScreen.classList.add('active');
+      if (name === 'connecting') connectingScreen.classList.add('active');
+      if (name === 'stage') stageScreen.classList.add('active');
+    }
+
+    function showError(msg) {
+      errorText.innerText = msg;
+      errorBanner.classList.add('visible');
+      roomInput.classList.add('input-error');
+    }
+
+    function clearError() {
+      errorBanner.classList.remove('visible');
+      roomInput.classList.remove('input-error');
+    }
+
+    roomInput.addEventListener('input', () => {
+      clearError();
+      roomInput.value = roomInput.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10);
+    });
+
+    toggleModeCheckbox.addEventListener('change', (e) => {
+      isToggleMode = e.target.checked;
+      if (!isToggleMode && isToggleActive) {
+        stopTalking();
+      }
+    });
+
+    function triggerHaptic() {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch (_) {}
+      }
+    }
+
+    // Connect to room
+    async function handleJoin() {
+      clearError();
+      const rawRoom = roomInput.value.trim().toUpperCase();
+      if (!rawRoom) {
+        showError("Please enter a room code.");
+        return;
+      }
+
+      const participantName = nameInput.value.trim() || `Guest-${Math.floor(100 + Math.random() * 900)}`;
+      localStorage.setItem('airmic_name', participantName);
+      currentParticipantName = participantName;
+
+      showScreen('connecting');
+
+      try {
+        // 1. Verify room exists on server
+        const verifyRes = await fetch(`/api/room/verify?room=${encodeURIComponent(rawRoom)}`);
+        if (!verifyRes.ok) {
+          const errData = await verifyRes.json().catch(() => ({}));
+          throw new Error(errData.error === 'ROOM_NOT_FOUND' ? 'ROOM_NOT_FOUND' : 'VERIFY_FAILED');
+        }
+
+        // 2. Fetch participant token
+        const tokenRes = await fetch('/api/token/participant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomName: rawRoom,
+            participantName: participantName
+          })
+        });
+
+        if (!tokenRes.ok) {
+          const errData = await tokenRes.json().catch(() => ({}));
+          if (tokenRes.status === 404 || errData.error === 'ROOM_NOT_FOUND') {
+            throw new Error('ROOM_NOT_FOUND');
+          }
+          throw new Error(errData.error || 'TOKEN_FAILED');
+        }
+
+        const { token, url, identity } = await tokenRes.json();
+        currentParticipantIdentity = identity;
+
+        // 3. Acquire Microphone track with echo cancellation
+        const { Room, RoomEvent, createLocalAudioTrack } = window.LivekitClient;
+        
+        localTrack = await createLocalAudioTrack({
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        });
+
+        // Initially mute local track until floor is granted
+        await localTrack.mute();
+
+        // 4. Connect to LiveKit Room
+        room = new Room({
+          adaptiveStream: false,
+          dynacast: false,
+        });
+
+        // Set up floor control data channel listener
+        room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+          if (topic && topic !== 'floor-control') return;
+          try {
+            const data = JSON.parse(new TextDecoder().decode(payload));
+            handleFloorMessage(data);
+          } catch (e) {
+            console.warn('[AirMic Web] Floor payload decode error:', e);
+          }
+        });
+
+        room.on(RoomEvent.Disconnected, () => {
+          handleDisconnect();
+        });
+
+        await room.connect(url, token);
+        await room.localParticipant.publishTrack(localTrack, { name: 'participant-mic' });
+
+        // Set up Web Audio Analyser for VU Level Meter
+        setupAudioMeter(localTrack.mediaStreamTrack);
+
+        roomBadgeText.innerText = `ROOM: ${rawRoom}`;
+        updateSpeakerUI('standby');
+        showScreen('stage');
+
+      } catch (err) {
+        console.error('[AirMic Web] Join failed:', err);
+        showScreen('join');
+        if (err.message === 'ROOM_NOT_FOUND') {
+          showError("Room code doesn't match any active room. Please check your code.");
+        } else if (err.name === 'NotAllowedError' || err.message.includes('Permission')) {
+          showError("Microphone access is required to use AirMic. Please tap Allow.");
+        } else {
+          showError("Unable to connect to stage. Please check connection and try again.");
+        }
+      }
+    }
+
+    // Set up Web Audio API meter
+    function setupAudioMeter(mediaStreamTrack) {
+      try {
+        window.AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioContext();
+        const source = audioContext.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 128;
+        source.connect(analyserNode);
+
+        const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+
+        function updateMeter() {
+          if (!analyserNode) return;
+          analyserNode.getByteFrequencyData(dataArray);
+
+          let sum = 0;
+          for (let i = 0; i < dataArray.length; i++) {
+            sum += dataArray[i];
+          }
+          const avg = sum / dataArray.length;
+          const pct = isFloorGranted ? Math.min(100, Math.round((avg / 128) * 100)) : 0;
+
+          meterFill.style.width = pct + '%';
+          if (pct > 0) {
+            const db = Math.round(20 * Math.log10(Math.max(pct / 100, 0.001)));
+            meterDbText.innerText = `${db} dB`;
+          } else {
+            meterDbText.innerText = '-∞ dB';
+          }
+
+          meterAnimationId = requestAnimationFrame(updateMeter);
+        }
+
+        updateMeter();
+      } catch (err) {
+        console.warn('[AirMic Web] Meter setup error:', err);
+      }
+    }
+
+    // Handle incoming floor control messages from Host Arbiter
+    function handleFloorMessage(data) {
+      if (data.type === 'FLOOR_STATUS') {
+        const { currentSpeaker, queue } = data;
+        currentSpeakerId = currentSpeaker ? currentSpeaker.id : null;
+
+        if (currentSpeaker && currentSpeaker.id === currentParticipantIdentity) {
+          // You are granted the floor!
+          isFloorGranted = true;
+          if (localTrack) localTrack.unmute();
+          updateSpeakerUI('on-air');
+        } else {
+          // Check if you are in the queue
+          const queueIndex = Array.isArray(queue) ? queue.findIndex(e => e.id === currentParticipantIdentity) : -1;
+          if (queueIndex !== -1) {
+            isFloorGranted = false;
+            if (localTrack) localTrack.mute();
+            updateSpeakerUI('in-queue', queueIndex + 1);
+          } else {
+            isFloorGranted = false;
+            if (localTrack) localTrack.mute();
+            updateSpeakerUI('standby');
+          }
+        }
+      } else if (data.type === 'REVOKE_FLOOR') {
+        if (data.participantId === currentParticipantIdentity) {
+          stopTalking();
+        }
+      }
+    }
+
+    function updateSpeakerUI(state, queuePos = 1) {
+      statusCard.className = 'speaker-status-card';
+      pttButton.className = 'ptt-btn';
+
+      if (state === 'on-air') {
+        statusCard.classList.add('on-air');
+        pttButton.classList.add('on-air');
+        statusTitle.innerText = '🎙️ YOU ARE ON AIR';
+        statusDesc.innerText = 'Speaking through room PA system';
+        pttLabel.innerText = isToggleMode ? 'TAP TO MUTE' : 'RELEASE TO MUTE';
+      } else if (state === 'in-queue') {
+        statusCard.classList.add('in-queue');
+        pttButton.classList.add('in-queue');
+        statusTitle.innerText = `⏳ IN LINE (#${queuePos})`;
+        statusDesc.innerText = 'Host will open your microphone shortly';
+        pttLabel.innerText = 'WAITING';
+      } else {
+        statusTitle.innerText = 'STANDBY';
+        statusDesc.innerText = isToggleMode ? 'Tap the button to start speaking' : 'Press and hold the button below to speak';
+        pttLabel.innerText = isToggleMode ? 'TAP TO TALK' : 'HOLD TO TALK';
+      }
+    }
+
+    // Floor Request
+    function startTalking() {
+      if (!room || room.state !== 'connected') return;
+      triggerHaptic();
+
+      // Send floor request message
+      const reqMsg = JSON.stringify({
+        type: 'REQUEST_FLOOR',
+        participantId: currentParticipantIdentity,
+        participantName: currentParticipantName,
+      });
+
+      try {
+        room.localParticipant.publishData(new TextEncoder().encode(reqMsg), {
+          reliable: true,
+          topic: 'floor-control',
+        });
+      } catch (err) {
+        console.warn('[AirMic Web] Error requesting floor:', err);
+      }
+    }
+
+    // Floor Release
+    function stopTalking() {
+      if (!room || room.state !== 'connected') return;
+      triggerHaptic();
+
+      if (localTrack) {
+        localTrack.mute();
+      }
+      isFloorGranted = false;
+      isHolding = false;
+      isToggleActive = false;
+      updateSpeakerUI('standby');
+
+      // Send floor release message
+      const releaseMsg = JSON.stringify({
+        type: 'RELEASE_FLOOR',
+        participantId: currentParticipantIdentity,
+      });
+
+      try {
+        room.localParticipant.publishData(new TextEncoder().encode(releaseMsg), {
+          reliable: true,
+          topic: 'floor-control',
+        });
+      } catch (err) {
+        console.warn('[AirMic Web] Error releasing floor:', err);
+      }
+    }
+
+    // PTT Events
+    // 1. Touch Events (Mobile Safari / Chrome)
+    pttButton.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (isToggleMode) {
+        if (!isToggleActive) {
+          isToggleActive = true;
+          startTalking();
+        } else {
+          isToggleActive = false;
+          stopTalking();
+        }
+      } else {
+        isHolding = true;
+        pttButton.classList.add('active');
+        startTalking();
+      }
+    }, { passive: false });
+
+    pttButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      if (!isToggleMode && isHolding) {
+        isHolding = false;
+        pttButton.classList.remove('active');
+        stopTalking();
+      }
+    }, { passive: false });
+
+    pttButton.addEventListener('touchcancel', (e) => {
+      e.preventDefault();
+      if (!isToggleMode && isHolding) {
+        isHolding = false;
+        pttButton.classList.remove('active');
+        stopTalking();
+      }
+    }, { passive: false });
+
+    // 2. Mouse Events (Desktop testing)
+    pttButton.addEventListener('mousedown', (e) => {
+      if (isToggleMode) {
+        if (!isToggleActive) {
+          isToggleActive = true;
+          startTalking();
+        } else {
+          isToggleActive = false;
+          stopTalking();
+        }
+      } else {
+        isHolding = true;
+        pttButton.classList.add('active');
+        startTalking();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!isToggleMode && isHolding) {
+        isHolding = false;
+        pttButton.classList.remove('active');
+        stopTalking();
+      }
+    });
+
+    // Disconnect
+    function handleDisconnect() {
+      if (meterAnimationId) cancelAnimationFrame(meterAnimationId);
+      if (localTrack) {
+        try { localTrack.stop(); } catch (_) {}
+        localTrack = null;
+      }
+      if (audioContext) {
+        try { audioContext.close(); } catch (_) {}
+        audioContext = null;
+      }
+      if (room) {
+        try { room.disconnect(); } catch (_) {}
+        room = null;
+      }
+      showScreen('join');
+    }
+
+    disconnectBtn.addEventListener('click', handleDisconnect);
+    joinBtn.addEventListener('click', handleJoin);
+
+    // Initialize
+    initParams();
+  </script>
+</body>
+</html>

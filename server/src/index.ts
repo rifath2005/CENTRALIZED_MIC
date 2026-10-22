@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import {
   HostTokenRequestSchema,
@@ -17,7 +19,21 @@ dotenv.config();
 const app = express();
 
 // Security and middleware
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        connectSrc: ["'self'", 'https:', 'wss:'],
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        mediaSrc: ["'self'", 'blob:'],
+      },
+    },
+  })
+);
 app.use(
   cors({
     origin: process.env.ALLOWED_ORIGIN || '*',
@@ -26,6 +42,17 @@ app.use(
   })
 );
 app.use(express.json({ limit: '64kb' }));
+
+// Static files & Web Transmitter
+const publicDir = fs.existsSync(path.join(__dirname, 'public'))
+  ? path.join(__dirname, 'public')
+  : path.join(__dirname, '../public');
+
+app.use(express.static(publicDir));
+
+app.get('/mic', (_req: Request, res: Response) => {
+  res.sendFile(path.join(publicDir, 'mic.html'));
+});
 
 // Rate limiter: 100 requests per 15 minutes per IP
 const limiter = rateLimit({

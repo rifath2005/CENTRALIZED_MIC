@@ -72,11 +72,7 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
     }
   };
 
-  const pairingPayload = JSON.stringify({
-    action: 'JOIN_MIC_ROOM',
-    room: roomCode,
-    server: tokenServerUrl,
-  });
+  const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
 
   const formatTimer = (s: number) => {
     const m = Math.floor(s / 60);
@@ -180,7 +176,7 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
               }}
             >
               <QRCodeSVG
-                value={pairingPayload}
+                value={webTransmitterUrl}
                 size={260}
                 bgColor={isHighContrast ? '#ffffff' : '#0d0515'}
                 fgColor={isHighContrast ? '#0d0515' : '#fbbf24'}
@@ -234,7 +230,7 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
               <div style={styles.stepItem}>
                 <span style={styles.stepNumber}>1</span>
                 <div>
-                  <strong style={styles.stepTitle}>Scan QR Code:</strong> Open phone camera or Centralized Mic app.
+                  <strong style={styles.stepTitle}>Scan QR Code:</strong> Open iPhone or Android camera to speak instantly in browser, or open AirMic app.
                 </div>
               </div>
               <div style={styles.stepItem}>

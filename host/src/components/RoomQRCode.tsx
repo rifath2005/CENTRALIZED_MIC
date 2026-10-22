@@ -9,11 +9,7 @@ interface RoomQRCodeProps {
 export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl }) => {
   const [copiedType, setCopiedType] = useState<'code' | 'link' | null>(null);
 
-  const pairingPayload = JSON.stringify({
-    action: 'JOIN_MIC_ROOM',
-    room: roomCode,
-    server: tokenServerUrl,
-  });
+  const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
 
   const handleCopyCode = async () => {
     try {
@@ -25,9 +21,9 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
     }
   };
 
-  const handleCopyPayload = async () => {
+  const handleCopyLink = async () => {
     try {
-      await navigator.clipboard.writeText(pairingPayload);
+      await navigator.clipboard.writeText(webTransmitterUrl);
       setCopiedType('link');
       setTimeout(() => setCopiedType(null), 2000);
     } catch (err) {
@@ -39,7 +35,7 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
     <div style={styles.container}>
       <div style={styles.qrWrapper} title="Scan with camera to connect instantly">
         <QRCodeSVG
-          value={pairingPayload}
+          value={webTransmitterUrl}
           size={148}
           bgColor="#160a22"
           fgColor="#fbbf24"
@@ -57,15 +53,15 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
         <h2 style={styles.codeText}>{roomCode}</h2>
 
         <p style={styles.instructions}>
-          Scan with smartphone camera or launch Wireless Mic app.
+          Scan with iPhone or Android camera to speak in browser, or launch AirMic app.
         </p>
 
         <div style={styles.actionsRow}>
           <button style={styles.copyBtn} onClick={handleCopyCode}>
             {copiedType === 'code' ? '✓ Copied Code!' : '📋 Copy Code'}
           </button>
-          <button style={styles.copyLinkBtn} onClick={handleCopyPayload} title="Copy JSON pairing data">
-            {copiedType === 'link' ? '✓ Copied Config!' : '🔗 Copy Config'}
+          <button style={styles.copyLinkBtn} onClick={handleCopyLink} title="Copy Web Transmitter URL">
+            {copiedType === 'link' ? '✓ Copied Link!' : '🔗 Copy Web Link'}
           </button>
         </div>
       </div>
