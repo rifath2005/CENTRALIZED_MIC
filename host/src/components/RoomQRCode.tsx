@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { redTheme } from '../tokens/redTheme';
 
 interface RoomQRCodeProps {
   roomCode: string;
@@ -32,13 +33,13 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} role="region" aria-label="Smartphone Pairing">
       <div style={styles.qrWrapper} title="Scan with camera to connect instantly">
         <QRCodeSVG
           value={webTransmitterUrl}
           size={148}
-          bgColor="#160a22"
-          fgColor="#fbbf24"
+          bgColor={redTheme.colors.bgSurfaceDark}
+          fgColor={redTheme.colors.accentBright}
           level="M"
           includeMargin={false}
         />
@@ -50,17 +51,26 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
           <span style={styles.qrScanPill}>SCAN OR ENTER</span>
         </div>
 
-        <h2 style={styles.codeText}>{roomCode}</h2>
+        <h2 style={styles.codeText} aria-label={`Room Code: ${roomCode}`}>{roomCode}</h2>
 
         <p style={styles.instructions}>
           Scan with iPhone or Android camera to speak in browser, or launch AirMic app.
         </p>
 
         <div style={styles.actionsRow}>
-          <button style={styles.copyBtn} onClick={handleCopyCode}>
+          <button
+            style={styles.copyBtn}
+            onClick={handleCopyCode}
+            aria-label="Copy room code to clipboard"
+          >
             {copiedType === 'code' ? '✓ Copied Code!' : '📋 Copy Code'}
           </button>
-          <button style={styles.copyLinkBtn} onClick={handleCopyLink} title="Copy Web Transmitter URL">
+          <button
+            style={styles.copyLinkBtn}
+            onClick={handleCopyLink}
+            title="Copy Web Transmitter URL"
+            aria-label="Copy direct web transmitter link"
+          >
             {copiedType === 'link' ? '✓ Copied Link!' : '🔗 Copy Web Link'}
           </button>
         </div>
@@ -71,25 +81,25 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '20px',
     display: 'flex',
     alignItems: 'center',
     gap: '20px',
     flexWrap: 'wrap',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    boxShadow: redTheme.shadows.card,
   },
   qrWrapper: {
-    backgroundColor: '#160a22',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
     padding: '12px',
     borderRadius: '12px',
-    border: '1px solid #441e6a',
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
   },
   infoWrapper: {
     display: 'flex',
@@ -106,15 +116,15 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     letterSpacing: '1px',
   },
   qrScanPill: {
     fontSize: '9px',
     fontWeight: 800,
-    color: '#fbbf24',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    border: '1px solid rgba(245, 158, 11, 0.4)',
+    color: redTheme.colors.accentBright,
+    backgroundColor: 'rgba(225, 29, 72, 0.15)',
+    border: `1px solid ${redTheme.colors.borderStrong}`,
     padding: '2px 8px',
     borderRadius: '4px',
     letterSpacing: '0.8px',
@@ -122,15 +132,15 @@ const styles: Record<string, React.CSSProperties> = {
   codeText: {
     fontSize: '32px',
     fontWeight: 900,
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     letterSpacing: '3px',
     margin: 0,
     fontFamily: 'monospace',
-    textShadow: '0 0 16px rgba(251, 191, 36, 0.3)',
+    textShadow: '0 0 16px rgba(225, 29, 72, 0.35)',
   },
   instructions: {
     fontSize: '12px',
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     lineHeight: '1.4',
     margin: 0,
   },
@@ -140,9 +150,9 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '6px',
   },
   copyBtn: {
-    backgroundColor: '#2c1445',
-    border: '1px solid #5d2a90',
-    color: '#f8fafc',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.textPrimary,
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '11px',
@@ -151,9 +161,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.15s ease',
   },
   copyLinkBtn: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    border: '1px solid rgba(245, 158, 11, 0.3)',
-    color: '#fbbf24',
+    backgroundColor: 'rgba(225, 29, 72, 0.12)',
+    border: `1px solid ${redTheme.colors.borderStrong}`,
+    color: redTheme.colors.accentBright,
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '11px',

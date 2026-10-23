@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AudioOutputDeviceInfo } from '../types';
+import { redTheme } from '../tokens/redTheme';
 
 interface DeviceSelectorProps {
   onSelectDevice: (deviceId: string) => Promise<void>;
@@ -58,14 +59,15 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
   };
 
   return (
-    <div style={styles.container}>
+    <div style={styles.container} role="region" aria-label="Audio Output Device Routing">
       <div style={styles.labelRow}>
-        <label style={styles.label}>PA / SOUND SYSTEM ROUTING</label>
+        <label htmlFor="audio-output-select" style={styles.label}>PA / SOUND SYSTEM ROUTING</label>
         <button
           type="button"
           style={styles.refreshBtn}
           onClick={loadAudioOutputs}
           title="Scan for plugged in USB/Dante interfaces"
+          aria-label="Rescan audio devices"
         >
           🔄 Rescan
         </button>
@@ -73,6 +75,7 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
 
       <div style={styles.controlRow}>
         <select
+          id="audio-output-select"
           style={styles.select}
           value={selectedDevice}
           onChange={handleChange}
@@ -91,12 +94,13 @@ export const DeviceSelector: React.FC<DeviceSelectorProps> = ({
             type="button"
             style={{
               ...styles.testBtn,
-              backgroundColor: isTesting ? '#f59e0b' : '#2c1445',
-              borderColor: isTesting ? '#fbbf24' : '#5d2a90',
-              color: isTesting ? '#0d0515' : '#fbbf24',
+              backgroundColor: isTesting ? redTheme.colors.primary : redTheme.colors.bgSurfaceElevated,
+              borderColor: isTesting ? redTheme.colors.primaryHover : redTheme.colors.borderMedium,
+              color: isTesting ? redTheme.colors.textOnPrimary : redTheme.colors.accentBright,
             }}
             onClick={handleTestSound}
             title="Play double chime tone through selected speakers"
+            aria-label="Test speaker sound output"
           >
             {isTesting ? '🔊 Playing...' : '🔔 Test Speakers'}
           </button>
@@ -126,13 +130,13 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     letterSpacing: '1px',
   },
   refreshBtn: {
     background: 'none',
     border: 'none',
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -146,11 +150,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   select: {
     flex: 1,
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '8px',
     padding: '10px 14px',
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     fontSize: '13px',
     outline: 'none',
     cursor: 'pointer',
@@ -158,8 +162,8 @@ const styles: Record<string, React.CSSProperties> = {
   testBtn: {
     padding: '10px 14px',
     borderRadius: '8px',
-    border: '1px solid #5d2a90',
-    color: '#fbbf24',
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.accentBright,
     fontSize: '12px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -168,7 +172,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   warningNote: {
     fontSize: '11px',
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     lineHeight: '1.4',
   },
 };

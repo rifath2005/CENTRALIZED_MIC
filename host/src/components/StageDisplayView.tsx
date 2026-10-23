@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { SpeakerInfo, QueueEntry } from '../types';
+import { redTheme } from '../tokens/redTheme';
 
 interface StageDisplayViewProps {
   roomCode: string;
@@ -80,146 +81,259 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
     return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
+  // High Contrast vs Dark Room color mapping
+  const currentBg = isHighContrast ? redTheme.colors.brightMode.bg : redTheme.colors.bgDeepest;
+  const cardBg = isHighContrast ? redTheme.colors.brightMode.surface : redTheme.colors.bgSurfaceCard;
+  const cardBorder = isHighContrast ? redTheme.colors.brightMode.surfaceBorder : redTheme.colors.borderMedium;
+  const primaryText = isHighContrast ? redTheme.colors.brightMode.textPrimary : redTheme.colors.textPrimary;
+  const secondaryText = isHighContrast ? redTheme.colors.brightMode.textSecondary : redTheme.colors.textSecondary;
+  const accentColor = isHighContrast ? redTheme.colors.brightMode.accent : redTheme.colors.accentBright;
+
   return (
     <div
       style={{
         ...styles.container,
-        backgroundColor: isHighContrast ? '#050208' : '#0d0515',
+        backgroundColor: currentBg,
+        color: primaryText,
       }}
+      role="region"
+      aria-label="Audience Stage Display"
     >
-      {/* Top Navigation & Projector Control Bar */}
+      {/* WEB-ST-01: StageProjectorTopBar */}
       <header style={styles.topBar}>
         <div style={styles.topLeft}>
-          <button style={styles.backButton} onClick={onBackToConsole}>
+          <button
+            style={{
+              ...styles.backButton,
+              color: isHighContrast ? '#881337' : redTheme.colors.textSecondary,
+              borderColor: isHighContrast ? '#f43f5e' : redTheme.colors.borderMedium,
+              backgroundColor: isHighContrast ? '#fff' : redTheme.colors.bgSurfaceDark,
+            }}
+            onClick={onBackToConsole}
+            aria-label="Return to Operator Console"
+          >
             ← OPERATOR CONSOLE
           </button>
-          <div style={styles.screenShareBadge}>
-            <span style={styles.lockIcon}>🔒</span>
+          <div
+            style={{
+              ...styles.screenShareBadge,
+              backgroundColor: isHighContrast ? '#ffe4e6' : 'rgba(225, 29, 72, 0.12)',
+              borderColor: isHighContrast ? '#f43f5e' : redTheme.colors.borderStrong,
+              color: isHighContrast ? '#881337' : redTheme.colors.accentLight,
+            }}
+          >
+            <span style={styles.lockIcon} aria-hidden="true">🔒</span>
             <span>AUDIENCE STAGE DISPLAY — SCREEN-SHARE SAFE</span>
           </div>
         </div>
 
         <div style={styles.topRight}>
+          {/* WEB-ST-02: StageContrastToggle */}
           <button
             style={{
               ...styles.secondaryBtn,
-              backgroundColor: isHighContrast ? '#f59e0b' : '#200f33',
-              color: isHighContrast ? '#0d0515' : '#cbd5e1',
+              backgroundColor: isHighContrast ? redTheme.colors.primary : redTheme.colors.bgSurfaceElevated,
+              color: isHighContrast ? '#ffffff' : redTheme.colors.textSecondary,
+              borderColor: isHighContrast ? redTheme.colors.primaryHover : redTheme.colors.borderMedium,
             }}
             onClick={() => setIsHighContrast(!isHighContrast)}
-            title="Toggle high contrast for bright projector lamps"
+            title="Toggle contrast mode for bright auditorium projectors"
+            aria-label={isHighContrast ? 'Switch to Dark Room Mode' : 'Switch to Bright Room Mode'}
           >
             {isHighContrast ? '☀️ Bright Room Mode' : '🌙 Dark Room Mode'}
           </button>
 
-          <div style={styles.attendancePill}>
-            <span className="pulse-marigold" style={styles.marigoldDot} />
+          <div
+            style={{
+              ...styles.attendancePill,
+              backgroundColor: isHighContrast ? '#ffe4e6' : redTheme.colors.bgSurfaceDark,
+              borderColor: isHighContrast ? '#f43f5e' : redTheme.colors.borderMedium,
+              color: isHighContrast ? '#881337' : redTheme.colors.textSecondary,
+            }}
+          >
+            <span className="pulse-red" style={styles.redDot} aria-hidden="true" />
             <span>{memberCount} {memberCount === 1 ? 'Attendee' : 'Attendees'} Connected</span>
           </div>
 
-          <button style={styles.fullscreenButton} onClick={toggleFullscreen}>
+          <button
+            style={{
+              ...styles.fullscreenButton,
+              backgroundColor: isHighContrast ? '#881337' : redTheme.colors.primary,
+            }}
+            onClick={toggleFullscreen}
+            aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+          >
             {isFullscreen ? '⤢ EXIT FULLSCREEN' : '⤡ FULL SCREEN DISPLAY'}
           </button>
         </div>
       </header>
 
-      {/* Main Showcase Showcase */}
+      {/* Main Showcase Card */}
       <div
         style={{
           ...styles.showcaseCard,
-          backgroundColor: isHighContrast ? '#11061c' : '#160a22',
-          borderColor: isHighContrast ? '#5d2a90' : '#441e6a',
+          backgroundColor: cardBg,
+          borderColor: cardBorder,
         }}
       >
-        {/* On-Air Live Speaker Banner */}
+        {/* WEB-ST-05: StageSpeakerHero */}
         {currentSpeaker ? (
-          <div style={styles.onAirBanner}>
+          <div
+            style={{
+              ...styles.onAirBanner,
+              backgroundColor: isHighContrast ? '#ecfdf5' : 'rgba(16, 185, 129, 0.16)',
+              borderColor: '#10b981',
+            }}
+            aria-live="assertive"
+          >
             <div style={styles.onAirLeft}>
-              <span className="pulse-marigold" style={styles.onAirDot} />
+              <span className="pulse-red" style={{ ...styles.onAirDot, backgroundColor: '#10b981', boxShadow: '0 0 14px #10b981' }} aria-hidden="true" />
               <div>
-                <span style={styles.onAirLabel}>LIVE ON AIR</span>
-                <h3 style={styles.onAirSpeakerName}>{currentSpeaker.name}</h3>
+                <span style={{ ...styles.onAirLabel, color: isHighContrast ? '#065f46' : '#6ee7b7' }}>LIVE ON AIR</span>
+                <h3 style={{ ...styles.onAirSpeakerName, color: isHighContrast ? '#064e3b' : '#ffffff' }}>{currentSpeaker.name}</h3>
               </div>
             </div>
 
             <div style={styles.onAirRight}>
-              <div className="wave-container">
-                <div className="wave-bar" />
-                <div className="wave-bar" />
-                <div className="wave-bar" />
-                <div className="wave-bar" />
-                <div className="wave-bar" />
+              <div className="wave-container" aria-hidden="true">
+                <div className="wave-bar" style={{ backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                <div className="wave-bar" style={{ backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                <div className="wave-bar" style={{ backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                <div className="wave-bar" style={{ backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                <div className="wave-bar" style={{ backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
               </div>
-              <span style={styles.onAirTimer}>{formatTimer(elapsedSpeakerSeconds)}</span>
+              <span style={{ ...styles.onAirTimer, color: isHighContrast ? '#065f46' : '#a7f3d0' }}>{formatTimer(elapsedSpeakerSeconds)}</span>
             </div>
           </div>
         ) : (
-          <div style={styles.floorOpenBanner}>
+          <div
+            style={{
+              ...styles.floorOpenBanner,
+              backgroundColor: isHighContrast ? '#fff1f2' : redTheme.colors.bgSurfaceDark,
+              borderColor: isHighContrast ? '#fecdd3' : redTheme.colors.borderMedium,
+            }}
+            aria-live="polite"
+          >
             <div style={styles.floorOpenLeft}>
-              <span style={styles.floorOpenIcon}>🎙️</span>
+              <span style={styles.floorOpenIcon} aria-hidden="true">🎙️</span>
               <div>
-                <span style={styles.floorOpenTitle}>FLOOR IS OPEN</span>
-                <p style={styles.floorOpenSubtitle}>Scan the QR code below or enter the room code to request to speak.</p>
+                <span style={{ ...styles.floorOpenTitle, color: accentColor }}>FLOOR IS OPEN</span>
+                <p style={{ ...styles.floorOpenSubtitle, color: secondaryText }}>
+                  Scan the QR code below or enter the room code to request to speak.
+                </p>
               </div>
             </div>
           </div>
         )}
 
         <div className="responsive-projector-grid" style={styles.contentGrid}>
-          {/* Left: Giant High-Visibility Marigold QR Code */}
+          {/* WEB-ST-03: StageGiantQRCode */}
           <div style={styles.qrSection}>
             <div
               style={{
                 ...styles.qrFrame,
-                backgroundColor: isHighContrast ? '#ffffff' : '#0d0515',
-                borderColor: '#f59e0b',
+                backgroundColor: isHighContrast ? '#ffffff' : redTheme.colors.bgDeepest,
+                borderColor: isHighContrast ? '#be123c' : redTheme.colors.primary,
+                boxShadow: isHighContrast ? '0 12px 30px rgba(190, 18, 60, 0.2)' : redTheme.shadows.glowPrimary,
               }}
             >
               <QRCodeSVG
                 value={webTransmitterUrl}
                 size={260}
-                bgColor={isHighContrast ? '#ffffff' : '#0d0515'}
-                fgColor={isHighContrast ? '#0d0515' : '#fbbf24'}
+                bgColor={isHighContrast ? '#ffffff' : redTheme.colors.bgDeepest}
+                fgColor={isHighContrast ? '#881337' : redTheme.colors.accentBright}
                 level="Q"
                 includeMargin={false}
               />
             </div>
-            <span style={styles.qrScanLabel}>POINT SMARTPHONE CAMERA TO SCAN &amp; JOIN</span>
+            <span
+              style={{
+                ...styles.qrScanLabel,
+                color: accentColor,
+              }}
+            >
+              POINT SMARTPHONE CAMERA TO SCAN &amp; JOIN
+            </span>
           </div>
 
           {/* Right: Room Code & Instructions */}
           <div className="responsive-projector-details" style={styles.detailsSection}>
-            <span style={styles.subHeader}>CONFERENCE SOUND SYSTEM</span>
-            <h1 style={styles.mainTitle}>Join Meeting Microphone</h1>
+            <span style={{ ...styles.subHeader, color: isHighContrast ? '#9f1239' : redTheme.colors.accentBright }}>
+              CONFERENCE SOUND SYSTEM
+            </span>
+            <h1 style={{ ...styles.mainTitle, color: primaryText }}>
+              Join Meeting Microphone
+            </h1>
 
-            {/* Room Code Banner */}
+            {/* WEB-ST-04: StageRoomCodeBanner */}
             <div style={styles.codeContainer}>
-              <span style={styles.codeLabel}>MEETING ROOM CODE:</span>
+              <span style={{ ...styles.codeLabel, color: secondaryText }}>MEETING ROOM CODE:</span>
               <div style={styles.codeBannerRow}>
-                <div style={styles.codeBanner}>
-                  <span style={styles.bigCodeText}>{roomCode}</span>
+                <div
+                  style={{
+                    ...styles.codeBanner,
+                    backgroundColor: isHighContrast ? '#ffe4e6' : redTheme.colors.bgSurfaceDark,
+                    borderColor: isHighContrast ? '#f43f5e' : redTheme.colors.borderStrong,
+                  }}
+                >
+                  <span
+                    style={{
+                      ...styles.bigCodeText,
+                      color: accentColor,
+                      textShadow: isHighContrast ? 'none' : '0 0 20px rgba(225, 29, 72, 0.4)',
+                    }}
+                    aria-label={`Meeting Room Code: ${roomCode}`}
+                  >
+                    {roomCode}
+                  </span>
                 </div>
-                <button style={styles.copyCodeBtn} onClick={handleCopyCode}>
+                <button
+                  style={{
+                    ...styles.copyCodeBtn,
+                    backgroundColor: isHighContrast ? '#be123c' : redTheme.colors.bgSurfaceElevated,
+                    color: isHighContrast ? '#ffffff' : redTheme.colors.textPrimary,
+                    borderColor: isHighContrast ? '#881337' : redTheme.colors.borderMedium,
+                  }}
+                  onClick={handleCopyCode}
+                  aria-label="Copy Room Code"
+                >
                   {copied ? '✓ Copied!' : '📋 Copy'}
                 </button>
               </div>
             </div>
 
-            {/* Live Queue Preview (if any attendees are waiting) */}
+            {/* WEB-ST-06: StageQueuePreview */}
             {queue.length > 0 && (
-              <div style={styles.queuePreviewBox}>
+              <div
+                style={{
+                  ...styles.queuePreviewBox,
+                  backgroundColor: isHighContrast ? '#fff1f2' : redTheme.colors.bgSurfaceDark,
+                  borderColor: isHighContrast ? '#fecdd3' : redTheme.colors.borderMedium,
+                }}
+                aria-live="polite"
+              >
                 <div style={styles.queueHeader}>
-                  <span style={styles.queueBadge}>UP NEXT TO SPEAK</span>
-                  <span style={styles.queueCount}>{queue.length} in line</span>
+                  <span style={{ ...styles.queueBadge, color: accentColor }}>UP NEXT TO SPEAK</span>
+                  <span style={{ ...styles.queueCount, color: secondaryText }}>{queue.length} in line</span>
                 </div>
                 <div style={styles.queueChipsList}>
                   {queue.slice(0, 4).map((entry, idx) => (
-                    <span key={entry.id} style={styles.queueChip}>
-                      <span style={styles.queueNum}>#{idx + 1}</span> {entry.name}
+                    <span
+                      key={entry.id}
+                      style={{
+                        ...styles.queueChip,
+                        backgroundColor: isHighContrast ? '#ffffff' : redTheme.colors.bgSurfaceElevated,
+                        borderColor: isHighContrast ? '#fda4af' : redTheme.colors.borderMedium,
+                        color: primaryText,
+                      }}
+                    >
+                      <span style={{ ...styles.queueNum, color: accentColor }}>#{idx + 1}</span> {entry.name}
                     </span>
                   ))}
                   {queue.length > 4 && (
-                    <span style={styles.queueMoreChip}>+{queue.length - 4} more</span>
+                    <span style={{ ...styles.queueMoreChip, color: secondaryText }}>
+                      +{queue.length - 4} more
+                    </span>
                   )}
                 </div>
               </div>
@@ -228,21 +342,33 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
             {/* Step-by-Step Instructions */}
             <div style={styles.instructionsList}>
               <div style={styles.stepItem}>
-                <span style={styles.stepNumber}>1</span>
+                <span
+                  style={{
+                    ...styles.stepNumber,
+                    backgroundColor: isHighContrast ? '#be123c' : redTheme.colors.primary,
+                    color: '#ffffff',
+                  }}
+                >
+                  1
+                </span>
                 <div>
-                  <strong style={styles.stepTitle}>Scan QR Code:</strong> Open iPhone or Android camera to speak instantly in browser, or open AirMic app.
+                  <strong style={{ ...styles.stepTitle, color: primaryText }}>Scan QR Code:</strong>{' '}
+                  <span style={{ color: secondaryText }}>Open iPhone or Android camera to speak instantly in browser, or open AirMic app.</span>
                 </div>
               </div>
               <div style={styles.stepItem}>
-                <span style={styles.stepNumber}>2</span>
+                <span
+                  style={{
+                    ...styles.stepNumber,
+                    backgroundColor: isHighContrast ? '#be123c' : redTheme.colors.primary,
+                    color: '#ffffff',
+                  }}
+                >
+                  2
+                </span>
                 <div>
-                  <strong style={styles.stepTitle}>Auto-Connect:</strong> Joins room <code>{roomCode}</code> via ultra-low latency SFU.
-                </div>
-              </div>
-              <div style={styles.stepItem}>
-                <span style={styles.stepNumber}>3</span>
-                <div>
-                  <strong style={styles.stepTitle}>Speak into Phone:</strong> Hold the button to broadcast clearly through room speakers.
+                  <strong style={{ ...styles.stepTitle, color: primaryText }}>Hold to Talk:</strong>{' '}
+                  <span style={{ color: secondaryText }}>Press and hold the on-screen mic button when it is your turn to address the audience.</span>
                 </div>
               </div>
             </div>
@@ -256,128 +382,107 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
 const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
-    color: '#f8fafc',
-    padding: '24px 36px',
+    padding: '24px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    gap: '20px',
     boxSizing: 'border-box',
-    position: 'relative',
-    transition: 'background-color 0.3s ease',
+    transition: 'background-color 0.25s ease',
   },
   topBar: {
-    width: '100%',
-    maxWidth: '1180px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '24px',
-    gap: '12px',
     flexWrap: 'wrap',
+    gap: '12px',
   },
   topLeft: {
     display: 'flex',
     alignItems: 'center',
     gap: '14px',
-    flexWrap: 'wrap',
   },
   backButton: {
-    backgroundColor: '#200f33',
-    color: '#cbd5e1',
-    border: '1px solid #441e6a',
-    borderRadius: '12px',
-    padding: '10px 18px',
-    fontSize: '12.5px',
+    border: '1px solid',
+    borderRadius: '8px',
+    padding: '8px 16px',
+    fontSize: '12px',
     fontWeight: 800,
+    letterSpacing: '0.5px',
     cursor: 'pointer',
-    letterSpacing: '0.8px',
     transition: 'all 0.15s ease',
   },
   screenShareBadge: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    border: '1px solid rgba(245, 158, 11, 0.3)',
-    borderRadius: '12px',
-    padding: '8px 14px',
+    border: '1px solid',
+    borderRadius: '20px',
+    padding: '6px 14px',
     fontSize: '11px',
     fontWeight: 800,
-    color: '#fbbf24',
     letterSpacing: '0.8px',
   },
   lockIcon: {
-    fontSize: '13px',
+    fontSize: '12px',
   },
   topRight: {
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    flexWrap: 'wrap',
   },
   secondaryBtn: {
-    border: '1px solid #441e6a',
-    borderRadius: '12px',
-    padding: '10px 16px',
-    fontSize: '12.5px',
-    fontWeight: 700,
+    border: '1px solid',
+    borderRadius: '8px',
+    padding: '8px 14px',
+    fontSize: '12px',
+    fontWeight: 800,
     cursor: 'pointer',
-    transition: 'all 0.2s ease',
+    transition: 'all 0.15s ease',
   },
   attendancePill: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
-    borderRadius: '12px',
-    padding: '10px 16px',
+    border: '1px solid',
+    borderRadius: '20px',
+    padding: '6px 14px',
     fontSize: '12px',
     fontWeight: 700,
-    color: '#cbd5e1',
   },
-  marigoldDot: {
+  redDot: {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#f59e0b',
+    backgroundColor: redTheme.colors.primaryHover,
   },
   fullscreenButton: {
-    backgroundColor: '#f59e0b',
-    color: '#0d0515',
+    color: '#ffffff',
     border: 'none',
-    borderRadius: '12px',
-    padding: '10px 18px',
+    borderRadius: '8px',
+    padding: '8px 16px',
     fontSize: '12px',
-    fontWeight: 900,
+    fontWeight: 800,
+    letterSpacing: '0.5px',
     cursor: 'pointer',
-    letterSpacing: '0.8px',
-    boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)',
+    transition: 'all 0.15s ease',
   },
   showcaseCard: {
-    width: '100%',
-    maxWidth: '1180px',
     border: '1px solid',
-    borderRadius: '28px',
-    padding: '44px 48px',
-    boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(68, 30, 106, 0.25)',
+    borderRadius: '24px',
+    padding: '36px',
+    flex: 1,
     display: 'flex',
     flexDirection: 'column',
-    gap: '36px',
-    transition: 'all 0.3s ease',
+    gap: '30px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.45)',
   },
   onAirBanner: {
-    backgroundColor: '#200f33',
-    border: '2px solid #f59e0b',
-    borderRadius: '20px',
-    padding: '20px 28px',
+    border: '2px solid',
+    borderRadius: '16px',
+    padding: '18px 24px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    boxShadow: '0 0 25px rgba(245, 158, 11, 0.35)',
-    gap: '16px',
-    flexWrap: 'wrap',
   },
   onAirLeft: {
     display: 'flex',
@@ -388,19 +493,16 @@ const styles: Record<string, React.CSSProperties> = {
     width: '14px',
     height: '14px',
     borderRadius: '50%',
-    backgroundColor: '#f59e0b',
   },
   onAirLabel: {
     fontSize: '11px',
-    fontWeight: 800,
-    letterSpacing: '1.4px',
-    color: '#fbbf24',
+    fontWeight: 900,
+    letterSpacing: '1.5px',
     display: 'block',
   },
   onAirSpeakerName: {
-    fontSize: '26px',
+    fontSize: '28px',
     fontWeight: 900,
-    color: '#f8fafc',
     margin: 0,
     letterSpacing: '-0.5px',
   },
@@ -411,99 +513,83 @@ const styles: Record<string, React.CSSProperties> = {
   },
   onAirTimer: {
     fontFamily: 'monospace',
-    fontSize: '28px',
+    fontSize: '22px',
     fontWeight: 900,
-    color: '#fbbf24',
-    letterSpacing: '1px',
   },
   floorOpenBanner: {
-    backgroundColor: '#1b0c2b',
-    border: '1px solid #441e6a',
-    borderRadius: '18px',
-    padding: '16px 24px',
-    display: 'flex',
-    alignItems: 'center',
+    border: '1px dashed',
+    borderRadius: '16px',
+    padding: '18px 24px',
   },
   floorOpenLeft: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
+    gap: '16px',
   },
   floorOpenIcon: {
-    fontSize: '28px',
+    fontSize: '32px',
   },
   floorOpenTitle: {
-    fontSize: '13px',
-    fontWeight: 800,
-    letterSpacing: '1.2px',
-    color: '#fbbf24',
+    fontSize: '14px',
+    fontWeight: 900,
+    letterSpacing: '1.5px',
     display: 'block',
   },
   floorOpenSubtitle: {
-    fontSize: '13px',
-    color: '#cbd5e1',
-    margin: '2px 0 0 0',
+    fontSize: '14px',
+    margin: '4px 0 0 0',
+    fontWeight: 500,
   },
   contentGrid: {
     display: 'grid',
-    gridTemplateColumns: '320px 1fr',
-    gap: '52px',
+    gridTemplateColumns: 'auto 1fr',
+    gap: '48px',
     alignItems: 'center',
   },
   qrSection: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '16px',
+    gap: '14px',
   },
   qrFrame: {
-    padding: '24px',
-    borderRadius: '24px',
+    padding: '18px',
+    borderRadius: '20px',
     border: '3px solid',
-    boxShadow: '0 12px 36px rgba(0, 0, 0, 0.6), 0 0 25px rgba(245, 158, 11, 0.3)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   qrScanLabel: {
     fontSize: '11px',
-    fontWeight: 800,
-    letterSpacing: '1.2px',
-    color: '#fbbf24',
+    fontWeight: 900,
+    letterSpacing: '1px',
     textAlign: 'center',
   },
   detailsSection: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '14px',
   },
   subHeader: {
-    fontSize: '11.5px',
-    fontWeight: 800,
-    letterSpacing: '1.6px',
-    color: '#fbbf24',
-    textTransform: 'uppercase',
+    fontSize: '12px',
+    fontWeight: 900,
+    letterSpacing: '2px',
   },
   mainTitle: {
-    fontSize: '34px',
+    fontSize: '44px',
     fontWeight: 900,
-    color: '#f8fafc',
+    letterSpacing: '-1px',
+    lineHeight: '1.1',
     margin: 0,
-    letterSpacing: '-0.8px',
   },
   codeContainer: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
-    borderRadius: '20px',
-    padding: '22px 26px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginTop: '6px',
   },
   codeLabel: {
-    fontSize: '11px',
+    fontSize: '12px',
     fontWeight: 800,
-    letterSpacing: '1.2px',
-    color: '#cbd5e1',
-    display: 'block',
-    marginBottom: '10px',
+    letterSpacing: '1px',
   },
   codeBannerRow: {
     display: 'flex',
@@ -512,103 +598,95 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
   },
   codeBanner: {
-    backgroundColor: '#0d0515',
-    border: '2px solid #5d2a90',
-    borderRadius: '16px',
-    padding: '10px 24px',
+    border: '2px solid',
+    borderRadius: '14px',
+    padding: '12px 28px',
+    display: 'inline-block',
   },
   bigCodeText: {
-    fontSize: '32px',
+    fontSize: '42px',
     fontWeight: 900,
-    color: '#f8fafc',
-    letterSpacing: '2px',
+    letterSpacing: '6px',
+    fontFamily: 'monospace',
   },
   copyCodeBtn: {
-    backgroundColor: '#2c1445',
-    color: '#fbbf24',
-    border: '1px solid #5d2a90',
-    borderRadius: '14px',
-    padding: '14px 22px',
-    fontSize: '14px',
+    border: '1px solid',
+    borderRadius: '10px',
+    padding: '14px 20px',
+    fontSize: '13px',
     fontWeight: 800,
     cursor: 'pointer',
     transition: 'all 0.15s ease',
   },
   queuePreviewBox: {
-    backgroundColor: '#1b0c2b',
-    border: '1px solid #3b195c',
-    borderRadius: '16px',
-    padding: '16px 20px',
+    border: '1px solid',
+    borderRadius: '12px',
+    padding: '14px 18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
   },
   queueHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '10px',
   },
   queueBadge: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#fbbf24',
     letterSpacing: '1px',
   },
   queueCount: {
     fontSize: '12px',
-    color: '#94a3b8',
-    fontWeight: 600,
+    fontWeight: 700,
   },
   queueChipsList: {
     display: 'flex',
-    gap: '10px',
+    gap: '8px',
     flexWrap: 'wrap',
   },
   queueChip: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
-    borderRadius: '10px',
-    padding: '6px 14px',
-    fontSize: '13px',
+    border: '1px solid',
+    borderRadius: '20px',
+    padding: '4px 12px',
+    fontSize: '12px',
     fontWeight: 700,
-    color: '#f8fafc',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
   },
   queueNum: {
-    color: '#fbbf24',
-    marginRight: '4px',
+    fontWeight: 900,
   },
   queueMoreChip: {
-    backgroundColor: '#200f33',
-    borderRadius: '10px',
-    padding: '6px 12px',
     fontSize: '12px',
-    color: '#94a3b8',
+    alignSelf: 'center',
+    fontWeight: 700,
   },
   instructionsList: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '14px',
+    gap: '12px',
+    marginTop: '12px',
   },
   stepItem: {
     display: 'flex',
     alignItems: 'center',
     gap: '14px',
-    fontSize: '14px',
-    color: '#cbd5e1',
+    fontSize: '15px',
   },
   stepNumber: {
     width: '28px',
     height: '28px',
     borderRadius: '50%',
-    backgroundColor: '#2c1445',
-    border: '1px solid #5d2a90',
-    color: '#fbbf24',
-    fontSize: '12.5px',
-    fontWeight: 900,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    fontSize: '13px',
+    fontWeight: 900,
     flexShrink: 0,
   },
   stepTitle: {
-    color: '#f8fafc',
+    fontWeight: 800,
   },
 };

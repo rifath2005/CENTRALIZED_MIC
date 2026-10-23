@@ -1,6 +1,6 @@
 /* ==========================================================================
    Centralized Mic Host Receiver
-   Theme: Deep Aubergine, Ice Silver, and Marigold
+   Theme: Unified Red Design System (WCAG AA Compliant)
    ========================================================================== */
 
 /* Global Reset & Base */
@@ -11,45 +11,67 @@
 }
 
 :root {
-  /* Deep Aubergine Palette */
-  --bg-deepest: #0d0515;
-  --bg-surface-dark: #160a22;
-  --bg-surface-card: #200f33;
-  --bg-surface-elevated: #2c1445;
-  --bg-surface-hover: #371956;
-  --border-aubergine: #441e6a;
-  --border-aubergine-light: #5d2a90;
+  /* Primary Red / Ruby Brand */
+  --red-primary: #e11d48;
+  --red-hover: #f43f5e;
+  --red-active: #be123c;
+  --red-focus: rgba(225, 29, 72, 0.45);
+  --red-glow: 0 0 20px rgba(225, 29, 72, 0.45);
+  --text-on-red: #ffffff;
 
-  /* Ice Silver Palette */
-  --text-ice-white: #f8fafc;
-  --text-ice-silver: #cbd5e1;
-  --text-silver-muted: #94a3b8;
-  --border-silver-subtle: rgba(203, 213, 225, 0.15);
-  --silver-chip-bg: rgba(203, 213, 225, 0.08);
+  /* Accent High-Contrast Text */
+  --accent-bright: #fb7185;
+  --accent-muted: #fda4af;
+  --accent-light: #fecdd3;
 
-  /* Marigold Palette */
-  --marigold-primary: #f59e0b;
-  --marigold-bright: #fbbf24;
-  --marigold-dark: #d97706;
-  --marigold-deep: #b45309;
-  --marigold-tint: rgba(245, 158, 11, 0.12);
-  --marigold-glow: 0 0 20px rgba(245, 158, 11, 0.4);
+  /* Dark Crimson / Obsidian Surfaces */
+  --bg-deepest: #090305;
+  --bg-surface-dark: #120408;
+  --bg-surface-card: #1c070e;
+  --bg-surface-elevated: #280a14;
+  --bg-surface-hover: #350d1b;
+  --bg-surface-overlay: rgba(9, 3, 5, 0.94);
 
-  /* Functional Status Accents */
+  /* Borders */
+  --border-crimson: #3b0d1a;
+  --border-crimson-light: #5a1529;
+  --border-crimson-strong: #e11d48;
+
+  /* Text Hierarchy */
+  --text-primary: #ffffff;
+  --text-secondary: #fecdd3;
+  --text-muted: #a3717c;
+  --text-subtle: #734d56;
+
+  /* Semantic Emergency & Status */
+  --emergency-primary: #dc2626;
+  --emergency-border: #ef4444;
+  --emergency-text: #fee2e2;
+  --emergency-bg: rgba(220, 38, 38, 0.16);
+  --emergency-glow: 0 0 24px rgba(220, 38, 38, 0.85);
+
   --status-emerald: #10b981;
+  --status-emerald-glow: 0 0 20px rgba(16, 185, 129, 0.5);
+  --status-amber: #f59e0b;
   --status-crimson: #f43f5e;
 }
 
 body {
   background-color: var(--bg-deepest);
-  color: var(--text-ice-white);
+  color: var(--text-primary);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Custom Ice Silver / Aubergine Scrollbar */
+/* Accessible focus outlines */
+:focus-visible {
+  outline: 2px solid var(--red-hover);
+  outline-offset: 2px;
+}
+
+/* Custom Red / Obsidian Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -58,33 +80,35 @@ body {
   background: var(--bg-surface-dark);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-aubergine-light);
+  background: var(--border-crimson-light);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--marigold-primary);
+  background: var(--red-primary);
 }
 
-/* Animations */
-@keyframes pulseMarigoldGlow {
+/* Keyframe Animations */
+@keyframes pulseRedGlow {
   0%, 100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 14px rgba(225, 29, 72, 0.5);
   }
   50% {
-    opacity: 0.8;
-    transform: scale(1.06);
-    box-shadow: 0 0 24px rgba(245, 158, 11, 0.85);
+    opacity: 0.85;
+    transform: scale(1.05);
+    box-shadow: 0 0 26px rgba(225, 29, 72, 0.85);
   }
 }
 
-@keyframes pulseRedAlert {
+@keyframes pulseEmergencyAlert {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    background-color: #dc2626;
   }
   50% {
-    box-shadow: 0 0 25px rgba(244, 63, 94, 0.95);
+    box-shadow: 0 0 32px rgba(239, 68, 68, 1);
+    background-color: #ef4444;
   }
 }
 
@@ -97,12 +121,12 @@ body {
   }
 }
 
-.pulse-marigold {
-  animation: pulseMarigoldGlow 1.8s infinite ease-in-out;
+.pulse-red {
+  animation: pulseRedGlow 1.8s infinite ease-in-out;
 }
 
 .pulse-emergency {
-  animation: pulseRedAlert 1.2s infinite ease-in-out;
+  animation: pulseEmergencyAlert 1.2s infinite ease-in-out;
 }
 
 /* Speaking Waveform Bars */
@@ -115,16 +139,44 @@ body {
 
 .wave-bar {
   width: 4px;
-  background-color: var(--marigold-bright);
+  background-color: var(--accent-bright);
   border-radius: 2px;
   animation: soundwave 1s infinite ease-in-out;
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 8px rgba(251, 113, 133, 0.6);
 }
 
 .wave-bar:nth-child(2) { animation-delay: 0.15s; }
 .wave-bar:nth-child(3) { animation-delay: 0.3s; }
 .wave-bar:nth-child(4) { animation-delay: 0.45s; }
 .wave-bar:nth-child(5) { animation-delay: 0.2s; }
+
+/* Reduced Motion Fallbacks (WCAG & Accessibility requirement) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .pulse-red {
+    animation: none !important;
+    box-shadow: 0 0 14px rgba(225, 29, 72, 0.5) !important;
+    transform: none !important;
+  }
+
+  .pulse-emergency {
+    animation: none !important;
+    background-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px #fee2e2, 0 0 20px rgba(220, 38, 38, 0.8) !important;
+    transform: none !important;
+  }
+
+  .wave-bar {
+    animation: none !important;
+    height: 16px !important;
+  }
+}
 
 /* Responsive Layout Breakpoints */
 @media (max-width: 1024px) {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AudioProcessingGraph, HARD_VOLUME_CEILING } from './audio/AudioProcessingGraph';
 import { useHostLiveKit } from './hooks/useHostLiveKit';
 import { useHostFloorArbiter } from './hooks/useHostFloorArbiter';
@@ -7,9 +7,11 @@ import { FloorQueueDisplay } from './components/FloorQueueDisplay';
 import { LevelMeter } from './components/LevelMeter';
 import { RoomQRCode } from './components/RoomQRCode';
 import { BoardroomRoster } from './components/BoardroomRoster';
+import { DeviceSelector } from './components/DeviceSelector';
 import { StageDisplayView } from './components/StageDisplayView';
 import { AudioDspConfigView } from './components/AudioDspConfigView';
 import { SettingsNetworkView } from './components/SettingsNetworkView';
+import { redTheme } from './tokens/redTheme';
 
 export type HostViewMode = 'stage' | 'console' | 'dsp' | 'settings';
 
@@ -24,6 +26,10 @@ export default function App() {
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [tempRoomInput, setTempRoomInput] = useState('BOARDROOM-1');
   const [copiedRoomCode, setCopiedRoomCode] = useState(false);
+
+  // Protected Press: Two-step confirmation for Emergency Mute
+  const [emergencyConfirmArmed, setEmergencyConfirmArmed] = useState(false);
+  const emergencyTimerRef = useRef<number | null>(null);
 
   // Singleton Web Audio Processing Graph
   const audioGraph = useMemo(() => new AudioProcessingGraph(), []);
@@ -100,6 +106,7 @@ export default function App() {
     audioGraph.setMasterVolume(newVol);
     if (isEmergencyMuted) {
       setIsEmergencyMuted(false);
+      setEmergencyConfirmArmed(false);
     }
   };
 
@@ -108,12 +115,35 @@ export default function App() {
     audioGraph.setMasterVolume(presetVol);
     if (isEmergencyMuted) {
       setIsEmergencyMuted(false);
+      setEmergencyConfirmArmed(false);
     }
   };
 
+  // WEB-OP-05: EmergencyMuteButton Protected Press Handler
   const handleToggleEmergencyMute = () => {
-    const muted = audioGraph.toggleEmergencyMute();
-    setIsEmergencyMuted(muted);
+    if (isEmergencyMuted) {
+      // Unmuting is a direct single click
+      const muted = audioGraph.toggleEmergencyMute();
+      setIsEmergencyMuted(muted);
+      setEmergencyConfirmArmed(false);
+      if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
+      return;
+    }
+
+    if (!emergencyConfirmArmed) {
+      // Step 1: Arm confirmation with 4-second safety auto-disarm
+      setEmergencyConfirmArmed(true);
+      if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
+      emergencyTimerRef.current = setTimeout(() => {
+        setEmergencyConfirmArmed(false);
+      }, 4000);
+    } else {
+      // Step 2: Confirmed execution of emergency mute
+      const muted = audioGraph.toggleEmergencyMute();
+      setIsEmergencyMuted(muted);
+      setEmergencyConfirmArmed(false);
+      if (emergencyTimerRef.current) clearTimeout(emergencyTimerRef.current);
+    }
   };
 
   const handleThresholdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +195,7 @@ export default function App() {
 
   return (
     <div style={styles.appContainer}>
-      {/* Autoplay Gate Overlay */}
+      {/* WEB-OP-06: AudioUnlockModal Autoplay Gate Overlay */}
       <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* When Stage Display view is selected, render full-screen safe audience card */}
@@ -180,15 +210,15 @@ export default function App() {
         />
       ) : (
         <>
-          {/* Main Top Header with Section Navigation */}
-          <header className="responsive-header" style={styles.topHeader}>
+          {/* WEB-OP-01: ConsoleHeaderNav with Section Navigation */}
+          <header className="responsive-header" style={styles.topHeader} role="banner">
             <div style={styles.headerLeft}>
               <div style={styles.titleRow}>
-                <h1 style={styles.appTitle}>CENTRALIZED MIC RECEIVER</h1>
+                <h1 style={styles.appTitle}>AIRMIC HOST CONSOLE</h1>
                 <span style={styles.latencyPill}>LATENCY &lt; 300MS</span>
               </div>
 
-              {/* Room Code Editor / Switcher in header */}
+              {/* WEB-OP-02: RoomCodeSwitcher in header */}
               <div style={styles.roomSwitcherRow}>
                 <span style={styles.roomCodeLabel}>ROOM:</span>
                 {isEditingRoom ? (
@@ -199,17 +229,18 @@ export default function App() {
                       onChange={(e) => setTempRoomInput(e.target.value.toUpperCase())}
                       style={styles.roomInput}
                       autoFocus
+                      aria-label="New Room Code"
                     />
-                    <button style={styles.roomSaveBtn} onClick={handleSaveRoomCode}>
+                    <button style={styles.roomSaveBtn} onClick={handleSaveRoomCode} aria-label="Save Room Code">
                       Save
                     </button>
-                    <button style={styles.roomCancelBtn} onClick={() => setIsEditingRoom(false)}>
+                    <button style={styles.roomCancelBtn} onClick={() => setIsEditingRoom(false)} aria-label="Cancel editing">
                       Cancel
                     </button>
                   </div>
                 ) : (
                   <div style={styles.roomCodeDisplay}>
-                    <span style={styles.roomCodeBadge}>{roomName}</span>
+                    <span style={styles.roomCodeBadge} aria-label={`Current Room: ${roomName}`}>{roomName}</span>
                     <button
                       style={styles.roomEditBtn}
                       onClick={() => {
@@ -217,6 +248,7 @@ export default function App() {
                         setIsEditingRoom(true);
                       }}
                       title="Switch meeting room"
+                      aria-label="Switch room code"
                     >
                       ✏️ Switch
                     </button>
@@ -224,6 +256,7 @@ export default function App() {
                       style={styles.roomCopyBtn}
                       onClick={handleCopyCode}
                       title="Copy code to clipboard"
+                      aria-label="Copy room code"
                     >
                       {copiedRoomCode ? '✓ Copied' : '📋 Copy'}
                     </button>
@@ -231,6 +264,7 @@ export default function App() {
                       style={styles.roomRandomBtn}
                       onClick={handleGenerateUniqueRoom}
                       title="Generate unique room code to avoid collisions online"
+                      aria-label="Generate unique room code"
                     >
                       🎲 Unique Code
                     </button>
@@ -239,19 +273,21 @@ export default function App() {
               </div>
             </div>
 
-            {/* Middle: 4 Distinct Page Views Navigation */}
-            <nav className="responsive-nav-tabs" style={styles.viewModeTabs}>
+            {/* WEB-OP-03: ConsoleViewTabs Navigation */}
+            <nav className="responsive-nav-tabs" style={styles.viewModeTabs} role="navigation" aria-label="Console Views">
               {/* 1. Stage Display (Audience / Screen-Share Safe) */}
               <button
                 style={{
                   ...styles.tabBtn,
                   backgroundColor: 'transparent',
-                  color: '#cbd5e1',
+                  color: redTheme.colors.textSecondary,
                   borderColor: 'transparent',
                   fontWeight: 700,
+                  boxShadow: 'none',
                 }}
                 onClick={() => setActiveView('stage')}
                 title="Audience & Screen-Share view. Zero operator knobs, completely safe for projectors."
+                aria-pressed={false}
               >
                 <span>📺 Stage Display</span>
                 <span
@@ -269,21 +305,22 @@ export default function App() {
               <button
                 style={{
                   ...styles.tabBtn,
-                  backgroundColor: activeView === 'console' ? '#f59e0b' : 'transparent',
-                  color: activeView === 'console' ? '#0d0515' : '#cbd5e1',
-                  borderColor: activeView === 'console' ? '#fbbf24' : 'transparent',
+                  backgroundColor: activeView === 'console' ? redTheme.colors.primary : 'transparent',
+                  color: activeView === 'console' ? redTheme.colors.textOnPrimary : redTheme.colors.textSecondary,
+                  borderColor: activeView === 'console' ? redTheme.colors.primaryHover : 'transparent',
                   fontWeight: activeView === 'console' ? 900 : 700,
-                  boxShadow: activeView === 'console' ? '0 0 16px rgba(245, 158, 11, 0.45)' : 'none',
+                  boxShadow: activeView === 'console' ? redTheme.shadows.glowPrimary : 'none',
                 }}
                 onClick={() => setActiveView('console')}
                 title="AV Moderator desk: floor queue, speaker cut, and attendee roster"
+                aria-pressed={activeView === 'console'}
               >
                 <span>🎛️ Live Console</span>
                 <span
                   style={{
                     ...styles.tabPill,
-                    backgroundColor: activeView === 'console' ? '#0d0515' : 'rgba(245, 158, 11, 0.15)',
-                    color: activeView === 'console' ? '#fbbf24' : '#cbd5e1',
+                    backgroundColor: activeView === 'console' ? 'rgba(0,0,0,0.2)' : 'rgba(225, 29, 72, 0.2)',
+                    color: activeView === 'console' ? '#ffffff' : redTheme.colors.accentBright,
                   }}
                 >
                   HOME
@@ -294,21 +331,22 @@ export default function App() {
               <button
                 style={{
                   ...styles.tabBtn,
-                  backgroundColor: activeView === 'dsp' ? '#f59e0b' : 'transparent',
-                  color: activeView === 'dsp' ? '#0d0515' : '#cbd5e1',
-                  borderColor: activeView === 'dsp' ? '#fbbf24' : 'transparent',
+                  backgroundColor: activeView === 'dsp' ? redTheme.colors.primary : 'transparent',
+                  color: activeView === 'dsp' ? redTheme.colors.textOnPrimary : redTheme.colors.textSecondary,
+                  borderColor: activeView === 'dsp' ? redTheme.colors.primaryHover : 'transparent',
                   fontWeight: activeView === 'dsp' ? 900 : 700,
-                  boxShadow: activeView === 'dsp' ? '0 0 16px rgba(245, 158, 11, 0.45)' : 'none',
+                  boxShadow: activeView === 'dsp' ? redTheme.shadows.glowPrimary : 'none',
                 }}
                 onClick={() => setActiveView('dsp')}
                 title="Physical soundcard routing, limiter thresholds, and rumble cut"
+                aria-pressed={activeView === 'dsp'}
               >
                 <span>🔊 Audio DSP</span>
                 <span
                   style={{
                     ...styles.tabPill,
-                    backgroundColor: activeView === 'dsp' ? '#0d0515' : 'rgba(203, 213, 225, 0.1)',
-                    color: activeView === 'dsp' ? '#fbbf24' : '#94a3b8',
+                    backgroundColor: activeView === 'dsp' ? 'rgba(0,0,0,0.2)' : 'rgba(254, 205, 211, 0.15)',
+                    color: activeView === 'dsp' ? '#ffffff' : redTheme.colors.textSecondary,
                   }}
                 >
                   CONFIGURE
@@ -319,21 +357,22 @@ export default function App() {
               <button
                 style={{
                   ...styles.tabBtn,
-                  backgroundColor: activeView === 'settings' ? '#f59e0b' : 'transparent',
-                  color: activeView === 'settings' ? '#0d0515' : '#cbd5e1',
-                  borderColor: activeView === 'settings' ? '#fbbf24' : 'transparent',
+                  backgroundColor: activeView === 'settings' ? redTheme.colors.primary : 'transparent',
+                  color: activeView === 'settings' ? redTheme.colors.textOnPrimary : redTheme.colors.textSecondary,
+                  borderColor: activeView === 'settings' ? redTheme.colors.primaryHover : 'transparent',
                   fontWeight: activeView === 'settings' ? 900 : 700,
-                  boxShadow: activeView === 'settings' ? '0 0 16px rgba(245, 158, 11, 0.45)' : 'none',
+                  boxShadow: activeView === 'settings' ? redTheme.shadows.glowPrimary : 'none',
                 }}
                 onClick={() => setActiveView('settings')}
                 title="Room codes, LiveKit cloud endpoints, and latency diagnostics"
+                aria-pressed={activeView === 'settings'}
               >
                 <span>⚙️ Settings</span>
                 <span
                   style={{
                     ...styles.tabPill,
-                    backgroundColor: activeView === 'settings' ? '#0d0515' : 'rgba(203, 213, 225, 0.1)',
-                    color: activeView === 'settings' ? '#fbbf24' : '#94a3b8',
+                    backgroundColor: activeView === 'settings' ? 'rgba(0,0,0,0.2)' : 'rgba(254, 205, 211, 0.15)',
+                    color: activeView === 'settings' ? '#ffffff' : redTheme.colors.textSecondary,
                   }}
                 >
                   NETWORK
@@ -347,15 +386,15 @@ export default function App() {
               <div
                 style={{
                   ...styles.pipelineBadge,
-                  borderColor: isAudioUnlocked ? '#10b981' : '#f59e0b',
-                  color: isAudioUnlocked ? '#34d399' : '#fbbf24',
+                  borderColor: isAudioUnlocked ? redTheme.colors.statusOnAir : redTheme.colors.primary,
+                  color: isAudioUnlocked ? '#34d399' : redTheme.colors.accentBright,
                 }}
                 title={isAudioUnlocked ? 'Web Audio DSP 48kHz active' : 'Click start session to unlock'}
               >
                 <span
                   style={{
                     ...styles.pipelineDot,
-                    backgroundColor: isAudioUnlocked ? '#34d399' : '#fbbf24',
+                    backgroundColor: isAudioUnlocked ? '#34d399' : redTheme.colors.primary,
                   }}
                 />
                 <span>{isAudioUnlocked ? 'PA Engine (48kHz)' : 'Audio Locked'}</span>
@@ -363,7 +402,7 @@ export default function App() {
 
               {/* Attendance counter */}
               <div style={styles.attendanceBadge} title="Active attendee smartphones in this room">
-                <span className="pulse-marigold" style={styles.attendanceDot} />
+                <span className="pulse-red" style={styles.attendanceDot} aria-hidden="true" />
                 <span>{memberCount} {memberCount === 1 ? 'Attendee' : 'Attendees'}</span>
               </div>
 
@@ -372,7 +411,7 @@ export default function App() {
                 <span
                   style={{
                     ...styles.statusDot,
-                    backgroundColor: isConnected ? '#10b981' : isConnecting ? '#f59e0b' : '#64748b',
+                    backgroundColor: isConnected ? redTheme.colors.statusOnAir : isConnecting ? redTheme.colors.statusInQueue : '#64748b',
                   }}
                 />
                 <span style={styles.statusText}>
@@ -384,16 +423,16 @@ export default function App() {
                 </span>
               </div>
 
-              <button style={styles.fsHeaderBtn} onClick={toggleBrowserFullscreen} title="Toggle Fullscreen">
+              <button style={styles.fsHeaderBtn} onClick={toggleBrowserFullscreen} title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
                 ⤡ Fullscreen
               </button>
 
               {isConnected ? (
-                <button style={styles.disconnectBtn} onClick={disconnectHost}>
+                <button style={styles.disconnectBtn} onClick={disconnectHost} aria-label="Leave room">
                   LEAVE ROOM
                 </button>
               ) : (
-                <button style={styles.connectBtn} onClick={connectHost} disabled={isConnecting}>
+                <button style={styles.connectBtn} onClick={connectHost} disabled={isConnecting} aria-label="Connect to room">
                   {isConnecting ? 'CONNECTING...' : 'CONNECT'}
                 </button>
               )}
@@ -402,12 +441,12 @@ export default function App() {
 
           {/* Render cold-start helper notice if connecting */}
           {isConnecting && (
-            <div style={styles.connectingBanner}>
+            <div style={styles.connectingBanner} role="status">
               <span>⏳ Establishing WebRTC bridge to LiveKit server... (Note: Free-tier server cold start may take ~30s if waking up)</span>
             </div>
           )}
 
-          {error && <div style={styles.errorAlert}>{error}</div>}
+          {error && <div style={styles.errorAlert} role="alert">{error}</div>}
 
           {/* Conditional Sub-View Rendering */}
           {activeView === 'dsp' ? (
@@ -447,33 +486,68 @@ export default function App() {
                     style={styles.openProjectorPill}
                     onClick={() => setActiveView('stage')}
                     title="Switch to screen-share safe attendee projection"
+                    aria-label="Open Stage Display for audience projection"
                   >
                     📺 Open Stage Display (Screen-Share Safe for Audience) →
                   </button>
                 </div>
 
                 {/* Quick PA Control Strip for Operator */}
-                <div style={styles.card}>
+                <div style={styles.card} role="region" aria-label="Floor PA Controls">
                   <div style={styles.cardHeaderRow}>
                     <div style={styles.cardTitleGroup}>
                       <span style={styles.cardSubBadge}>FLOOR PA CONTROLS</span>
                       <h3 style={styles.cardHeader}>MASTER VOLUME &amp; EMERGENCY</h3>
                     </div>
-                    {/* Emergency Master Cut Button */}
+
+                    {/* WEB-OP-05: EmergencyMuteButton (Protected Press Safety Guard) */}
                     <button
                       style={{
                         ...styles.emergencyCutBtn,
-                        backgroundColor: isEmergencyMuted ? '#f43f5e' : 'rgba(244, 63, 94, 0.15)',
-                        color: isEmergencyMuted ? '#ffffff' : '#fb7185',
+                        backgroundColor: isEmergencyMuted
+                          ? redTheme.colors.emergency
+                          : emergencyConfirmArmed
+                          ? '#f59e0b'
+                          : redTheme.colors.emergencyBg,
+                        color: isEmergencyMuted || emergencyConfirmArmed ? '#ffffff' : redTheme.colors.emergencyText,
+                        borderColor: isEmergencyMuted
+                          ? redTheme.colors.emergencyBorder
+                          : emergencyConfirmArmed
+                          ? '#fbbf24'
+                          : redTheme.colors.emergencyBorder,
+                        boxShadow: isEmergencyMuted
+                          ? redTheme.shadows.glowEmergency
+                          : emergencyConfirmArmed
+                          ? '0 0 16px rgba(245, 158, 11, 0.85)'
+                          : 'none',
                       }}
+                      className={isEmergencyMuted ? 'pulse-emergency' : ''}
                       onClick={handleToggleEmergencyMute}
-                      title="Instantly cut all audio output"
+                      title={
+                        isEmergencyMuted
+                          ? 'PA is muted. Click to restore audio output.'
+                          : emergencyConfirmArmed
+                          ? 'Click again to confirm emergency audio cut!'
+                          : 'Emergency Audio Cut (requires two-step confirmation)'
+                      }
+                      aria-label={
+                        isEmergencyMuted
+                          ? 'Emergency PA Mute Active. Click to restore audio'
+                          : emergencyConfirmArmed
+                          ? 'Confirm Emergency Mute Audio Cut'
+                          : 'Emergency Audio Cut'
+                      }
+                      aria-live="assertive"
                     >
-                      {isEmergencyMuted ? '🚨 PA MUTED (CLICK TO RESTORE)' : '🔇 EMERGENCY CUT'}
+                      {isEmergencyMuted
+                        ? '🚨 PA MUTED (CLICK TO RESTORE)'
+                        : emergencyConfirmArmed
+                        ? '⚠️ CLICK AGAIN TO CONFIRM CUT!'
+                        : '🔇 EMERGENCY CUT'}
                     </button>
                   </div>
 
-                  {/* Master Volume Slider */}
+                  {/* WEB-OP-04: MasterVolumeSlider */}
                   <div style={styles.sliderGroup}>
                     <div style={styles.sliderLabelRow}>
                       <span style={styles.sliderLabel}>PA ROOM GAIN</span>
@@ -481,18 +555,21 @@ export default function App() {
                         <button
                           style={styles.presetPill}
                           onClick={() => handleSetVolumePreset(0.5)}
+                          aria-label="Set volume to 50%"
                         >
                           50%
                         </button>
                         <button
                           style={styles.presetPill}
                           onClick={() => handleSetVolumePreset(0.75)}
+                          aria-label="Set volume to 75% nominal"
                         >
                           75% (Nominal)
                         </button>
                         <button
                           style={styles.presetPill}
                           onClick={() => handleSetVolumePreset(HARD_VOLUME_CEILING)}
+                          aria-label="Set volume to 90% max"
                         >
                           90% (Max)
                         </button>
@@ -507,10 +584,14 @@ export default function App() {
                       value={volume}
                       onChange={handleVolumeChange}
                       style={styles.slider}
+                      aria-label="PA Room Volume Gain"
+                      aria-valuenow={Math.round(volume * 100)}
+                      aria-valuemin={0}
+                      aria-valuemax={Math.round(HARD_VOLUME_CEILING * 100)}
                     />
                   </div>
 
-                  {/* Level Meter preview */}
+                  {/* WEB-OP-07: PaLevelMeter */}
                   <LevelMeter audioGraph={audioGraph} />
 
                   <div style={styles.quickNavDspRow}>
@@ -518,32 +599,25 @@ export default function App() {
                     <button
                       style={styles.quickNavBtn}
                       onClick={() => setActiveView('dsp')}
+                      aria-label="Open Audio DSP settings"
                     >
-                      Go to Audio DSP Configure →
+                      Open Audio DSP &rarr;
                     </button>
                   </div>
                 </div>
 
-                {/* Operator Acoustic Guidance */}
-                <div style={styles.guidanceCard}>
-                  <h4 style={styles.guidanceTitle}>Acoustic Feedback Operator Protocol</h4>
-                  <ul style={styles.guidanceList}>
-                    <li>
-                      <strong>Near-field rule:</strong> Instruct speakers to hold smartphone 5–10 cm from mouth. Never speak from chest level.
-                    </li>
-                    <li>
-                      <strong>PA placement:</strong> Venue speakers must be placed in front of attendees and angled away from microphones.
-                    </li>
-                    <li>
-                      <strong>Single-speaker arbiter:</strong> Centralized Mic enforces exactly one open microphone at any instant, preventing comb filtering.
-                    </li>
-                  </ul>
+                {/* Physical Audio Interface Selector (WEB-OP-11) */}
+                <div style={styles.card}>
+                  <DeviceSelector
+                    onSelectDevice={handleDeviceSelect}
+                    onPlayTestTone={handlePlayTestTone}
+                  />
                 </div>
               </section>
 
-              {/* Right Column: Authoritative Floor Queue & Boardroom Attendance Roster */}
+              {/* Right Column: Authoritative Floor Arbiter & Attendee Roster */}
               <section style={styles.rightColumn}>
-                {/* Active Speaker Banner & Floor Queue */}
+                {/* Authoritative Floor Queue & Speaker Controls (WEB-OP-08 & WEB-OP-09) */}
                 <FloorQueueDisplay
                   currentSpeaker={currentSpeaker}
                   queue={queue}
@@ -553,13 +627,23 @@ export default function App() {
                   onRemoveFromQueue={removeFromQueue}
                 />
 
-                {/* Real-time Connected Smartphone Attendees Roster */}
+                {/* Attendee Roster List */}
                 <BoardroomRoster
                   members={members}
                   currentSpeaker={currentSpeaker}
                   queue={queue}
                   onGrantFloor={grantFloorTo}
                 />
+
+                {/* Acoustic Operation Guidance Card */}
+                <div style={styles.guidanceCard}>
+                  <div style={styles.guidanceTitle}>📋 ACOUSTIC OPERATION PROTOCOL</div>
+                  <ol style={styles.guidanceList}>
+                    <li>Always arm the 80Hz rumble cut if attendees place phones directly on tabletops.</li>
+                    <li>The peak limiter engages dynamically at -18dBFS to safeguard venue PA tweeters.</li>
+                    <li>If acoustic howling begins, immediately tap <strong>EMERGENCY CUT</strong> to silence stage audio.</li>
+                  </ol>
+                </div>
               </section>
             </main>
           )}
@@ -572,23 +656,24 @@ export default function App() {
 const styles: Record<string, React.CSSProperties> = {
   appContainer: {
     minHeight: '100vh',
-    backgroundColor: '#0d0515',
-    color: '#f8fafc',
-    padding: '24px 32px',
+    backgroundColor: redTheme.colors.bgDeepest,
+    color: redTheme.colors.textPrimary,
+    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+    padding: '24px',
     boxSizing: 'border-box',
   },
   topHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '16px 24px',
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '16px',
-    marginBottom: '24px',
-    gap: '16px',
+    padding: '16px 24px',
+    marginBottom: '20px',
+    boxShadow: redTheme.shadows.card,
     flexWrap: 'wrap',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    gap: '16px',
   },
   headerLeft: {
     display: 'flex',
@@ -598,36 +683,36 @@ const styles: Record<string, React.CSSProperties> = {
   titleRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '12px',
   },
   appTitle: {
     fontSize: '20px',
     fontWeight: 900,
-    letterSpacing: '2px',
-    color: '#fbbf24',
+    letterSpacing: '-0.5px',
     margin: 0,
-    textShadow: '0 0 16px rgba(251, 191, 36, 0.3)',
+    color: redTheme.colors.textPrimary,
   },
   latencyPill: {
     fontSize: '10px',
     fontWeight: 800,
-    color: '#fbbf24',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    padding: '3px 8px',
-    borderRadius: '10px',
-    border: '1px solid #f59e0b',
+    backgroundColor: 'rgba(225, 29, 72, 0.15)',
+    color: redTheme.colors.accentBright,
+    border: `1px solid ${redTheme.colors.borderStrong}`,
+    borderRadius: '6px',
+    padding: '2px 8px',
     letterSpacing: '0.8px',
   },
   roomSwitcherRow: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    marginTop: '2px',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: redTheme.colors.textSecondary,
   },
   roomCodeLabel: {
-    fontSize: '11px',
-    color: '#cbd5e1',
-    fontWeight: 700,
+    letterSpacing: '1px',
+    color: redTheme.colors.textMuted,
   },
   roomCodeDisplay: {
     display: 'flex',
@@ -635,28 +720,29 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '6px',
   },
   roomCodeBadge: {
-    fontSize: '12px',
-    fontWeight: 800,
-    color: '#fbbf24',
-    backgroundColor: '#200f33',
-    border: '1px solid #5d2a90',
-    padding: '3px 10px',
-    borderRadius: '6px',
     fontFamily: 'monospace',
+    fontWeight: 800,
+    fontSize: '12px',
+    color: redTheme.colors.accentBright,
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    padding: '3px 8px',
+    borderRadius: '6px',
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    letterSpacing: '1px',
   },
   roomEditBtn: {
-    backgroundColor: 'transparent',
+    background: 'none',
     border: 'none',
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
     padding: '2px 4px',
   },
   roomCopyBtn: {
-    backgroundColor: '#2c1445',
-    border: '1px solid #5d2a90',
-    color: '#cbd5e1',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.textSecondary,
     fontSize: '10px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -664,9 +750,9 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '4px',
   },
   roomRandomBtn: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    border: '1px solid #f59e0b',
-    color: '#fbbf24',
+    backgroundColor: 'rgba(225, 29, 72, 0.12)',
+    border: `1px solid ${redTheme.colors.borderStrong}`,
+    color: redTheme.colors.accentBright,
     fontSize: '10px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -680,8 +766,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '6px',
   },
   roomInput: {
-    backgroundColor: '#160a22',
-    border: '1px solid #f59e0b',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.primary}`,
     color: '#ffffff',
     fontSize: '12px',
     fontWeight: 800,
@@ -692,8 +778,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: '120px',
   },
   roomSaveBtn: {
-    backgroundColor: '#f59e0b',
-    color: '#0d0515',
+    backgroundColor: redTheme.colors.primary,
+    color: redTheme.colors.textOnPrimary,
     border: 'none',
     borderRadius: '4px',
     padding: '3px 8px',
@@ -702,8 +788,8 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   roomCancelBtn: {
-    backgroundColor: '#2c1445',
-    color: '#cbd5e1',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    color: redTheme.colors.textSecondary,
     border: 'none',
     borderRadius: '4px',
     padding: '3px 6px',
@@ -714,10 +800,10 @@ const styles: Record<string, React.CSSProperties> = {
   viewModeTabs: {
     display: 'flex',
     alignItems: 'center',
-    backgroundColor: '#0d0515',
+    backgroundColor: redTheme.colors.bgDeepest,
     padding: '4px',
     borderRadius: '12px',
-    border: '1px solid #441e6a',
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     gap: '4px',
   },
   tabBtn: {
@@ -749,7 +835,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#200f33',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
     borderWidth: '1px',
     borderStyle: 'solid',
     padding: '6px 12px',
@@ -766,11 +852,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     padding: '6px 12px',
     borderRadius: '8px',
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     fontSize: '11px',
     fontWeight: 700,
   },
@@ -778,14 +864,14 @@ const styles: Record<string, React.CSSProperties> = {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#fbbf24',
+    backgroundColor: redTheme.colors.accentBright,
   },
   connectionStatus: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     padding: '6px 12px',
     borderRadius: '8px',
   },
@@ -797,13 +883,13 @@ const styles: Record<string, React.CSSProperties> = {
   statusText: {
     fontSize: '11px',
     fontWeight: 700,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     letterSpacing: '0.8px',
   },
   fsHeaderBtn: {
-    backgroundColor: '#200f33',
-    color: '#cbd5e1',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    color: redTheme.colors.textSecondary,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '8px',
     padding: '8px 12px',
     fontSize: '11px',
@@ -811,8 +897,8 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   connectBtn: {
-    backgroundColor: '#f59e0b',
-    color: '#0d0515',
+    backgroundColor: redTheme.colors.primary,
+    color: redTheme.colors.textOnPrimary,
     border: 'none',
     borderRadius: '8px',
     padding: '8px 16px',
@@ -820,12 +906,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900,
     letterSpacing: '0.8px',
     cursor: 'pointer',
-    boxShadow: '0 0 12px rgba(245, 158, 11, 0.35)',
+    boxShadow: redTheme.shadows.glowPrimary,
   },
   disconnectBtn: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-    border: '1px solid #f43f5e',
-    color: '#fb7185',
+    backgroundColor: redTheme.colors.emergencyBg,
+    border: `1px solid ${redTheme.colors.emergencyBorder}`,
+    color: redTheme.colors.emergencyText,
     borderRadius: '8px',
     padding: '8px 16px',
     fontSize: '11px',
@@ -834,9 +920,9 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   connectingBanner: {
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    border: '1px solid #f59e0b',
-    color: '#fcd34d',
+    backgroundColor: 'rgba(225, 29, 72, 0.15)',
+    border: `1px solid ${redTheme.colors.primary}`,
+    color: redTheme.colors.accentLight,
     padding: '10px 16px',
     borderRadius: '8px',
     marginBottom: '16px',
@@ -844,9 +930,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
   },
   errorAlert: {
-    backgroundColor: 'rgba(244, 63, 94, 0.2)',
-    border: '1px solid #f43f5e',
-    color: '#fca5a5',
+    backgroundColor: redTheme.colors.emergencyBg,
+    border: `1px solid ${redTheme.colors.emergencyBorder}`,
+    color: redTheme.colors.emergencyText,
     padding: '12px 16px',
     borderRadius: '8px',
     marginBottom: '20px',
@@ -873,9 +959,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   openProjectorPill: {
-    backgroundColor: '#200f33',
-    border: '1px solid #f59e0b',
-    color: '#fbbf24',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.primary}`,
+    color: redTheme.colors.accentBright,
     borderRadius: '8px',
     padding: '12px 16px',
     fontSize: '12px',
@@ -883,14 +969,14 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     textAlign: 'center',
     transition: 'all 0.15s ease',
-    boxShadow: '0 0 12px rgba(245, 158, 11, 0.2)',
+    boxShadow: redTheme.shadows.glowPrimary,
   },
   card: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '20px',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    boxShadow: redTheme.shadows.card,
   },
   cardHeaderRow: {
     display: 'flex',
@@ -906,25 +992,25 @@ const styles: Record<string, React.CSSProperties> = {
   cardSubBadge: {
     fontSize: '10px',
     fontWeight: 800,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     letterSpacing: '1px',
   },
   cardHeader: {
     fontSize: '13px',
     fontWeight: 900,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     letterSpacing: '0.8px',
     margin: 0,
   },
   emergencyCutBtn: {
-    border: '1px solid #f43f5e',
+    border: '1px solid',
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '11px',
     fontWeight: 800,
     letterSpacing: '0.5px',
     cursor: 'pointer',
-    transition: 'all 0.15s ease',
+    transition: 'all 0.18s ease',
   },
   sliderGroup: {
     display: 'flex',
@@ -940,16 +1026,16 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   sliderLabel: {
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
   },
   volumePresetRow: {
     display: 'flex',
     gap: '4px',
   },
   presetPill: {
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
-    color: '#cbd5e1',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.textSecondary,
     fontSize: '10px',
     fontWeight: 700,
     borderRadius: '4px',
@@ -957,14 +1043,14 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   sliderValue: {
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     fontFamily: 'monospace',
     fontWeight: 800,
   },
   slider: {
     width: '100%',
     cursor: 'pointer',
-    accentColor: '#f59e0b',
+    accentColor: redTheme.colors.primary,
   },
   quickNavDspRow: {
     display: 'flex',
@@ -972,37 +1058,37 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginTop: '16px',
     paddingTop: '12px',
-    borderTop: '1px solid #441e6a',
+    borderTop: `1px solid ${redTheme.colors.borderSubtle}`,
   },
   quickNavText: {
     fontSize: '11px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
   },
   quickNavBtn: {
     backgroundColor: 'transparent',
     border: 'none',
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
     textDecoration: 'underline',
   },
   guidanceCard: {
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '20px',
   },
   guidanceTitle: {
     fontSize: '12px',
     fontWeight: 800,
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     letterSpacing: '0.8px',
     marginBottom: '12px',
   },
   guidanceList: {
     fontSize: '12px',
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     lineHeight: '1.7',
     paddingLeft: '20px',
   },

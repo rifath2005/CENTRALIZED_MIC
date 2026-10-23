@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SpeakerInfo, QueueEntry } from '../types';
+import { redTheme } from '../tokens/redTheme';
 
 interface FloorQueueDisplayProps {
   currentSpeaker: SpeakerInfo | null;
@@ -45,14 +46,14 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
   };
 
   return (
-    <div style={styles.container}>
-      {/* Active Speaker Card */}
-      <div style={styles.activeSpeakerCard}>
+    <div style={styles.container} role="region" aria-label="Floor and Attendee Queue">
+      {/* Active Speaker Card (WEB-OP-09) */}
+      <div style={styles.activeSpeakerCard} aria-live="polite">
         <div style={styles.cardHeader}>
           <div style={styles.badgeRow}>
             <span style={styles.sectionBadge}>AUTHORITATIVE FLOOR</span>
             {currentSpeaker && (
-              <span style={styles.timerBadge}>
+              <span style={styles.timerBadge} aria-label={`Speaking duration: ${formatTimer(elapsedSeconds)}`}>
                 ⏱️ {formatTimer(elapsedSeconds)}
               </span>
             )}
@@ -63,6 +64,7 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
               style={styles.revokeButton}
               onClick={onForceRevoke}
               title="Immediately cut microphone and mute speaker"
+              aria-label={`Cut microphone for ${currentSpeaker.name}`}
             >
               🛑 CUT FLOOR
             </button>
@@ -79,7 +81,7 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
                 <div style={styles.nameRow}>
                   <h3 style={styles.speakerName}>{currentSpeaker.name}</h3>
                   {/* Animated Waveform Bars */}
-                  <div className="wave-container" title="Audio transmitting to PA">
+                  <div className="wave-container" title="Audio transmitting to PA" aria-hidden="true">
                     <div className="wave-bar" />
                     <div className="wave-bar" />
                     <div className="wave-bar" />
@@ -93,7 +95,7 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
           </div>
         ) : (
           <div style={styles.floorVacant}>
-            <span style={styles.vacantDot} />
+            <span style={styles.vacantDot} aria-hidden="true" />
             <div>
               <p style={styles.vacantTitle}>Floor is Open (Vacant)</p>
               <p style={styles.vacantSubtext}>
@@ -104,10 +106,10 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
         )}
       </div>
 
-      {/* Queue Card */}
-      <div style={styles.queueCard}>
+      {/* Queue Card (WEB-OP-08) */}
+      <div style={styles.queueCard} role="region" aria-label="Attendee Waiting Line">
         <div style={styles.queueHeader}>
-          <div style={styles.queueCountBadge}>
+          <div style={styles.queueCountBadge} aria-live="polite">
             WAITING LINE ({queue.length})
           </div>
           {queue.length > 0 && (
@@ -125,11 +127,11 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
             </p>
           </div>
         ) : (
-          <div style={styles.queueList}>
+          <div style={styles.queueList} role="list" aria-label="Queued Attendees">
             {queue.map((entry, index) => (
-              <div key={entry.id} style={styles.queueItem}>
+              <div key={entry.id} style={styles.queueItem} role="listitem">
                 <div style={styles.queueItemLeft}>
-                  <span style={styles.queuePosition}>#{index + 1}</span>
+                  <span style={styles.queuePosition} aria-label={`Position ${index + 1}`}>#{index + 1}</span>
                   <div style={styles.queueEntryDetails}>
                     <span style={styles.queueEntryName}>{entry.name}</span>
                     <span style={styles.queueEntryTime}>
@@ -144,6 +146,7 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
                       style={styles.grantFloorBtn}
                       onClick={() => onGrantFloor(entry.id, entry.name)}
                       title="Promote directly to active speaker now"
+                      aria-label={`Grant floor to ${entry.name}`}
                     >
                       🎙️ Give Floor
                     </button>
@@ -153,6 +156,7 @@ export const FloorQueueDisplay: React.FC<FloorQueueDisplayProps> = ({
                       style={styles.removeQueueBtn}
                       onClick={() => onRemoveFromQueue(entry.id)}
                       title="Dismiss from line"
+                      aria-label={`Remove ${entry.name} from line`}
                     >
                       ✕
                     </button>
@@ -174,11 +178,11 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '16px',
   },
   activeSpeakerCard: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '20px',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    boxShadow: redTheme.shadows.card,
   },
   cardHeader: {
     display: 'flex',
@@ -194,23 +198,23 @@ const styles: Record<string, React.CSSProperties> = {
   sectionBadge: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     letterSpacing: '1px',
   },
   timerBadge: {
     fontSize: '12px',
     fontWeight: 800,
-    color: '#fbbf24',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    color: redTheme.colors.accentLight,
+    backgroundColor: 'rgba(225, 29, 72, 0.16)',
     padding: '2px 8px',
     borderRadius: '6px',
-    border: '1px solid #f59e0b',
+    border: `1px solid ${redTheme.colors.borderStrong}`,
     fontFamily: 'monospace',
   },
   revokeButton: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-    border: '1px solid #f43f5e',
-    color: '#fb7185',
+    backgroundColor: redTheme.colors.emergencyBg,
+    border: `1px solid ${redTheme.colors.emergencyBorder}`,
+    color: redTheme.colors.emergencyText,
     borderRadius: '6px',
     padding: '6px 14px',
     fontSize: '11px',
@@ -223,11 +227,11 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    border: '1px solid #10b981',
+    backgroundColor: redTheme.colors.statusOnAirBg,
+    border: `1px solid ${redTheme.colors.statusOnAir}`,
     borderRadius: '12px',
     padding: '18px 20px',
-    boxShadow: '0 0 20px rgba(16, 185, 129, 0.15)',
+    boxShadow: redTheme.colors.statusOnAirGlow,
   },
   speakerLeft: {
     display: 'flex',
@@ -239,7 +243,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
   },
   liveBadge: {
-    backgroundColor: '#10b981',
+    backgroundColor: redTheme.colors.statusOnAir,
     color: '#022c22',
     fontWeight: 900,
     fontSize: '12px',
@@ -261,11 +265,11 @@ const styles: Record<string, React.CSSProperties> = {
   speakerName: {
     fontSize: '22px',
     fontWeight: 900,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
   },
   speakerId: {
     fontSize: '11px',
-    color: '#6ee7b7',
+    color: redTheme.colors.statusOnAirText,
     fontFamily: 'monospace',
   },
   floorVacant: {
@@ -273,34 +277,34 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '14px',
     padding: '18px 20px',
-    backgroundColor: '#160a22',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
     borderRadius: '10px',
-    border: '1px dashed #441e6a',
+    border: `1px dashed ${redTheme.colors.borderMedium}`,
   },
   vacantDot: {
     width: '12px',
     height: '12px',
     borderRadius: '50%',
-    backgroundColor: '#5d2a90',
+    backgroundColor: redTheme.colors.borderStrong,
     flexShrink: 0,
   },
   vacantTitle: {
     fontSize: '14px',
     fontWeight: 700,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     margin: 0,
   },
   vacantSubtext: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     margin: '2px 0 0 0',
   },
   queueCard: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '20px',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    boxShadow: redTheme.shadows.card,
   },
   queueHeader: {
     display: 'flex',
@@ -311,13 +315,13 @@ const styles: Record<string, React.CSSProperties> = {
   queueCountBadge: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     letterSpacing: '1px',
   },
   clearQueueButton: {
     backgroundColor: 'transparent',
     border: 'none',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -330,12 +334,12 @@ const styles: Record<string, React.CSSProperties> = {
   emptyQueueText: {
     fontSize: '13px',
     fontWeight: 700,
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     margin: 0,
   },
   emptyQueueSub: {
     fontSize: '11px',
-    color: '#64748b',
+    color: redTheme.colors.textSubtle,
     marginTop: '4px',
   },
   queueList: {
@@ -347,10 +351,10 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#160a22',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
     borderRadius: '8px',
     padding: '10px 14px',
-    border: '1px solid #441e6a',
+    border: `1px solid ${redTheme.colors.borderMedium}`,
   },
   queueItemLeft: {
     display: 'flex',
@@ -360,7 +364,7 @@ const styles: Record<string, React.CSSProperties> = {
   queuePosition: {
     fontSize: '14px',
     fontWeight: 800,
-    color: '#fbbf24',
+    color: redTheme.colors.accentBright,
     width: '28px',
   },
   queueEntryDetails: {
@@ -370,11 +374,11 @@ const styles: Record<string, React.CSSProperties> = {
   queueEntryName: {
     fontSize: '14px',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
   },
   queueEntryTime: {
     fontSize: '11px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
   },
   queueActions: {
     display: 'flex',
@@ -382,8 +386,8 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
   },
   grantFloorBtn: {
-    backgroundColor: '#f59e0b',
-    color: '#0d0515',
+    backgroundColor: redTheme.colors.primary,
+    color: redTheme.colors.textOnPrimary,
     border: 'none',
     borderRadius: '6px',
     padding: '6px 12px',
@@ -391,12 +395,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 800,
     cursor: 'pointer',
     transition: 'all 0.15s ease',
-    boxShadow: '0 0 10px rgba(245, 158, 11, 0.3)',
+    boxShadow: redTheme.shadows.glowPrimary,
   },
   removeQueueBtn: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-    color: '#fb7185',
-    border: '1px solid #f43f5e',
+    backgroundColor: redTheme.colors.emergencyBg,
+    color: redTheme.colors.emergencyText,
+    border: `1px solid ${redTheme.colors.emergencyBorder}`,
     borderRadius: '6px',
     padding: '4px 8px',
     fontSize: '11px',

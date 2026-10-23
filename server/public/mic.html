@@ -5,36 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>AirMic — Instant Stage Microphone</title>
   
-  <!-- iOS PWA meta tags -->
+  <!-- iOS PWA Meta Tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AirMic">
-  <meta name="theme-color" content="#0d0515">
+  <meta name="theme-color" content="#090305">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- LiveKit Client SDK -->
   <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.1.4/dist/livekit-client.umd.min.js"></script>
 
   <style>
+    /* ==========================================================================
+       Unified Red Design System Tokens
+       WCAG AA Compliant (Minimum 4.5:1 text, 3:1 controls)
+       ========================================================================== */
     :root {
-      --bg-primary: #0d0515;
-      --bg-surface: #160a22;
-      --bg-card: #200f33;
-      --border-color: #441e6a;
-      --border-accent: #5d2a90;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-sub: #cbd5e1;
-      --gold: #f59e0b;
-      --gold-light: #fbbf24;
-      --green: #10b981;
-      --green-glow: rgba(16, 185, 129, 0.4);
-      --red: #f43f5e;
-      --purple-glow: rgba(168, 85, 247, 0.35);
+      /* Brand Red Tokens */
+      --red-primary: #e11d48;
+      --red-hover: #f43f5e;
+      --red-active: #be123c;
+      --red-focus: rgba(225, 29, 72, 0.45);
+      --red-glow: 0 0 24px rgba(225, 29, 72, 0.45);
+      --text-on-red: #ffffff;
+
+      /* Accents & High-Contrast Typography */
+      --accent-bright: #fb7185;
+      --accent-muted: #fda4af;
+      --accent-light: #fecdd3;
+
+      /* Dark Surfaces */
+      --bg-deepest: #090305;
+      --bg-surface-dark: #120408;
+      --bg-surface-card: #1c070e;
+      --bg-surface-elevated: #280a14;
+      --bg-surface-hover: #350d1b;
+      --bg-surface-overlay: rgba(9, 3, 5, 0.94);
+
+      /* Borders */
+      --border-subtle: #3b0d1a;
+      --border-medium: #5a1529;
+      --border-strong: #e11d48;
+      --border-focus: #fb7185;
+
+      /* Text Hierarchy */
+      --text-primary: #ffffff;
+      --text-secondary: #fecdd3;
+      --text-muted: #a3717c;
+      --text-subtle: #734d56;
+
+      /* Semantic Status */
+      --emergency-primary: #dc2626;
+      --emergency-border: #ef4444;
+      --emergency-bg: rgba(220, 38, 38, 0.16);
+      --emergency-text: #fee2e2;
+
+      --status-on-air: #10b981;
+      --status-on-air-glow: 0 0 25px rgba(16, 185, 129, 0.6);
+      --status-on-air-bg: rgba(16, 185, 129, 0.16);
+      --status-on-air-text: #a7f3d0;
+
+      --status-in-queue: #f59e0b;
+      --status-in-queue-bg: rgba(245, 158, 11, 0.16);
+      --status-in-queue-text: #fde68a;
+
+      --status-clip: #ff0055;
     }
 
     * {
@@ -47,9 +86,9 @@
     }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg-primary);
-      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-deepest);
+      color: var(--text-primary);
       min-height: 100vh;
       min-height: -webkit-fill-available;
       display: flex;
@@ -62,6 +101,12 @@
       padding-right: max(16px, env(safe-area-inset-right));
     }
 
+    /* Accessible focus rings */
+    :focus-visible {
+      outline: 2px solid var(--accent-bright);
+      outline-offset: 2px;
+    }
+
     .container {
       width: 100%;
       max-width: 440px;
@@ -72,19 +117,19 @@
       justify-content: space-between;
     }
 
-    /* Screen management */
+    /* Screen Management (Zero layout shift) */
     .screen {
       display: none;
       flex-direction: column;
       flex: 1;
-      animation: fadeIn 0.25s ease-out;
+      animation: fadeIn 0.22s ease-out;
     }
     .screen.active {
       display: flex;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
+      from { opacity: 0; transform: translateY(4px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
@@ -92,7 +137,7 @@
     .brand-header {
       text-align: center;
       margin-top: 10px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .logo-badge {
@@ -102,96 +147,51 @@
       width: 68px;
       height: 68px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #2e1053, #160a22);
-      border: 2px solid #6b21a8;
-      box-shadow: 0 0 25px var(--purple-glow);
+      background: radial-gradient(circle at 35% 35%, var(--bg-surface-elevated), var(--bg-deepest));
+      border: 2px solid var(--border-strong);
+      box-shadow: var(--red-glow);
       margin-bottom: 12px;
     }
 
     .logo-badge svg {
-      width: 34px;
-      height: 34px;
-      fill: var(--gold-light);
+      width: 32px;
+      height: 32px;
+      fill: var(--accent-bright);
     }
 
     .app-title {
       font-size: 26px;
       font-weight: 900;
       letter-spacing: -0.5px;
-      color: var(--text-main);
+      color: var(--text-primary);
     }
 
     .app-subtitle {
       font-size: 13px;
-      font-weight: 600;
-      color: var(--gold-light);
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      color: var(--accent-bright);
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       margin-top: 2px;
     }
 
-    /* Card Box */
+    /* Form Card Container */
     .form-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      background-color: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 20px;
+      padding: 24px 20px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
     }
 
-    .field-group {
-      margin-bottom: 18px;
-    }
-
-    .field-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--text-sub);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
-    .text-input {
-      width: 100%;
-      background-color: var(--bg-card);
-      border: 1.5px solid var(--border-color);
-      border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text-main);
-      outline: none;
-      transition: all 0.2s ease;
-      user-select: text;
-      -webkit-user-select: text;
-    }
-
-    .text-input:focus {
-      border-color: var(--gold);
-      box-shadow: 0 0 14px rgba(245, 158, 11, 0.3);
-    }
-
-    .text-input.input-error {
-      border-color: var(--red);
-      background-color: rgba(244, 63, 94, 0.08);
-    }
-
-    .code-input {
-      letter-spacing: 2px;
-      font-family: monospace;
-      text-transform: uppercase;
-    }
-
-    /* Error Banner */
+    /* WEB-TR-04: WebErrorBanner (Top-anchored like mobile) */
     .error-banner {
       display: none;
-      background-color: rgba(244, 63, 94, 0.12);
-      border: 1px solid var(--red);
+      background-color: var(--emergency-bg);
+      border: 1px solid var(--emergency-border);
       border-radius: 12px;
       padding: 12px 14px;
-      color: #fecdd3;
+      color: var(--emergency-text);
       font-size: 13px;
       font-weight: 600;
       line-height: 1.4;
@@ -203,21 +203,78 @@
       display: flex;
     }
 
-    /* Action Buttons */
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    /* WEB-TR-01 & WEB-TR-02: Labels and Text Inputs */
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .text-input {
+      width: 100%;
+      min-height: 48px; /* Touch target minimum */
+      background-color: var(--bg-surface-dark);
+      border: 1.5px solid var(--border-medium);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+
+    /* WEB-TR-01: Focus Ring Mismatch Resolved with Red Glow */
+    .text-input:focus {
+      border-color: var(--red-hover);
+      box-shadow: 0 0 0 3px var(--red-focus);
+    }
+
+    .text-input.input-error {
+      border-color: var(--emergency-border);
+      background-color: var(--emergency-bg);
+    }
+
+    .code-input {
+      letter-spacing: 2px;
+      font-family: monospace;
+      text-transform: uppercase;
+    }
+
+    /* WEB-TR-03: WebJoinButton */
     .btn-primary {
       width: 100%;
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #0d0515;
+      min-height: 52px; /* Large touch target */
+      background: linear-gradient(135deg, var(--red-primary), var(--red-active));
+      color: var(--text-on-red);
       border: none;
       border-radius: 14px;
-      padding: 16px;
+      padding: 14px 20px;
       font-size: 15px;
       font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35);
-      transition: transform 0.1s ease, filter 0.2s ease;
+      box-shadow: var(--red-glow);
+      transition: transform 0.12s ease, filter 0.18s ease, opacity 0.18s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.1);
     }
 
     .btn-primary:active {
@@ -225,15 +282,21 @@
       filter: brightness(0.9);
     }
 
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .helper-text {
       text-align: center;
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 18px;
+      margin-top: 16px;
       line-height: 1.5;
     }
 
-    /* Connecting Animation */
+    /* WEB-TR-05: WebConnectingPulsar (Unified Red Style + Reduced-Motion Fallback) */
     .connecting-box {
       display: flex;
       flex-direction: column;
@@ -258,42 +321,42 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      border: 3px solid #a855f7;
+      border: 3px solid var(--red-primary);
       animation: ripple 1.6s infinite cubic-bezier(0.2, 0.8, 0.4, 1);
     }
 
     .pulse-ring:nth-child(2) {
-      animation-delay: 0.5s;
+      animation-delay: 0.55s;
     }
 
     @keyframes ripple {
-      0% { transform: scale(0.7); opacity: 0.9; }
-      100% { transform: scale(1.4); opacity: 0; }
+      0% { transform: scale(0.7); opacity: 0.95; }
+      100% { transform: scale(1.45); opacity: 0; }
     }
 
     .connecting-icon-circle {
-      width: 80px;
-      height: 80px;
+      width: 82px;
+      height: 82px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #3b0764, #160a22);
-      border: 2px solid #9333ea;
+      background: radial-gradient(circle at 35% 35%, var(--bg-surface-elevated), var(--bg-deepest));
+      border: 2px solid var(--red-hover);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 2;
-      box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+      box-shadow: var(--red-glow);
     }
 
     .connecting-icon-circle svg {
       width: 38px;
       height: 38px;
-      fill: var(--gold-light);
+      fill: var(--accent-bright);
     }
 
     .connecting-title {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--text-main);
+      font-size: 19px;
+      font-weight: 900;
+      color: var(--text-primary);
       margin-bottom: 6px;
     }
 
@@ -302,7 +365,7 @@
       color: var(--text-muted);
     }
 
-    /* Stage Screen */
+    /* WEB-TR-10: WebTopExitBar */
     .stage-top-bar {
       display: flex;
       align-items: center;
@@ -313,12 +376,12 @@
     .pill-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      gap: 8px;
+      background-color: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
       border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 11px;
+      padding: 6px 14px;
+      font-size: 12px;
       font-weight: 800;
       letter-spacing: 0.5px;
     }
@@ -327,59 +390,72 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background-color: var(--green);
-      box-shadow: 0 0 8px var(--green);
+      background-color: var(--status-on-air);
+      box-shadow: 0 0 8px var(--status-on-air);
     }
 
     .btn-exit {
+      min-height: 44px; /* Accessible touch target */
       background: transparent;
-      border: 1px solid rgba(244, 63, 94, 0.4);
-      color: #fda4af;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
+      border: 1px solid rgba(225, 29, 72, 0.45);
+      color: var(--accent-light);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
     }
 
-    /* Speaker Status Card */
+    .btn-exit:hover {
+      background-color: var(--emergency-bg);
+      border-color: var(--emergency-border);
+    }
+
+    /* WEB-TR-06: WebSpeakerStatusCard (No Layout Shift) */
     .speaker-status-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px;
+      background-color: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 18px;
+      padding: 16px 20px;
       text-align: center;
       margin-bottom: 16px;
-      transition: all 0.25s ease;
+      min-height: 82px; /* Stable height prevents CLS */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
     .speaker-status-card.on-air {
-      background-color: rgba(16, 185, 129, 0.12);
-      border-color: var(--green);
-      box-shadow: 0 0 20px var(--green-glow);
+      background-color: var(--status-on-air-bg);
+      border-color: var(--status-on-air);
+      box-shadow: var(--status-on-air-glow);
     }
 
     .speaker-status-card.in-queue {
-      background-color: rgba(245, 158, 11, 0.12);
-      border-color: var(--gold);
+      background-color: var(--status-in-queue-bg);
+      border-color: var(--status-in-queue);
     }
 
     .status-title {
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 900;
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
 
     .status-desc {
-      font-size: 12px;
+      font-size: 12.5px;
       color: var(--text-muted);
     }
 
-    /* VU Level Meter */
+    /* WEB-TR-07: WebLevelMeterBar (Smooth 60fps & Accessible) */
     .vu-meter-card {
-      background-color: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
       border-radius: 14px;
       padding: 14px 16px;
       margin-bottom: 24px;
@@ -391,14 +467,14 @@
       font-size: 10px;
       font-weight: 800;
       letter-spacing: 1px;
-      color: var(--text-sub);
+      color: var(--text-secondary);
       margin-bottom: 8px;
     }
 
     .meter-track {
       height: 16px;
-      background-color: #08030d;
-      border: 1px solid var(--border-color);
+      background-color: var(--bg-deepest);
+      border: 1px solid var(--border-subtle);
       border-radius: 8px;
       overflow: hidden;
       position: relative;
@@ -407,12 +483,12 @@
     .meter-fill {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #10b981 0%, #fbbf24 75%, #f43f5e 100%);
+      background: linear-gradient(90deg, #10b981 0%, #f59e0b 68%, #e11d48 90%, #ef4444 100%);
       border-radius: 6px;
-      transition: width 0.06s ease-out;
+      transition: width 0.05s ease-out;
     }
 
-    /* Huge Push-To-Talk Button */
+    /* WEB-TR-08: WebPttButton (Robust Pointer Events & Red Theme) */
     .ptt-container {
       display: flex;
       flex-direction: column;
@@ -425,9 +501,9 @@
       width: 200px;
       height: 200px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #2d1347 0%, #150924 100%);
-      border: 4px solid var(--gold);
-      box-shadow: 0 0 35px rgba(245, 158, 11, 0.3), inset 0 2px 10px rgba(255, 255, 255, 0.1);
+      background: radial-gradient(circle at 35% 35%, var(--bg-surface-elevated) 0%, var(--bg-deepest) 100%);
+      border: 4px solid var(--border-strong);
+      box-shadow: var(--red-glow), inset 0 2px 10px rgba(255, 255, 255, 0.12);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -445,19 +521,19 @@
     }
 
     .ptt-btn.on-air {
-      border-color: var(--green);
+      border-color: var(--status-on-air);
       background: radial-gradient(circle at 35% 35%, #064e3b 0%, #022c22 100%);
-      box-shadow: 0 0 45px var(--green-glow), inset 0 0 20px rgba(16, 185, 129, 0.3);
+      box-shadow: var(--status-on-air-glow), inset 0 0 20px rgba(16, 185, 129, 0.35);
       animation: onAirPulse 1.2s infinite ease-in-out;
     }
 
     @keyframes onAirPulse {
-      0%, 100% { box-shadow: 0 0 35px var(--green-glow); }
-      50% { box-shadow: 0 0 60px rgba(16, 185, 129, 0.7); }
+      0%, 100% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
+      50% { box-shadow: 0 0 55px rgba(16, 185, 129, 0.85); }
     }
 
     .ptt-btn.in-queue {
-      border-color: var(--gold);
+      border-color: var(--status-in-queue);
       background: radial-gradient(circle at 35% 35%, #451a03 0%, #1c0a02 100%);
       box-shadow: 0 0 35px rgba(245, 158, 11, 0.5);
     }
@@ -465,7 +541,7 @@
     .ptt-icon {
       width: 58px;
       height: 58px;
-      fill: var(--gold-light);
+      fill: var(--accent-bright);
       transition: fill 0.2s ease;
     }
 
@@ -478,29 +554,29 @@
       font-weight: 900;
       letter-spacing: 1.2px;
       text-transform: uppercase;
-      color: var(--text-main);
+      color: var(--text-primary);
     }
 
     .ptt-btn.on-air .ptt-label {
       color: #6ee7b7;
     }
 
-    /* Mode Toggle */
+    /* WEB-TR-09: WebTalkModeSwitch (Themed Custom Switch) */
     .mode-bar {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 700;
-      color: var(--text-sub);
+      color: var(--text-secondary);
     }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 44px;
-      height: 24px;
+      width: 46px;
+      height: 26px;
     }
 
     .switch input {
@@ -513,10 +589,10 @@
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: var(--bg-card);
-      border: 1px solid var(--border-color);
+      background-color: var(--bg-surface-dark);
+      border: 1px solid var(--border-medium);
       transition: 0.25s;
-      border-radius: 24px;
+      border-radius: 26px;
     }
 
     .slider:before {
@@ -524,29 +600,46 @@
       content: "";
       height: 18px;
       width: 18px;
-      left: 2px;
-      bottom: 2px;
-      background-color: var(--gold);
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--accent-bright);
       transition: 0.25s;
       border-radius: 50%;
     }
 
     input:checked + .slider {
-      background-color: #3b0764;
-      border-color: #9333ea;
+      background-color: var(--red-active);
+      border-color: var(--border-strong);
     }
 
     input:checked + .slider:before {
       transform: translateX(20px);
-      background-color: #e9d5ff;
+      background-color: #ffffff;
     }
 
     .footer-note {
       text-align: center;
       font-size: 11px;
-      color: #64748b;
+      color: var(--text-muted);
       margin-top: 14px;
       letter-spacing: 0.2px;
+    }
+
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .pulse-ring {
+        animation: none !important;
+        opacity: 0.4 !important;
+      }
+      .ptt-btn.on-air {
+        animation: none !important;
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.6) !important;
+      }
     }
   </style>
 </head>
@@ -554,9 +647,9 @@
   <div class="container">
     
     <!-- 1. JOIN SCREEN -->
-    <div id="join-screen" class="screen active">
+    <main id="join-screen" class="screen active" role="main">
       <div class="brand-header">
-        <div class="logo-badge">
+        <div class="logo-badge" aria-hidden="true">
           <svg viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
@@ -567,12 +660,13 @@
       </div>
 
       <div class="form-card">
-        <!-- Error Banner -->
-        <div id="error-banner" class="error-banner">
-          <span style="font-size: 16px;">⚠️</span>
+        <!-- WEB-TR-04: WebErrorBanner (Top of Form) -->
+        <div id="error-banner" class="error-banner" role="alert" aria-live="assertive">
+          <span style="font-size: 16px;" aria-hidden="true">⚠️</span>
           <span id="error-text">Room code doesn't match any active room. Please check your code.</span>
         </div>
 
+        <!-- WEB-TR-01: WebRoomCodeInput -->
         <div class="field-group">
           <label class="field-label" for="room-input">Room Code</label>
           <input 
@@ -585,35 +679,42 @@
             autocorrect="off" 
             autocapitalize="characters" 
             spellcheck="false"
+            required
+            aria-required="true"
           />
         </div>
 
+        <!-- WEB-TR-02: WebNameInput -->
         <div class="field-group">
           <label class="field-label" for="name-input">Your Name (Optional)</label>
           <input 
             type="text" 
             id="name-input" 
             class="text-input" 
-            placeholder="e.g. Sarah" 
+            placeholder="e.g. Alex" 
             maxlength="20" 
             autocomplete="name"
           />
         </div>
 
-        <button id="join-btn" class="btn-primary">Join Stage</button>
+        <!-- WEB-TR-03: WebJoinButton -->
+        <button id="join-btn" class="btn-primary" aria-label="Join Stage and Connect Microphone">
+          <span>Join Stage</span>
+        </button>
 
         <p class="helper-text">
           Instant low-latency connection.<br>No app download or account required.
         </p>
       </div>
 
-      <div class="footer-note">AirMic Stage System &bull; Powered by LiveKit & WebRTC</div>
-    </div>
+      <footer class="footer-note">AirMic Stage System &bull; Powered by LiveKit &amp; WebRTC</footer>
+    </main>
 
     <!-- 2. CONNECTING SCREEN -->
-    <div id="connecting-screen" class="screen">
+    <div id="connecting-screen" class="screen" role="status" aria-live="polite">
+      <!-- WEB-TR-05: WebConnectingPulsar -->
       <div class="connecting-box">
-        <div class="pulse-ring-wrapper">
+        <div class="pulse-ring-wrapper" aria-hidden="true">
           <div class="pulse-ring"></div>
           <div class="pulse-ring"></div>
           <div class="connecting-icon-circle">
@@ -629,37 +730,37 @@
     </div>
 
     <!-- 3. STAGE MICROPHONE SCREEN -->
-    <div id="stage-screen" class="screen">
-      <!-- Top Bar -->
+    <main id="stage-screen" class="screen" role="main">
+      <!-- WEB-TR-10: WebTopExitBar -->
       <div class="stage-top-bar">
         <div class="pill-badge">
-          <div class="pill-dot"></div>
+          <div class="pill-dot" aria-hidden="true"></div>
           <span id="room-badge-text">ROOM: -</span>
         </div>
-        <button id="disconnect-btn" class="btn-exit">✕ Exit</button>
+        <button id="disconnect-btn" class="btn-exit" aria-label="Leave stage room">✕ Leave Room</button>
       </div>
 
-      <!-- Speaker Status Card -->
-      <div id="status-card" class="speaker-status-card">
+      <!-- WEB-TR-06: WebSpeakerStatusCard -->
+      <div id="status-card" class="speaker-status-card" aria-live="assertive">
         <div id="status-title" class="status-title">STANDBY</div>
         <div id="status-desc" class="status-desc">Press and hold the button below to speak</div>
       </div>
 
-      <!-- Audio VU Meter -->
-      <div class="vu-meter-card">
+      <!-- WEB-TR-07: WebLevelMeterBar -->
+      <div class="vu-meter-card" role="region" aria-label="Microphone Audio Level">
         <div class="meter-header">
           <span>MICROPHONE LEVEL</span>
-          <span id="meter-db-text">-∞ dB</span>
+          <span id="meter-db-text" aria-live="polite">-∞ dB</span>
         </div>
-        <div class="meter-track">
+        <div class="meter-track" role="meter" aria-label="Voice input level" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="meter-fill" class="meter-fill"></div>
         </div>
       </div>
 
-      <!-- Push To Talk Button -->
+      <!-- WEB-TR-08: WebPttButton -->
       <div class="ptt-container">
-        <button id="ptt-button" class="ptt-btn" aria-label="Microphone Button">
-          <svg class="ptt-icon" viewBox="0 0 24 24">
+        <button id="ptt-button" class="ptt-btn" aria-label="Hold to talk microphone button" aria-pressed="false">
+          <svg class="ptt-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>
@@ -667,18 +768,18 @@
         </button>
       </div>
 
-      <!-- Talk Mode Switch -->
+      <!-- WEB-TR-09: WebTalkModeSwitch -->
       <div class="mode-bar">
         <span>Hold to Talk</span>
-        <label class="switch">
-          <input type="checkbox" id="toggle-mode-checkbox">
-          <span class="slider"></span>
+        <label class="switch" aria-label="Switch between Hold to Talk and Tap to Toggle">
+          <input type="checkbox" id="toggle-mode-checkbox" role="switch" aria-checked="false">
+          <span class="slider" aria-hidden="true"></span>
         </label>
         <span>Tap to Toggle</span>
       </div>
 
-      <div class="footer-note">Encrypted Opus 48kHz &bull; Hardware Echo Cancellation</div>
-    </div>
+      <footer class="footer-note">Encrypted Opus 48kHz &bull; Hardware Echo Cancellation</footer>
+    </main>
 
   </div>
 
@@ -747,6 +848,7 @@
       errorText.innerText = msg;
       errorBanner.classList.add('visible');
       roomInput.classList.add('input-error');
+      roomInput.focus();
     }
 
     function clearError() {
@@ -761,9 +863,11 @@
 
     toggleModeCheckbox.addEventListener('change', (e) => {
       isToggleMode = e.target.checked;
+      toggleModeCheckbox.setAttribute('aria-checked', String(isToggleMode));
       if (!isToggleMode && isToggleActive) {
         stopTalking();
       }
+      updateSpeakerUI(isFloorGranted ? 'on-air' : 'standby');
     });
 
     function triggerHaptic() {
@@ -785,6 +889,8 @@
       localStorage.setItem('airmic_name', participantName);
       currentParticipantName = participantName;
 
+      joinBtn.disabled = true;
+      joinBtn.innerText = 'Connecting...';
       showScreen('connecting');
 
       try {
@@ -816,7 +922,7 @@
         const { token, url, identity } = await tokenRes.json();
         currentParticipantIdentity = identity;
 
-        // 3. Acquire Microphone track with echo cancellation
+        // 3. Acquire Microphone track with hardware echo cancellation
         const { Room, RoomEvent, createLocalAudioTrack } = window.LivekitClient;
         
         localTrack = await createLocalAudioTrack({
@@ -864,15 +970,18 @@
         showScreen('join');
         if (err.message === 'ROOM_NOT_FOUND') {
           showError("Room code doesn't match any active room. Please check your code.");
-        } else if (err.name === 'NotAllowedError' || err.message.includes('Permission')) {
+        } else if (err.name === 'NotAllowedError' || (err.message && err.message.includes('Permission'))) {
           showError("Microphone access is required to use AirMic. Please tap Allow.");
         } else {
           showError("Unable to connect to stage. Please check connection and try again.");
         }
+      } finally {
+        joinBtn.disabled = false;
+        joinBtn.innerText = 'Join Stage';
       }
     }
 
-    // Set up Web Audio API meter
+    // Set up Web Audio API meter (smooth 60fps)
     function setupAudioMeter(mediaStreamTrack) {
       try {
         window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -896,6 +1005,7 @@
           const pct = isFloorGranted ? Math.min(100, Math.round((avg / 128) * 100)) : 0;
 
           meterFill.style.width = pct + '%';
+          meterFill.parentElement.setAttribute('aria-valuenow', String(pct));
           if (pct > 0) {
             const db = Math.round(20 * Math.log10(Math.max(pct / 100, 0.001)));
             meterDbText.innerText = `${db} dB`;
@@ -951,18 +1061,21 @@
         statusCard.classList.add('on-air');
         pttButton.classList.add('on-air');
         statusTitle.innerText = '🎙️ YOU ARE ON AIR';
-        statusDesc.innerText = 'Speaking through room PA system';
+        statusDesc.innerText = 'Speaking live through room PA system';
         pttLabel.innerText = isToggleMode ? 'TAP TO MUTE' : 'RELEASE TO MUTE';
+        pttButton.setAttribute('aria-pressed', 'true');
       } else if (state === 'in-queue') {
         statusCard.classList.add('in-queue');
         pttButton.classList.add('in-queue');
         statusTitle.innerText = `⏳ IN LINE (#${queuePos})`;
         statusDesc.innerText = 'Host will open your microphone shortly';
         pttLabel.innerText = 'WAITING';
+        pttButton.setAttribute('aria-pressed', 'false');
       } else {
         statusTitle.innerText = 'STANDBY';
         statusDesc.innerText = isToggleMode ? 'Tap the button to start speaking' : 'Press and hold the button below to speak';
         pttLabel.innerText = isToggleMode ? 'TAP TO TALK' : 'HOLD TO TALK';
+        pttButton.setAttribute('aria-pressed', 'false');
       }
     }
 
@@ -971,7 +1084,6 @@
       if (!room || room.state !== 'connected') return;
       triggerHaptic();
 
-      // Send floor request message
       const reqMsg = JSON.stringify({
         type: 'REQUEST_FLOOR',
         participantId: currentParticipantIdentity,
@@ -999,9 +1111,9 @@
       isFloorGranted = false;
       isHolding = false;
       isToggleActive = false;
+      pttButton.classList.remove('active');
       updateSpeakerUI('standby');
 
-      // Send floor release message
       const releaseMsg = JSON.stringify({
         type: 'RELEASE_FLOOR',
         participantId: currentParticipantIdentity,
@@ -1017,9 +1129,9 @@
       }
     }
 
-    // PTT Events
-    // 1. Touch Events (Mobile Safari / Chrome)
-    pttButton.addEventListener('touchstart', (e) => {
+    // WEB-TR-08: Unified Pointer & Touch Input Handling
+    // Reliable floor release on cancel, leave, or contextmenu
+    function onPointerPress(e) {
       e.preventDefault();
       if (isToggleMode) {
         if (!isToggleActive) {
@@ -1034,50 +1146,43 @@
         pttButton.classList.add('active');
         startTalking();
       }
-    }, { passive: false });
+    }
 
-    pttButton.addEventListener('touchend', (e) => {
-      e.preventDefault();
+    function onPointerRelease(e) {
+      if (e) e.preventDefault();
       if (!isToggleMode && isHolding) {
         isHolding = false;
         pttButton.classList.remove('active');
         stopTalking();
       }
-    }, { passive: false });
+    }
 
-    pttButton.addEventListener('touchcancel', (e) => {
-      e.preventDefault();
-      if (!isToggleMode && isHolding) {
-        isHolding = false;
-        pttButton.classList.remove('active');
-        stopTalking();
+    // Modern Pointer Events
+    pttButton.addEventListener('pointerdown', onPointerPress);
+    pttButton.addEventListener('pointerup', onPointerRelease);
+    pttButton.addEventListener('pointerleave', onPointerRelease);
+    pttButton.addEventListener('pointercancel', onPointerRelease);
+
+    // Touch Event Fallbacks
+    pttButton.addEventListener('touchstart', onPointerPress, { passive: false });
+    pttButton.addEventListener('touchend', onPointerRelease, { passive: false });
+    pttButton.addEventListener('touchcancel', onPointerRelease, { passive: false });
+
+    // Keyboard Accessibility (Space / Enter)
+    pttButton.addEventListener('keydown', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        if (!e.repeat) onPointerPress(e);
       }
-    }, { passive: false });
-
-    // 2. Mouse Events (Desktop testing)
-    pttButton.addEventListener('mousedown', (e) => {
-      if (isToggleMode) {
-        if (!isToggleActive) {
-          isToggleActive = true;
-          startTalking();
-        } else {
-          isToggleActive = false;
-          stopTalking();
-        }
-      } else {
-        isHolding = true;
-        pttButton.classList.add('active');
-        startTalking();
+    });
+    pttButton.addEventListener('keyup', (e) => {
+      if (e.code === 'Space' || e.code === 'Enter') {
+        onPointerRelease(e);
       }
     });
 
-    window.addEventListener('mouseup', () => {
-      if (!isToggleMode && isHolding) {
-        isHolding = false;
-        pttButton.classList.remove('active');
-        stopTalking();
-      }
-    });
+    // Window Safety
+    window.addEventListener('mouseup', onPointerRelease);
+    window.addEventListener('touchend', onPointerRelease);
 
     // Disconnect
     function handleDisconnect() {

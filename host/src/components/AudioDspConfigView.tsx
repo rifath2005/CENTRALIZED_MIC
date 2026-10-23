@@ -2,6 +2,7 @@ import React from 'react';
 import { AudioProcessingGraph, HARD_VOLUME_CEILING } from '../audio/AudioProcessingGraph';
 import { DeviceSelector } from './DeviceSelector';
 import { LevelMeter } from './LevelMeter';
+import { redTheme } from '../tokens/redTheme';
 
 interface AudioDspConfigViewProps {
   audioGraph: AudioProcessingGraph;
@@ -128,9 +129,9 @@ export const AudioDspConfigView: React.FC<AudioDspConfigViewProps> = ({
                   key={preset}
                   style={{
                     ...styles.presetChip,
-                    backgroundColor: volume === preset ? '#f59e0b' : '#2c1445',
-                    color: volume === preset ? '#0d0515' : '#cbd5e1',
-                    borderColor: volume === preset ? '#fbbf24' : '#441e6a',
+                    backgroundColor: volume === preset ? redTheme.colors.primary : redTheme.colors.bgSurfaceElevated,
+                    color: volume === preset ? redTheme.colors.textOnPrimary : redTheme.colors.textSecondary,
+                    borderColor: volume === preset ? redTheme.colors.borderStrong : redTheme.colors.borderSubtle,
                   }}
                   onClick={() => onSetVolumePreset(preset)}
                 >
@@ -143,9 +144,10 @@ export const AudioDspConfigView: React.FC<AudioDspConfigViewProps> = ({
               <button
                 style={{
                   ...styles.emergencyMuteButton,
-                  backgroundColor: isEmergencyMuted ? '#f43f5e' : 'rgba(244, 63, 94, 0.15)',
-                  borderColor: isEmergencyMuted ? '#f43f5e' : '#f43f5e',
-                  color: isEmergencyMuted ? '#ffffff' : '#f43f5e',
+                  backgroundColor: isEmergencyMuted ? redTheme.colors.emergency : redTheme.colors.emergencyBg,
+                  borderColor: redTheme.colors.emergencyBorder,
+                  color: isEmergencyMuted ? '#ffffff' : redTheme.colors.emergencyText,
+                  boxShadow: isEmergencyMuted ? redTheme.shadows.glowEmergency : 'none',
                 }}
                 onClick={onToggleEmergencyMute}
               >
@@ -230,8 +232,8 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
   },
   headerCard: {
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '20px',
     padding: '28px 32px',
     display: 'flex',
@@ -239,7 +241,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: '20px',
     flexWrap: 'wrap',
-    boxShadow: '0 8px 32px rgba(13, 5, 21, 0.6)',
+    boxShadow: redTheme.shadows.card,
   },
   headerLeft: {
     maxWidth: '750px',
@@ -255,9 +257,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
     fontWeight: 800,
     letterSpacing: '1.2px',
-    color: '#fbbf24',
-    backgroundColor: 'rgba(245, 158, 11, 0.14)',
-    border: '1px solid rgba(245, 158, 11, 0.35)',
+    color: redTheme.colors.accentBright,
+    backgroundColor: 'rgba(225, 29, 72, 0.14)',
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     padding: '4px 12px',
     borderRadius: '12px',
   },
@@ -265,22 +267,22 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '10.5px',
     fontWeight: 800,
     letterSpacing: '1px',
-    color: '#cbd5e1',
-    backgroundColor: 'rgba(203, 213, 225, 0.1)',
-    border: '1px solid rgba(203, 213, 225, 0.2)',
+    color: redTheme.colors.textMuted,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     padding: '4px 10px',
     borderRadius: '12px',
   },
   title: {
     fontSize: '24px',
     fontWeight: 900,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     letterSpacing: '-0.5px',
     marginBottom: '8px',
   },
   description: {
     fontSize: '13.5px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     lineHeight: '1.6',
     margin: 0,
   },
@@ -290,9 +292,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '12px',
   },
   testToneBtn: {
-    backgroundColor: '#2c1445',
-    color: '#fbbf24',
-    border: '1px solid #5d2a90',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    color: redTheme.colors.accentBright,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
     borderRadius: '14px',
     padding: '14px 22px',
     fontSize: '13.5px',
@@ -307,13 +309,13 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '24px',
   },
   panelCard: {
-    backgroundColor: '#1b0c2b',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '20px',
     padding: '26px',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+    boxShadow: redTheme.shadows.card,
   },
   cardHeader: {
     marginBottom: '16px',
@@ -322,19 +324,19 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '10px',
     fontWeight: 800,
     letterSpacing: '1px',
-    color: '#cbd5e1',
+    color: redTheme.colors.accentBright,
     textTransform: 'uppercase',
   },
   cardTitle: {
     fontSize: '17px',
     fontWeight: 800,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     marginTop: '4px',
     marginBottom: '6px',
   },
   cardHelp: {
     fontSize: '13px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     lineHeight: '1.5',
     marginBottom: '16px',
   },
@@ -344,7 +346,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
     marginTop: '20px',
     paddingTop: '16px',
-    borderTop: '1px solid #341852',
+    borderTop: `1px solid ${redTheme.colors.borderSubtle}`,
   },
   specItem: {
     display: 'flex',
@@ -353,12 +355,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   specLabel: {
     fontSize: '11px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
   },
   specVal: {
     fontSize: '12px',
     fontWeight: 700,
-    color: '#e2e8f0',
+    color: redTheme.colors.textSecondary,
   },
   volumeControlBlock: {
     display: 'flex',
@@ -373,21 +375,21 @@ const styles: Record<string, React.CSSProperties> = {
   sliderLabel: {
     fontSize: '13px',
     fontWeight: 700,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
   },
   sliderValue: {
     fontSize: '16px',
     fontWeight: 900,
-    color: '#f59e0b',
+    color: redTheme.colors.accentBright,
   },
   clampedNote: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     fontWeight: 500,
   },
   rangeSlider: {
     width: '100%',
-    accentColor: '#f59e0b',
+    accentColor: redTheme.colors.primary,
     height: '6px',
     cursor: 'pointer',
   },
@@ -411,7 +413,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '8px',
     marginTop: '8px',
     paddingTop: '16px',
-    borderTop: '1px solid #341852',
+    borderTop: `1px solid ${redTheme.colors.borderSubtle}`,
   },
   emergencyMuteButton: {
     width: '100%',
@@ -426,13 +428,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   muteTip: {
     fontSize: '11.5px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     textAlign: 'center',
     lineHeight: '1.4',
   },
   filterBlock: {
-    backgroundColor: '#130820',
-    border: '1px solid #341852',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '14px',
     padding: '16px',
     marginBottom: '20px',
@@ -447,13 +449,13 @@ const styles: Record<string, React.CSSProperties> = {
   },
   filterName: {
     fontSize: '14px',
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     display: 'block',
     marginBottom: '3px',
   },
   filterDesc: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     margin: 0,
     lineHeight: '1.4',
   },
@@ -462,9 +464,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '10px',
     fontWeight: 800,
     letterSpacing: '1px',
-    color: '#10b981',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-    border: '1px solid rgba(16, 185, 129, 0.3)',
+    color: redTheme.colors.statusOnAir,
+    backgroundColor: redTheme.colors.statusOnAirBg,
+    border: `1px solid ${redTheme.colors.statusOnAir}`,
     padding: '4px 8px',
     borderRadius: '8px',
   },
@@ -477,8 +479,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
-    backgroundColor: '#130820',
-    border: '1px solid #341852',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '12px',
     padding: '14px',
   },
@@ -486,6 +488,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     fontSize: '12px',
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
   },
 };
+

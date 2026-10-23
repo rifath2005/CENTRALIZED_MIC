@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { BoardroomMember, SpeakerInfo, QueueEntry } from '../types';
+import { redTheme } from '../tokens/redTheme';
 
 interface BoardroomRosterProps {
   members: BoardroomMember[];
@@ -120,12 +121,16 @@ export const BoardroomRoster: React.FC<BoardroomRosterProps> = ({
                 key={member.identity}
                 style={{
                   ...styles.memberCard,
-                  borderColor: isSpeaker ? '#10b981' : isQueued ? '#f59e0b' : '#441e6a',
-                  backgroundColor: isSpeaker
-                    ? 'rgba(16, 185, 129, 0.15)'
+                  borderColor: isSpeaker
+                    ? redTheme.colors.statusOnAir
                     : isQueued
-                    ? 'rgba(245, 158, 11, 0.15)'
-                    : '#160a22',
+                    ? redTheme.colors.statusInQueue
+                    : redTheme.colors.borderSubtle,
+                  backgroundColor: isSpeaker
+                    ? redTheme.colors.statusOnAirBg
+                    : isQueued
+                    ? redTheme.colors.statusInQueueBg
+                    : redTheme.colors.bgSurfaceDark,
                 }}
               >
                 <div style={styles.memberLeft}>
@@ -167,11 +172,11 @@ export const BoardroomRoster: React.FC<BoardroomRosterProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    backgroundColor: '#200f33',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceCard,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '14px',
     padding: '20px',
-    boxShadow: '0 8px 30px rgba(13, 5, 21, 0.45)',
+    boxShadow: redTheme.shadows.card,
   },
   headerRow: {
     display: 'flex',
@@ -179,7 +184,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginBottom: '16px',
     paddingBottom: '12px',
-    borderBottom: '1px solid #441e6a',
+    borderBottom: `1px solid ${redTheme.colors.borderSubtle}`,
   },
   titleGroup: {
     display: 'flex',
@@ -189,22 +194,22 @@ const styles: Record<string, React.CSSProperties> = {
   badge: {
     fontSize: '11px',
     fontWeight: 800,
-    color: '#cbd5e1',
+    color: redTheme.colors.accentBright,
     letterSpacing: '1px',
   },
   title: {
     fontSize: '15px',
     fontWeight: 800,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     margin: 0,
   },
   liveCountPill: {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    border: '1px solid #f59e0b',
-    color: '#fbbf24',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.textSecondary,
     fontSize: '12px',
     fontWeight: 700,
     padding: '6px 14px',
@@ -214,7 +219,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#fbbf24',
+    backgroundColor: redTheme.colors.statusOnAir,
   },
   searchContainer: {
     position: 'relative',
@@ -222,12 +227,12 @@ const styles: Record<string, React.CSSProperties> = {
   },
   searchInput: {
     width: '100%',
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
     borderRadius: '8px',
     padding: '8px 12px',
     fontSize: '12px',
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     outline: 'none',
   },
   clearSearchBtn: {
@@ -237,16 +242,16 @@ const styles: Record<string, React.CSSProperties> = {
     transform: 'translateY(-50%)',
     background: 'none',
     border: 'none',
-    color: '#cbd5e1',
+    color: redTheme.colors.textMuted,
     cursor: 'pointer',
     fontSize: '12px',
   },
   emptyState: {
     padding: '36px 16px',
     textAlign: 'center',
-    backgroundColor: '#160a22',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
     borderRadius: '10px',
-    border: '1px dashed #441e6a',
+    border: `1px dashed ${redTheme.colors.borderSubtle}`,
   },
   emptyIcon: {
     fontSize: '32px',
@@ -256,12 +261,12 @@ const styles: Record<string, React.CSSProperties> = {
   emptyText: {
     fontSize: '14px',
     fontWeight: 700,
-    color: '#cbd5e1',
+    color: redTheme.colors.textSecondary,
     margin: '0 0 4px 0',
   },
   emptySubtext: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     margin: 0,
     maxWidth: '360px',
     marginLeft: 'auto',
@@ -309,12 +314,12 @@ const styles: Record<string, React.CSSProperties> = {
   memberName: {
     fontSize: '14px',
     fontWeight: 750,
-    color: '#f8fafc',
+    color: redTheme.colors.textPrimary,
     margin: 0,
   },
   memberId: {
     fontSize: '10px',
-    color: '#94a3b8',
+    color: redTheme.colors.textMuted,
     fontFamily: 'monospace',
   },
   memberRight: {
@@ -323,9 +328,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '10px',
   },
   grantFloorBtn: {
-    backgroundColor: '#2c1445',
-    border: '1px solid #5d2a90',
-    color: '#fbbf24',
+    backgroundColor: redTheme.colors.bgSurfaceElevated,
+    border: `1px solid ${redTheme.colors.borderMedium}`,
+    color: redTheme.colors.accentBright,
     borderRadius: '6px',
     padding: '4px 10px',
     fontSize: '11px',
@@ -337,7 +342,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#10b981',
+    backgroundColor: redTheme.colors.statusOnAir,
     color: '#022c22',
     fontSize: '10px',
     fontWeight: 800,
@@ -355,9 +360,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    border: '1px solid #f59e0b',
-    color: '#fbbf24',
+    backgroundColor: redTheme.colors.statusInQueueBg,
+    border: `1px solid ${redTheme.colors.statusInQueue}`,
+    color: redTheme.colors.statusInQueueText,
     fontSize: '10px',
     fontWeight: 800,
     padding: '3px 8px',
@@ -368,15 +373,15 @@ const styles: Record<string, React.CSSProperties> = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: '#fbbf24',
+    backgroundColor: redTheme.colors.statusInQueue,
   },
   statusIdle: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#160a22',
-    border: '1px solid #441e6a',
-    color: '#cbd5e1',
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
+    color: redTheme.colors.textMuted,
     fontSize: '10px',
     fontWeight: 700,
     padding: '3px 8px',
@@ -386,6 +391,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '6px',
     height: '6px',
     borderRadius: '50%',
-    backgroundColor: '#5d2a90',
+    backgroundColor: redTheme.colors.borderMedium,
   },
 };
+
