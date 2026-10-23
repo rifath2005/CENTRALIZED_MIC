@@ -273,66 +273,66 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#111317] text-[#e2e2e8] font-sans antialiased selection:bg-[#93000a] selection:text-[#ffdad6]">
+    <div className="min-h-screen bg-[#0b0e13] text-[#f1f5f9] font-sans antialiased selection:bg-[#ef4444] selection:text-white">
       {/* Audio Unlock Autoplay Gate */}
       <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#0c0e12]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#333539]/60">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
         <div className="flex items-center gap-3 min-w-0">
           {/* ON-AIR Status Pill */}
-          <div className="flex items-center gap-2 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539] shadow-inner">
+          <div className="flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834] shadow-inner">
             <div className="relative flex items-center justify-center">
-              <span className={`absolute w-3.5 h-3.5 rounded-full ${currentSpeaker ? 'bg-[#ff544c] animate-ping opacity-75' : 'bg-[#00e475]/40'}`} />
-              <span className={`relative w-2.5 h-2.5 rounded-full ${currentSpeaker ? 'bg-[#ff544c] shadow-[0_0_10px_#ff544c]' : 'bg-[#00e475]'}`} />
+              <span className={`absolute w-3.5 h-3.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] animate-ping opacity-75' : 'bg-[#10b981]/40'}`} />
+              <span className={`relative w-2.5 h-2.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#10b981]'}`} />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ffb4ac]' : 'text-[#7dffa2]'}`}>
+                <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
                   {currentSpeaker ? 'ON-AIR' : 'STANDBY'}
                 </span>
-                <span className="px-1 py-0.2 rounded bg-[#1e2024] text-[8px] font-mono text-[#7dffa2] font-bold uppercase">
+                <span className="px-1 py-0.2 rounded bg-[#181d28] text-[8px] font-mono text-[#10b981] font-bold uppercase">
                   LIVE
                 </span>
               </div>
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase tracking-wider truncate max-w-[140px]">
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase tracking-wider truncate max-w-[140px]">
                 {currentSpeaker ? currentSpeaker.name : 'CH-01 FEED • MAIN STAGE'}
               </span>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-[#333539]" />
+          <div className="h-6 w-px bg-[#222834]" />
 
           {/* RTT & PTP Telemetry */}
-          <div className="hidden sm:flex items-center gap-2 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539]">
-            <span className="w-2 h-2 rounded-full bg-[#00e475] shadow-[0_0_6px_#00e475]" />
+          <div className="hidden sm:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+            <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
-                <span className="text-[9px] font-mono text-[#a3717c] uppercase font-bold">RTT</span>
-                <span className="text-[12px] font-mono text-[#7dffa2] font-bold">&lt; 300ms</span>
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">RTT</span>
+                <span className="text-[12px] font-mono text-[#10b981] font-bold">&lt; 300ms</span>
               </div>
-              <span className="text-[9px] font-mono text-[#a3717c]">JIT 0.4ms • PTP LOCK</span>
+              <span className="text-[9px] font-mono text-[#64748b]">JIT 0.4ms • PTP LOCK</span>
             </div>
           </div>
 
           {/* Room Target Pill */}
-          <div className="flex items-center gap-1.5 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539]">
-            <span className="material-symbols-outlined text-[#ffba38] text-[18px]">meeting_room</span>
+          <div className="flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+            <span className="material-symbols-outlined text-[#f59e0b] text-[18px]">meeting_room</span>
             <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase font-bold">ROOM TARGET</span>
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">ROOM TARGET</span>
               {isEditingRoom ? (
                 <div className="flex items-center gap-1 mt-0.5">
                   <input
                     type="text"
                     value={tempRoomInput}
                     onChange={(e) => setTempRoomInput(e.target.value.toUpperCase())}
-                    className="w-24 bg-[#1e2024] border border-[#ffba38] rounded px-1 py-0.5 text-xs font-mono font-bold text-white uppercase outline-none"
+                    className="w-24 bg-[#181d28] border border-[#f59e0b] rounded px-1 py-0.5 text-xs font-mono font-bold text-white uppercase outline-none"
                     autoFocus
                   />
-                  <button onClick={handleSaveRoomCode} className="text-[9px] font-mono bg-[#ffba38] text-[#432c00] px-1 py-0.5 rounded font-bold">
+                  <button onClick={handleSaveRoomCode} className="text-[9px] font-mono bg-[#f59e0b] text-[#1a1000] px-1 py-0.5 rounded font-bold">
                     ✓
                   </button>
-                  <button onClick={() => setIsEditingRoom(false)} className="text-[9px] font-mono bg-[#1e2024] text-[#a3717c] px-1 py-0.5 rounded">
+                  <button onClick={() => setIsEditingRoom(false)} className="text-[9px] font-mono bg-[#181d28] text-[#94a3b8] px-1 py-0.5 rounded">
                     ✕
                   </button>
                 </div>
@@ -340,15 +340,15 @@ export default function App() {
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => { setTempRoomInput(roomName); setIsEditingRoom(true); }}
-                    className="text-[12px] font-mono text-[#ffba38] font-bold tracking-wider hover:underline text-left flex items-center gap-1"
+                    className="text-[12px] font-mono text-[#f59e0b] font-bold tracking-wider hover:underline text-left flex items-center gap-1"
                     title="Click to switch room code"
                   >
                     <span>{roomName}</span>
-                    <span className="text-[10px] text-[#a3717c]">✏️</span>
+                    <span className="text-[10px] text-[#64748b]">✏️</span>
                   </button>
                   <button
                     onClick={handleCopyCode}
-                    className="text-[#a3717c] hover:text-[#ffba38] transition-colors p-0.5 rounded"
+                    className="text-[#64748b] hover:text-[#f59e0b] transition-colors p-0.5 rounded"
                     title="Copy room code"
                     type="button"
                   >
@@ -362,11 +362,11 @@ export default function App() {
           </div>
 
           {/* Dante Audio Format */}
-          <div className="hidden xl:flex items-center gap-1.5 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539]">
-            <span className="material-symbols-outlined text-[#7dffa2] text-[18px]">sync_alt</span>
+          <div className="hidden xl:flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+            <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">sync_alt</span>
             <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase font-bold">DANTE RX</span>
-              <span className="text-[12px] font-mono text-[#e2e2e8] font-semibold">48 kHz / 24b</span>
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">DANTE RX</span>
+              <span className="text-[12px] font-mono text-[#f1f5f9] font-semibold">48 kHz / 24b</span>
             </div>
           </div>
         </div>
@@ -374,17 +374,17 @@ export default function App() {
         {/* Header Right: Safety Interlock + Stopwatch + Operator Profile */}
         <div className="flex items-center gap-3">
           {/* Guarded Panic Cut Cluster */}
-          <div className="flex items-center bg-[#0c0e12] p-1 rounded-lg border border-[#5b403d]/60 shadow-inner">
+          <div className="flex items-center bg-[#10141c] p-1 rounded-lg border border-[#222834] shadow-inner">
             <button
               onClick={handleToggleSafetyArm}
               className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
                 isSafetyArmed
-                  ? 'bg-[#ffba38] text-[#432c00] shadow-[0_0_8px_#ffba38]'
-                  : 'bg-[#1e2024] hover:bg-[#282a2e] text-[#a3717c]'
+                  ? 'bg-[#f59e0b] text-[#1a1000] shadow-[0_0_8px_#f59e0b]'
+                  : 'bg-[#181d28] hover:bg-[#202530] text-[#94a3b8]'
               }`}
               type="button"
             >
-              <span className="material-symbols-outlined text-[16px] text-[#ffba38]">shield</span>
+              <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">shield</span>
               <span>{isSafetyArmed ? 'ARMED (5s)' : 'ARM CUT'}</span>
             </button>
 
@@ -393,26 +393,26 @@ export default function App() {
               disabled={!isSafetyArmed && !isEmergencyMuted}
               className={`ml-1 px-3 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
                 isEmergencyMuted
-                  ? 'bg-[#ff544c] text-white shadow-[0_0_14px_#ff544c] animate-pulse cursor-pointer'
+                  ? 'bg-[#ef4444] text-white shadow-[0_0_14px_#ef4444] animate-pulse cursor-pointer'
                   : isSafetyArmed
-                  ? 'bg-[#93000a] text-white hover:bg-[#ff544c] cursor-pointer shadow-[0_0_10px_#ff544c]'
-                  : 'bg-[#333539] opacity-50 cursor-not-allowed text-[#a3717c]'
+                  ? 'bg-[#dc2626] text-white hover:bg-[#ef4444] cursor-pointer shadow-[0_0_10px_#ef4444]'
+                  : 'bg-[#181d28] opacity-50 cursor-not-allowed text-[#64748b]'
               }`}
               type="button"
             >
-              <span className="material-symbols-outlined text-[16px] text-[#ffb4ac]">mic_off</span>
-              <span className="tracking-wider text-[#ffb4ac]">
+              <span className="material-symbols-outlined text-[16px] text-white">mic_off</span>
+              <span className="tracking-wider text-white">
                 {isEmergencyMuted ? 'UNMUTE PA' : 'PANIC MUTE'}
               </span>
             </button>
           </div>
 
           {/* Broadcast Elapsed Timer */}
-          <div className="hidden md:flex items-center gap-2 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539]">
-            <span className="material-symbols-outlined text-[#7dffa2] text-[18px]">timer</span>
+          <div className="hidden md:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+            <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">timer</span>
             <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase font-bold">BROADCAST TIME</span>
-              <span className="text-[12px] font-mono text-[#e2e2e8] font-bold tracking-wider">
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">BROADCAST TIME</span>
+              <span className="text-[12px] font-mono text-[#f1f5f9] font-bold tracking-wider">
                 {formatTimerClock(broadcastSeconds)}
               </span>
             </div>
@@ -421,11 +421,11 @@ export default function App() {
           {/* Operator Avatar Indicator */}
           <div className="flex items-center gap-1 pl-1">
             <div className="relative flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full bg-[#282a2e] border border-[#ff544c]/40 flex items-center justify-center shadow">
-                <span className="material-symbols-outlined text-[#ffb4ac] text-[18px]">person</span>
+              <div className="w-8 h-8 rounded-full bg-[#181d28] border border-slate-700 flex items-center justify-center shadow">
+                <span className="material-symbols-outlined text-slate-300 text-[18px]">person</span>
               </div>
-              <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#0c0e12] ${
-                isConnected ? 'bg-[#00e475] shadow-[0_0_6px_#00e475]' : 'bg-[#a3717c]'
+              <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#080a0e] ${
+                isConnected ? 'bg-[#10b981] shadow-[0_0_6px_#10b981]' : 'bg-[#64748b]'
               }`} />
             </div>
           </div>
@@ -433,17 +433,17 @@ export default function App() {
       </header>
 
       {/* 2. PERSISTENT LEFT NAVIGATION SIDEBAR (w-64) */}
-      <aside className="fixed left-0 top-16 bottom-0 w-64 bg-[#0c0e12] z-40 flex flex-col justify-between py-4 px-2.5 border-r border-[#333539]/60 shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
+      <aside className="fixed left-0 top-16 bottom-0 w-64 bg-[#080a0e] z-40 flex flex-col justify-between py-4 px-2.5 border-r border-[#222834] shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-4">
           {/* Brand header */}
-          <div className="px-2 pb-2 border-b border-[#333539]/50">
-            <div className="flex items-center gap-2 text-[#ffb4ac]">
-              <span className="material-symbols-outlined text-[24px]">graphic_eq</span>
-              <span className="text-base font-bold tracking-tight uppercase">STAGE PULSE</span>
+          <div className="px-2 pb-2 border-b border-[#222834]">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[24px] text-[#ef4444]">graphic_eq</span>
+              <span className="text-base font-bold tracking-tight uppercase text-white">STAGE PULSE</span>
             </div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[11px] font-mono text-[#a3717c] tracking-wider uppercase">CONSOLE 4.2</span>
-              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#1e2024] text-[#7dffa2] font-bold">
+              <span className="text-[11px] font-mono text-[#94a3b8] tracking-wider uppercase">CONSOLE 4.2</span>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#181d28] text-[#10b981] font-bold">
                 {isConnected ? 'ONLINE' : isConnecting ? 'CONNECTING' : 'READY'}
               </span>
             </div>
@@ -454,74 +454,74 @@ export default function App() {
             {/* 1. Operator Console */}
             <button
               onClick={() => setActiveView('console')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-all text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
                 activeView === 'console'
-                  ? 'bg-[#282a2e] text-[#ffb4ac] shadow-sm'
-                  : 'text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8]'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">tune</span>
                 <span>Operator Console</span>
               </div>
-              <span className="w-2 h-2 rounded-full bg-[#ff544c] shadow-[0_0_6px_#ff544c]" />
+              <span className="w-2 h-2 rounded-full bg-[#ef4444] shadow-[0_0_6px_#ef4444]" />
             </button>
 
             {/* 2. Transmitter Preview */}
             <button
               onClick={() => setActiveView('transmitter')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
                 activeView === 'transmitter'
-                  ? 'bg-[#282a2e] text-[#ffb4ac] shadow-sm font-bold'
-                  : 'text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8]'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">podcasts</span>
                 <span>Transmitter Preview</span>
               </div>
-              <span className="text-[9px] font-mono text-[#ffba38] uppercase">PFL</span>
+              <span className="text-[9px] font-mono text-[#f59e0b] uppercase font-bold">PFL</span>
             </button>
 
             {/* 3. Auditorium Stage Display */}
             <button
               onClick={() => setActiveView('stage')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
                 activeView === 'stage'
-                  ? 'bg-[#282a2e] text-[#ffb4ac] shadow-sm font-bold'
-                  : 'text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8]'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">stadium</span>
                 <span>Auditorium Stage</span>
               </div>
-              <span className="text-[9px] font-mono text-[#7dffa2] uppercase">OUT</span>
+              <span className="text-[9px] font-mono text-[#10b981] uppercase font-bold">OUT</span>
             </button>
 
             {/* 4. Matrix Routing / Audio DSP */}
             <button
               onClick={() => setActiveView('dsp')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
                 activeView === 'dsp'
-                  ? 'bg-[#282a2e] text-[#ffb4ac] shadow-sm font-bold'
-                  : 'text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8]'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
               }`}
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">alt_route</span>
                 <span>Matrix &amp; Audio DSP</span>
               </div>
-              <span className="text-[9px] font-mono text-[#a3717c]">DSP</span>
+              <span className="text-[9px] font-mono text-[#64748b]">DSP</span>
             </button>
 
             {/* 5. Telemetry & Settings */}
             <button
               onClick={() => setActiveView('settings')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all text-left ${
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
                 activeView === 'settings'
-                  ? 'bg-[#282a2e] text-[#ffb4ac] shadow-sm font-bold'
-                  : 'text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8]'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
               }`}
             >
               <div className="flex items-center gap-2.5">
@@ -534,27 +534,27 @@ export default function App() {
 
         {/* Bottom Status Block */}
         <div className="flex flex-col gap-2">
-          <div className="bg-[#1a1c20] p-2.5 rounded-lg border border-[#333539]/40 flex flex-col gap-1.5">
+          <div className="bg-[#10141c] p-2.5 rounded-lg border border-[#222834] flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase">CLOCK SYNC</span>
-              <span className="text-[9px] font-mono text-[#7dffa2] uppercase font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00e475] animate-pulse" />
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase">CLOCK SYNC</span>
+              <span className="text-[9px] font-mono text-[#10b981] uppercase font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
                 PTP LOCKED
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase">AUDIO FORMAT</span>
-              <span className="text-[11px] font-mono text-[#e2e2e8] font-semibold">48 kHz / 24b</span>
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase">AUDIO FORMAT</span>
+              <span className="text-[11px] font-mono text-[#f1f5f9] font-semibold">48 kHz / 24b</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-mono text-[#a3717c] uppercase">CONNECTED PHONES</span>
-              <span className="text-[11px] font-mono text-[#ffba38] font-bold">{memberCount} Devices</span>
+              <span className="text-[9px] font-mono text-[#94a3b8] uppercase">CONNECTED PHONES</span>
+              <span className="text-[11px] font-mono text-[#f59e0b] font-bold">{memberCount} Devices</span>
             </div>
           </div>
 
           <button
             onClick={() => setActiveView('settings')}
-            className="flex items-center gap-2 px-2.5 py-1.5 text-[#a3717c] hover:bg-[#1e2024] hover:text-[#e2e2e8] rounded-lg transition-colors text-left text-xs"
+            className="flex items-center gap-2 px-2.5 py-1.5 text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9] rounded-lg transition-colors text-left text-xs"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">settings</span>
@@ -629,47 +629,47 @@ export default function App() {
             /* OPERATOR CONSOLE (AV MODERATOR WORKSTATION) */
             <div className="flex flex-col w-full p-4 gap-4">
               {/* QUICK CONTROL TELEMETRY BAR */}
-              <section aria-label="Quick Control Bar" className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-lg border border-[#333539]/40 flex flex-wrap items-center justify-between gap-3">
+              <section aria-label="Quick Control Bar" className="w-full bg-[#10141c] rounded-xl p-3 shadow-lg border border-[#222834] flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-wrap">
                   {/* Live Presenter Pill */}
-                  <div className="flex items-center gap-2 bg-[#0c0e12] px-3 py-1.5 rounded-lg border border-[#333539]">
+                  <div className="flex items-center gap-2 bg-[#080a0e] px-3 py-1.5 rounded-lg border border-[#222834]">
                     <div className="relative flex items-center justify-center">
-                      <span className={`absolute w-3 h-3 rounded-full ${currentSpeaker ? 'bg-[#ff544c] animate-ping opacity-75' : 'bg-[#a3717c]'}`} />
-                      <span className={`relative w-2 h-2 rounded-full ${currentSpeaker ? 'bg-[#ff544c]' : 'bg-[#a3717c]'}`} />
+                      <span className={`absolute w-3 h-3 rounded-full ${currentSpeaker ? 'bg-[#ef4444] animate-ping opacity-75' : 'bg-[#64748b]'}`} />
+                      <span className={`relative w-2 h-2 rounded-full ${currentSpeaker ? 'bg-[#ef4444]' : 'bg-[#64748b]'}`} />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-[#ffb4ac] uppercase font-bold tracking-wider">LIVE PRESENTER</span>
-                      <span className="text-[13px] font-mono text-[#e2e2e8] font-bold tracking-tight">
+                      <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold tracking-wider">LIVE PRESENTER</span>
+                      <span className="text-[13px] font-mono text-[#f1f5f9] font-bold tracking-tight">
                         {currentSpeaker ? currentSpeaker.name.toUpperCase() : 'STAGE VACANT'}
                       </span>
                     </div>
                   </div>
 
                   {/* Audio Engine Status */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e2024] border border-[#333539]">
-                    <span className="material-symbols-outlined text-[#7dffa2] text-[18px]">graphic_eq</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#141923] border border-[#222834]">
+                    <span className="material-symbols-outlined text-[#10b981] text-[18px]">graphic_eq</span>
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-[#a3717c] uppercase">AUDIO ENGINE</span>
-                      <span className="text-[12px] font-mono text-[#7dffa2] font-bold">
+                      <span className="text-[9px] font-mono text-[#94a3b8] uppercase">AUDIO ENGINE</span>
+                      <span className="text-[12px] font-mono text-[#10b981] font-bold">
                         {isAudioUnlocked ? 'ACTIVE (48kHz)' : 'LOCKED'}
                       </span>
                     </div>
                   </div>
 
                   {/* Floor Queue Pill */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e2024] border border-[#333539]">
-                    <span className="material-symbols-outlined text-[#ffba38] text-[18px]">pan_tool</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#141923] border border-[#222834]">
+                    <span className="material-symbols-outlined text-[#f59e0b] text-[18px]">pan_tool</span>
                     <div className="flex flex-col">
-                      <span className="text-[9px] font-mono text-[#a3717c] uppercase">FLOOR QUEUE</span>
-                      <span className="text-[12px] font-mono text-[#ffba38] font-bold">
+                      <span className="text-[9px] font-mono text-[#94a3b8] uppercase">FLOOR QUEUE</span>
+                      <span className="text-[12px] font-mono text-[#f59e0b] font-bold">
                         {queue.length} PENDING
                       </span>
                     </div>
                   </div>
 
                   {/* Dynamic Bitrate Buttons */}
-                  <div className="flex items-center gap-1 bg-[#0c0e12] p-1 rounded-lg border border-[#333539]">
-                    <span className="text-[9px] font-mono text-[#a3717c] px-1.5 uppercase">OPUS BITRATE</span>
+                  <div className="flex items-center gap-1 bg-[#080a0e] p-1 rounded-lg border border-[#222834]">
+                    <span className="text-[9px] font-mono text-[#94a3b8] px-1.5 uppercase">OPUS BITRATE</span>
                     {['64k', '96k', '128k'].map((br) => (
                       <button
                         key={br}
@@ -679,8 +679,8 @@ export default function App() {
                         }}
                         className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold transition-all ${
                           selectedBitrate === br
-                            ? 'bg-[#333539] text-[#7dffa2]'
-                            : 'text-[#a3717c] hover:text-[#e2e2e8]'
+                            ? 'bg-[#1e2534] text-[#38bdf8]'
+                            : 'text-[#94a3b8] hover:text-[#f1f5f9]'
                         }`}
                       >
                         {br}
@@ -692,20 +692,20 @@ export default function App() {
                 {/* Safety Interlock Cut Pill */}
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col items-end">
-                    <span className="text-[9px] font-mono text-[#ffb4ac] uppercase font-bold tracking-widest">SAFETY INTERLOCK</span>
-                    <span className="text-[11px] font-mono text-[#a3717c]">
+                    <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold tracking-widest">SAFETY INTERLOCK</span>
+                    <span className="text-[11px] font-mono text-[#64748b]">
                       {isEmergencyMuted ? 'PA MUTED (LATCHED)' : isSafetyArmed ? 'UNLOCKED / ARMED' : 'LATCH ENGAGED'}
                     </span>
                   </div>
-                  <div className="flex items-center bg-[#0c0e12] p-1.5 rounded-xl border border-[#5b403d] shadow-lg">
+                  <div className="flex items-center bg-[#080a0e] p-1.5 rounded-xl border border-[#222834] shadow-lg">
                     <button
                       onClick={handleToggleSafetyArm}
                       className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase font-bold flex items-center gap-1 transition-all ${
-                        isSafetyArmed ? 'bg-[#ffba38] text-[#432c00]' : 'bg-[#1e2024] hover:bg-[#282a2e] text-[#a3717c]'
+                        isSafetyArmed ? 'bg-[#f59e0b] text-[#1a1000]' : 'bg-[#141923] hover:bg-[#1c2230] text-[#94a3b8]'
                       }`}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[16px] text-[#ffba38]">shield</span>
+                      <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">shield</span>
                       <span>{isSafetyArmed ? 'LOCK' : 'UNLOCK CUT'}</span>
                     </button>
                     <button
@@ -713,14 +713,14 @@ export default function App() {
                       disabled={!isSafetyArmed && !isEmergencyMuted}
                       className={`ml-1.5 px-3 py-1 rounded text-[11px] font-mono uppercase font-bold flex items-center gap-1.5 transition-all select-none ${
                         isEmergencyMuted
-                          ? 'bg-[#ff544c] text-white shadow-[0_0_12px_#ff544c] animate-pulse cursor-pointer'
+                          ? 'bg-[#ef4444] text-white shadow-[0_0_12px_#ef4444] animate-pulse cursor-pointer'
                           : isSafetyArmed
-                          ? 'bg-[#93000a] text-white hover:bg-[#ff544c] cursor-pointer shadow-[0_0_8px_#ff544c]'
-                          : 'bg-[#333539] opacity-50 cursor-not-allowed text-[#a3717c]'
+                          ? 'bg-[#dc2626] text-white hover:bg-[#ef4444] cursor-pointer shadow-[0_0_8px_#ef4444]'
+                          : 'bg-[#181d28] opacity-50 cursor-not-allowed text-[#64748b]'
                       }`}
                       type="button"
                     >
-                      <span className="material-symbols-outlined text-[18px] text-[#ffb4ac]">warning</span>
+                      <span className="material-symbols-outlined text-[18px] text-white">warning</span>
                       <span>{isEmergencyMuted ? 'RESTORE' : 'KILL BROADCAST'}</span>
                     </button>
                   </div>
@@ -729,9 +729,9 @@ export default function App() {
 
               {/* SILENCED MASTER BANNER (Visible upon trigger) */}
               {isEmergencyMuted && (
-                <div className="w-full bg-[#93000a] text-[#ffdad6] p-4 rounded-xl shadow-2xl flex items-center justify-between border-2 border-[#ff544c] animate-pulse">
+                <div className="w-full bg-[#93000a] text-[#ffdad6] p-4 rounded-xl shadow-2xl flex items-center justify-between border-2 border-[#ef4444] animate-pulse">
                   <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-[36px] text-[#ffb4ab] font-bold">report</span>
+                    <span className="material-symbols-outlined text-[36px] text-[#ffdad6] font-bold">report</span>
                     <div>
                       <h4 className="text-sm font-bold uppercase tracking-wider text-white">
                         CRITICAL BROADCAST SILENCED • MASTER ZERO LATCHED
@@ -743,7 +743,7 @@ export default function App() {
                   </div>
                   <button
                     onClick={handleRestoreBus}
-                    className="px-4 py-2 rounded bg-[#e2e2e8] text-[#111317] text-xs font-mono font-bold uppercase hover:bg-white transition-all shadow"
+                    className="px-4 py-2 rounded bg-white text-[#0f1217] text-xs font-mono font-bold uppercase hover:bg-slate-200 transition-all shadow"
                     type="button"
                   >
                     RESTORE LIVE BUS
@@ -756,28 +756,28 @@ export default function App() {
                 {/* COLUMN 1: Audio Engine & Hardware LED VU Meter Bank (col-span-4) */}
                 <div className="lg:col-span-4 flex flex-col gap-4">
                   {/* DSP Engine Control */}
-                  <section className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50 flex flex-col gap-2">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#333539]/40">
+                  <section className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
                       <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[#ffb4ac] text-[20px]">volume_up</span>
-                        <h3 className="text-sm font-bold text-[#e2e2e8]">Audio Engine DSP</h3>
+                        <span className="material-symbols-outlined text-[#38bdf8] text-[20px]">volume_up</span>
+                        <h3 className="text-sm font-bold text-[#f1f5f9]">Audio Engine DSP</h3>
                       </div>
-                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#0c0e12] text-[#7dffa2] uppercase font-bold flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#00e475]" />
+                      <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#080a0e] text-[#10b981] uppercase font-bold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
                         48kHz AUTO
                       </span>
                     </div>
 
-                    <div className="bg-[#0c0e12] p-2.5 rounded-lg flex items-center justify-between border border-[#333539]/30">
+                    <div className="bg-[#080a0e] p-2.5 rounded-lg flex items-center justify-between border border-[#222834]">
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-mono text-[#a3717c] uppercase">WebAudio Host Context</span>
-                        <span className={`text-xs font-mono font-semibold ${isAudioUnlocked ? 'text-[#7dffa2]' : 'text-[#ffba38]'}`}>
+                        <span className="text-[9px] font-mono text-[#94a3b8] uppercase">WebAudio Host Context</span>
+                        <span className={`text-xs font-mono font-semibold ${isAudioUnlocked ? 'text-[#10b981]' : 'text-[#f59e0b]'}`}>
                           {isAudioUnlocked ? 'INITIALIZED / LOCKED' : 'AWAITING UNLOCK'}
                         </span>
                       </div>
                       <button
                         onClick={handlePlayTestTone}
-                        className="px-2.5 py-1 rounded bg-[#1e2024] hover:bg-[#282a2e] text-[#ffb4ac] text-[10px] font-mono uppercase font-bold transition-all border border-[#ff544c]/30"
+                        className="px-2.5 py-1 rounded bg-[#181d28] hover:bg-[#222a38] text-[#38bdf8] text-[10px] font-mono uppercase font-bold transition-all border border-[#273244]"
                         type="button"
                       >
                         TEST CHIME
@@ -785,10 +785,10 @@ export default function App() {
                     </div>
 
                     {/* Master Output Gain Slider */}
-                    <div className="bg-[#0c0e12] p-2.5 rounded-lg border border-[#333539]/30 flex flex-col gap-1.5">
+                    <div className="bg-[#080a0e] p-2.5 rounded-lg border border-[#222834] flex flex-col gap-1.5">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-[10px] font-mono font-bold text-[#a3717c] uppercase">MASTER PA GAIN</span>
-                        <span className="text-[12px] font-mono font-bold text-[#ffb4ac]">
+                        <span className="text-[10px] font-mono font-bold text-[#94a3b8] uppercase">MASTER PA GAIN</span>
+                        <span className="text-[12px] font-mono font-bold text-white">
                           {Math.round(volume * 100)}% ({volume === 0 ? '-∞' : (-Math.round((0.9 - volume) * 30)).toFixed(1)} dB)
                         </span>
                       </div>
@@ -799,7 +799,7 @@ export default function App() {
                         step="0.01"
                         value={volume}
                         onChange={handleVolumeChange}
-                        className="w-full accent-[#ff544c] cursor-pointer"
+                        className="w-full accent-[#ef4444] cursor-pointer"
                       />
                       <div className="flex gap-1.5 pt-1">
                         {[0.5, 0.75, HARD_VOLUME_CEILING].map((preset) => (
@@ -807,7 +807,7 @@ export default function App() {
                             key={preset}
                             onClick={() => handleSetVolumePreset(preset)}
                             className={`flex-1 py-1 rounded text-[10px] font-mono font-bold transition-all ${
-                              volume === preset ? 'bg-[#ff544c] text-[#5c0005]' : 'bg-[#1e2024] text-[#a3717c] hover:text-white'
+                              volume === preset ? 'bg-[#ef4444] text-white' : 'bg-[#141923] text-[#94a3b8] hover:text-white'
                             }`}
                           >
                             {preset === HARD_VOLUME_CEILING ? '90% Max' : `${Math.round(preset * 100)}%`}
@@ -821,30 +821,30 @@ export default function App() {
                   <HardwareMeterBridge audioGraph={audioGraph} />
 
                   {/* Physical Soundcard Device Selector */}
-                  <div className="bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50">
+                  <div className="bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834]">
                     <DeviceSelector onSelectDevice={handleDeviceSelect} onPlayTestTone={handlePlayTestTone} />
                   </div>
                 </div>
 
                 {/* COLUMN 2: Floor Request Queue Triage (col-span-5) */}
                 <div className="lg:col-span-5 flex flex-col gap-4">
-                  <section aria-label="Floor Request Queue" aria-live="polite" className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50 flex flex-col gap-2">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#333539]/40">
+                  <section aria-label="Floor Request Queue" aria-live="polite" className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#ffba38] text-[22px]">queue_music</span>
+                        <span className="material-symbols-outlined text-[#f59e0b] text-[22px]">queue_music</span>
                         <div>
-                          <h3 className="text-sm font-bold text-[#e2e2e8]">Floor Request Triage</h3>
-                          <p className="text-[11px] font-mono text-[#a3717c]">Live mic access queue awaiting operator grant</p>
+                          <h3 className="text-sm font-bold text-[#f1f5f9]">Floor Request Triage</h3>
+                          <p className="text-[11px] font-mono text-[#94a3b8]">Live mic access queue awaiting operator grant</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#282a2e] text-[#ffba38] uppercase font-bold">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181d28] text-[#f59e0b] uppercase font-bold">
                           {queue.length} IN QUEUE
                         </span>
                         {queue.length > 0 && (
                           <button
                             onClick={clearQueue}
-                            className="text-[#a3717c] hover:text-[#e2e2e8] text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-[#1e2024] transition-colors"
+                            className="text-[#94a3b8] hover:text-[#f1f5f9] text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-[#141923] transition-colors"
                             type="button"
                           >
                             CLEAR
@@ -855,10 +855,10 @@ export default function App() {
 
                     {/* Request Triage List */}
                     {queue.length === 0 ? (
-                      <div className="py-8 text-center text-xs text-[#a3717c] border border-dashed border-[#333539] rounded-xl bg-[#0c0e12]/40">
-                        <span className="material-symbols-outlined text-[28px] text-[#333539] mb-1 block">mic_none</span>
+                      <div className="py-8 text-center text-xs text-[#94a3b8] border border-dashed border-[#222834] rounded-xl bg-[#080a0e]/40">
+                        <span className="material-symbols-outlined text-[28px] text-slate-600 mb-1 block">mic_none</span>
                         <span>Floor queue is currently vacant.</span>
-                        <p className="text-[10px] text-[#a3717c]/70 mt-1">
+                        <p className="text-[10px] text-slate-500 mt-1">
                           Attendees who press Hold-to-Talk or Tap-to-Talk will appear here instantly.
                         </p>
                       </div>
@@ -869,52 +869,52 @@ export default function App() {
                           return (
                             <div
                               key={entry.id}
-                              className="flex flex-col p-2.5 rounded-lg bg-[#1e2024] hover:bg-[#282a2e] border border-[#333539]/40 transition-colors gap-2"
+                              className="flex flex-col p-2.5 rounded-lg bg-[#141923] hover:bg-[#181e2b] border border-[#222834] transition-colors gap-2"
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2.5">
-                                  <span className="text-base font-mono font-bold text-[#ffb4ac] w-6">
+                                  <span className="text-base font-mono font-bold text-slate-300 w-6">
                                     {String(index + 1).padStart(2, '0')}
                                   </span>
                                   <div className="flex flex-col">
                                     <div className="flex items-center gap-2">
-                                      <span className="text-sm font-bold text-[#e2e2e8]">{entry.name}</span>
-                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#0c0e12] text-[#7dffa2] uppercase">
+                                      <span className="text-sm font-bold text-[#f1f5f9]">{entry.name}</span>
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#080a0e] text-[#10b981] uppercase">
                                         MIC READY
                                       </span>
                                     </div>
-                                    <span className="text-[11px] text-[#a3717c]">ID: {entry.id.slice(0, 16)}</span>
+                                    <span className="text-[11px] text-[#94a3b8]">ID: {entry.id.slice(0, 16)}</span>
                                   </div>
                                 </div>
                                 <div className="flex flex-col items-end font-mono">
-                                  <span className="text-xs font-bold text-[#e2e2e8]">{formatSpeakerClock(waitSec)}</span>
-                                  <span className="text-[9px] text-[#a3717c] uppercase">WAIT TIME</span>
+                                  <span className="text-xs font-bold text-[#f1f5f9]">{formatSpeakerClock(waitSec)}</span>
+                                  <span className="text-[9px] text-[#94a3b8] uppercase">WAIT TIME</span>
                                 </div>
                               </div>
 
-                              <div className="flex items-center justify-between pt-1 border-t border-[#333539]/40">
-                                <div className="flex items-center gap-3 text-[10px] font-mono text-[#a3717c]">
-                                  <span>BAT: <strong className="text-[#7dffa2]">94%</strong></span>
-                                  <span>RF: <strong className="text-[#7dffa2]">-58 dBm</strong></span>
+                              <div className="flex items-center justify-between pt-1 border-t border-[#222834]">
+                                <div className="flex items-center gap-3 text-[10px] font-mono text-[#94a3b8]">
+                                  <span>BAT: <strong className="text-[#10b981]">94%</strong></span>
+                                  <span>RF: <strong className="text-[#10b981]">-58 dBm</strong></span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <button
                                     onClick={() => handleGrantSpeaker(entry.id, entry.name)}
-                                    className="px-3 py-1 rounded bg-[#ff544c] hover:bg-[#ffb4ac] text-[#5c0005] hover:text-[#000] text-[10px] font-mono uppercase font-bold transition-all shadow"
+                                    className="px-3 py-1 rounded bg-[#10b981] hover:bg-[#059669] text-white text-[10px] font-mono uppercase font-bold transition-all shadow"
                                     type="button"
                                   >
                                     GRANT FLOOR
                                   </button>
                                   <button
                                     onClick={() => addTelemetryLog(`PFL CUE: Pre-fade listen armed for ${entry.name}.`, 'info')}
-                                    className="px-2.5 py-1 rounded bg-[#0c0e12] hover:bg-[#282a2e] text-[#ffba38] text-[10px] font-mono uppercase font-bold transition-all border border-[#333539]"
+                                    className="px-2.5 py-1 rounded bg-[#080a0e] hover:bg-[#181e2b] text-[#f59e0b] text-[10px] font-mono uppercase font-bold transition-all border border-[#222834]"
                                     type="button"
                                   >
                                     CUE PFL
                                   </button>
                                   <button
                                     onClick={() => removeFromQueue(entry.id)}
-                                    className="p-1 rounded bg-[#0c0e12] hover:bg-[#93000a] text-[#a3717c] hover:text-white transition-all"
+                                    className="p-1 rounded bg-[#080a0e] hover:bg-[#b91c1c] text-[#94a3b8] hover:text-white transition-all"
                                     title="Decline request"
                                     type="button"
                                   >
@@ -933,52 +933,54 @@ export default function App() {
                 {/* COLUMN 3: Active Speaker Spotlight & Event Diagnostics (col-span-3) */}
                 <div className="lg:col-span-3 flex flex-col gap-4">
                   {/* Active Speaker Spotlight Card */}
-                  <section className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50 flex flex-col gap-2">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#333539]/40">
+                  <section className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
                       <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[#ffb4ac] text-[20px]">record_voice_over</span>
+                        <span className="material-symbols-outlined text-[#ef4444] text-[20px]">record_voice_over</span>
                         <div>
-                          <h3 className="text-sm font-bold text-[#e2e2e8]">Active Speaker</h3>
-                          <span className="text-[9px] font-mono text-[#a3717c] uppercase">MAIN STAGE MIC</span>
+                          <h3 className="text-sm font-bold text-[#f1f5f9]">Active Speaker</h3>
+                          <span className="text-[9px] font-mono text-[#94a3b8] uppercase">MAIN STAGE MIC</span>
                         </div>
                       </div>
                       <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                        currentSpeaker ? 'bg-[#00e475]/20 text-[#00e475]' : 'bg-[#1e2024] text-[#a3717c]'
+                        currentSpeaker ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-[#141923] text-[#94a3b8]'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${currentSpeaker ? 'bg-[#00e475] animate-ping' : 'bg-[#a3717c]'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${currentSpeaker ? 'bg-[#10b981] animate-ping' : 'bg-[#64748b]'}`} />
                         {currentSpeaker ? 'ON-AIR' : 'VACANT'}
                       </div>
                     </div>
 
                     {/* Speaker Details */}
-                    <div className="flex flex-col bg-[#1e2024] p-2.5 rounded-lg border border-[#333539]/30 gap-2">
+                    <div className="flex flex-col bg-[#141923] p-2.5 rounded-lg border border-[#222834] gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="relative w-10 h-10 rounded-lg bg-[#282a2e] flex items-center justify-center border border-[#ff544c]/30 shrink-0">
-                          <span className="material-symbols-outlined text-[24px] text-[#ffb4ac]">account_circle</span>
-                          {currentSpeaker && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#00e475] rounded-full shadow-[0_0_6px_#00e475]" />}
+                        <div className={`relative w-10 h-10 rounded-lg bg-[#181e2b] flex items-center justify-center border shrink-0 ${
+                          currentSpeaker ? 'border-[#ef4444]' : 'border-slate-700'
+                        }`}>
+                          <span className="material-symbols-outlined text-[24px] text-slate-300">account_circle</span>
+                          {currentSpeaker && <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10b981] rounded-full shadow-[0_0_6px_#10b981]" />}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <h4 className="text-xs font-bold text-[#e2e2e8] truncate">
+                          <h4 className="text-xs font-bold text-[#f1f5f9] truncate">
                             {currentSpeaker ? currentSpeaker.name : 'No Presenter Active'}
                           </h4>
-                          <span className="text-[10px] text-[#a3717c] truncate">
+                          <span className="text-[10px] text-[#94a3b8] truncate">
                             {currentSpeaker ? `ID: ${currentSpeaker.id.slice(0, 14)}` : 'Awaiting Floor Request'}
                           </span>
-                          <span className="text-[9px] font-mono text-[#7dffa2]">DANTE CH-01 ROUTED</span>
+                          <span className="text-[9px] font-mono text-[#38bdf8]">DANTE CH-01 ROUTED</span>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 bg-[#0c0e12] p-2 rounded border border-[#333539]/30">
+                      <div className="grid grid-cols-2 gap-2 bg-[#080a0e] p-2 rounded border border-[#222834]">
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-[#a3717c] uppercase">SPEAKING TIME</span>
-                          <span className="text-sm font-mono font-bold text-[#ff544c]">
+                          <span className="text-[9px] font-mono text-[#94a3b8] uppercase">SPEAKING TIME</span>
+                          <span className="text-sm font-mono font-bold text-white">
                             {currentSpeaker ? formatSpeakerClock(speakerTimerSeconds) : '00:00'}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-[9px] font-mono text-[#a3717c] uppercase">GAIN TRIM</span>
+                          <span className="text-[9px] font-mono text-[#94a3b8] uppercase">GAIN TRIM</span>
                           <div className="flex items-center justify-between">
-                            <span className="text-xs font-mono font-bold text-[#7dffa2]">
+                            <span className="text-xs font-mono font-bold text-[#38bdf8]">
                               {gainTrim > 0 ? `+${gainTrim.toFixed(1)}` : gainTrim.toFixed(1)} dB
                             </span>
                             <input
@@ -988,7 +990,7 @@ export default function App() {
                               step="0.2"
                               value={gainTrim}
                               onChange={(e) => setGainTrim(parseFloat(e.target.value))}
-                              className="w-14 h-1 accent-[#ff544c] cursor-pointer"
+                              className="w-14 h-1 accent-[#38bdf8] cursor-pointer"
                             />
                           </div>
                         </div>
@@ -998,14 +1000,14 @@ export default function App() {
                       <div className="flex gap-1.5 pt-1">
                         <button
                           onClick={handlePlayTestTone}
-                          className="flex-1 py-1 rounded bg-[#282a2e] hover:bg-[#333539] text-[#ffba38] text-[9px] font-mono font-bold uppercase transition-colors"
+                          className="flex-1 py-1 rounded bg-[#181e2b] hover:bg-[#202738] text-[#f59e0b] text-[9px] font-mono font-bold uppercase transition-colors"
                         >
                           PTT INTERCOM
                         </button>
                         {currentSpeaker && (
                           <button
                             onClick={handleRevokeSpeaker}
-                            className="flex-1 py-1 rounded bg-[#93000a] hover:bg-[#ff544c] text-white text-[9px] font-mono font-bold uppercase transition-colors"
+                            className="flex-1 py-1 rounded bg-[#dc2626] hover:bg-[#ef4444] text-white text-[9px] font-mono font-bold uppercase transition-colors"
                           >
                             REVOKE MIC ✕
                           </button>
@@ -1015,20 +1017,20 @@ export default function App() {
                   </section>
 
                   {/* Room Pairing QR Code Card */}
-                  <div className="bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50">
+                  <div className="bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834]">
                     <RoomQRCode roomCode={roomName} tokenServerUrl={tokenServerUrl} />
                   </div>
 
                   {/* Live Diagnostic Telemetry Console */}
-                  <section className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/50 flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#333539]/40">
+                  <section className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
                       <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[#7dffa2] text-[18px]">terminal</span>
-                        <h4 className="text-xs font-mono font-bold uppercase text-[#e2e2e8]">Telemetry Event Stream</h4>
+                        <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">terminal</span>
+                        <h4 className="text-xs font-mono font-bold uppercase text-[#f1f5f9]">Telemetry Event Stream</h4>
                       </div>
                       <button
                         onClick={() => setTelemetryLogs([])}
-                        className="text-[9px] font-mono text-[#a3717c] hover:text-white uppercase"
+                        className="text-[9px] font-mono text-[#94a3b8] hover:text-white uppercase"
                       >
                         CLEAR
                       </button>
@@ -1036,12 +1038,12 @@ export default function App() {
 
                     <div
                       ref={logContainerRef}
-                      className="h-36 overflow-y-auto bg-[#0c0e12] p-2 rounded-lg border border-[#333539]/40 font-mono text-[10px] space-y-1"
+                      className="h-36 overflow-y-auto bg-[#080a0e] p-2 rounded-lg border border-[#222834] font-mono text-[10px] space-y-1"
                     >
                       {telemetryLogs.map((log) => (
                         <div key={log.id} className="leading-tight">
-                          <span className="text-[#7dffa2] font-semibold">[{log.timestamp}]</span>{' '}
-                          <span className={log.level === 'alert' ? 'text-[#ff544c] font-bold' : log.level === 'warn' ? 'text-[#ffba38]' : log.level === 'success' ? 'text-[#7dffa2]' : 'text-[#a3717c]'}>
+                          <span className="text-[#64748b] font-semibold">[{log.timestamp}]</span>{' '}
+                          <span className={log.level === 'alert' ? 'text-[#ef4444] font-bold' : log.level === 'warn' ? 'text-[#f59e0b]' : log.level === 'success' ? 'text-[#10b981]' : 'text-[#38bdf8]'}>
                             {log.message}
                           </span>
                         </div>

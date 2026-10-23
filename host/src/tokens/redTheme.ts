@@ -7,37 +7,37 @@
 export const redTheme = {
   colors: {
     // Primary Red / Ruby / Crimson Brand
-    primary: '#e11d48',       // Rose 600 - vivid ruby red
-    primaryHover: '#f43f5e',  // Rose 500 - bright accessible hover
-    primaryActive: '#be123c', // Rose 700 - pressed state
-    primaryMuted: '#9f1239',  // Rose 800
-    primaryFocus: 'rgba(225, 29, 72, 0.45)', // Focus outline ring
-    textOnPrimary: '#ffffff', // 5.1:1 contrast on #e11d48
+    primary: '#ef4444',       // Red 500 - bold broadcast crimson
+    primaryHover: '#f87171',  // Red 400 - accessible hover
+    primaryActive: '#dc2626', // Red 600 - pressed state
+    primaryMuted: '#991b1b',  // Red 800
+    primaryFocus: 'rgba(239, 68, 68, 0.45)', // Focus outline ring
+    textOnPrimary: '#ffffff', // 5.1:1 contrast on #ef4444
 
     // Accents & High-Contrast Typography
-    accentBright: '#fb7185',  // Rose 400 - high contrast label on dark surfaces (>7:1)
-    accentMuted: '#fda4af',   // Rose 300
-    accentLight: '#fecdd3',   // Rose 200
+    accentBright: '#ef4444',  // Vivid broadcast accent
+    accentMuted: '#f87171',   // Red 400
+    accentLight: '#fecaca',   // Red 200
 
-    // Dark Surfaces (Obsidian with warm crimson undertones)
-    bgDeepest: '#090305',     // Main page background
-    bgSurfaceDark: '#120408', // Inset panels & track backgrounds
-    bgSurfaceCard: '#1c070e', // Primary card surfaces
-    bgSurfaceElevated: '#280a14', // Elevated containers / active items
-    bgSurfaceHover: '#350d1b',    // Hovered surfaces
-    bgSurfaceOverlay: 'rgba(9, 3, 5, 0.94)', // Modal backdrops
+    // Dark Surfaces (Clean Broadcast Dark Obsidian)
+    bgDeepest: '#080a0e',     // Main page background
+    bgSurfaceDark: '#0c1017', // Inset panels & track backgrounds
+    bgSurfaceCard: '#10141c', // Primary card surfaces
+    bgSurfaceElevated: '#141923', // Elevated containers / active items
+    bgSurfaceHover: '#181d28',    // Hovered surfaces
+    bgSurfaceOverlay: 'rgba(8, 10, 14, 0.94)', // Modal backdrops
 
     // Card & Panel Borders
-    borderSubtle: '#3b0d1a',
-    borderMedium: '#5a1529',
-    borderStrong: '#e11d48',
-    borderFocus: '#fb7185',
+    borderSubtle: '#181d28',
+    borderMedium: '#222834',
+    borderStrong: '#ef4444',
+    borderFocus: '#ef4444',
 
-    // Text Hierarchy (WCAG AA Compliant)
-    textPrimary: '#ffffff',     // 17.5:1 contrast on #090305
-    textSecondary: '#fecdd3',   // 12.2:1 contrast
-    textMuted: '#a3717c',       // 5.2:1 contrast (>4.5:1 minimum)
-    textSubtle: '#734d56',
+    // Text Hierarchy (Clean Slate WCAG AA Compliant)
+    textPrimary: '#f1f5f9',     // Crisp white (Slate 100)
+    textSecondary: '#cbd5e1',   // Slate 300
+    textMuted: '#94a3b8',       // Slate 400
+    textSubtle: '#64748b',      // Slate 500
 
     // Destructive & Emergency Actions
     emergency: '#dc2626',       // Red 600 - unmistakable danger

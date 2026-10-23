@@ -70,24 +70,24 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
   };
 
   // Render LED segments with authentic color zones:
-  // 0-9: Green (secondary #00e475)
-  // 10-14: Amber (tertiary #ffba38)
-  // 15-17: Red (primary-container #ff544c)
+  // 0-9: Green (#10b981)
+  // 10-14: Amber (#f59e0b)
+  // 15-17: Crimson Red (#ef4444)
   const renderLadder = (activeCount: number) => {
     return Array.from({ length: TOTAL_SEGMENTS }).map((_, idx) => {
       const isLit = idx < activeCount;
-      let litColor = 'bg-[#00e475] shadow-[0_0_6px_#00e475]';
+      let litColor = 'bg-[#10b981] shadow-[0_0_6px_#10b981]';
       if (idx >= 15) {
-        litColor = 'bg-[#ff544c] shadow-[0_0_8px_#ff544c]';
+        litColor = 'bg-[#ef4444] shadow-[0_0_8px_#ef4444]';
       } else if (idx >= 10) {
-        litColor = 'bg-[#ffba38] shadow-[0_0_6px_#ffba38]';
+        litColor = 'bg-[#f59e0b] shadow-[0_0_6px_#f59e0b]';
       }
 
       return (
         <div
           key={idx}
           className={`w-full h-2 rounded-[2px] transition-colors duration-75 ${
-            isLit ? litColor : 'bg-[#282a2e]'
+            isLit ? litColor : 'bg-[#181f2a]'
           }`}
         />
       );
@@ -95,21 +95,21 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
   };
 
   return (
-    <div className="w-full bg-[#1a1c20] rounded-xl p-3 shadow-md border border-[#333539]/60 flex flex-col gap-2">
+    <div className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
       {/* Header Row */}
       <div className="flex items-center justify-between pb-1">
         <div className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-[#ffb4ac] text-[20px]">equalizer</span>
+          <span className="material-symbols-outlined text-[#38bdf8] text-[20px]">equalizer</span>
           <div>
-            <h3 className="text-sm font-bold text-[#e2e2e8] leading-none">Hardware VU Bridge</h3>
-            <span className="text-[9px] font-mono font-bold uppercase text-[#a3717c] tracking-wider">
+            <h3 className="text-sm font-bold text-[#f1f5f9] leading-none">Hardware VU Bridge</h3>
+            <span className="text-[9px] font-mono font-bold uppercase text-[#94a3b8] tracking-wider">
               RMS &amp; PEAK LADDER METERS
             </span>
           </div>
         </div>
         <button
           onClick={handleResetClips}
-          className="px-2 py-0.5 rounded bg-[#333539] hover:bg-[#37393e] text-[#e2e2e8] text-[9px] font-mono font-bold uppercase transition-all"
+          className="px-2 py-0.5 rounded bg-[#181d28] hover:bg-[#202738] text-slate-300 border border-[#273244] text-[9px] font-mono font-bold uppercase transition-all"
           type="button"
         >
           RESET CLIPS
@@ -117,18 +117,18 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
       </div>
 
       {/* 4-Channel Meter Bank */}
-      <div className="grid grid-cols-4 gap-1.5 bg-[#0c0e12] p-2 rounded-lg border border-[#333539]/40">
+      <div className="grid grid-cols-4 gap-1.5 bg-[#080a0e] p-2 rounded-lg border border-[#222834]">
         {/* CH-01 Podium Mic */}
-        <div className="flex flex-col items-center gap-1 bg-[#1a1c20]/60 p-1.5 rounded border border-[#333539]/30">
-          <span className="text-[10px] font-mono font-bold text-[#e2e2e8]">CH-01</span>
-          <span className="text-[8px] font-mono font-bold text-[#7dffa2] uppercase truncate max-w-[54px]">
+        <div className="flex flex-col items-center gap-1 bg-[#141923] p-1.5 rounded border border-[#222834]">
+          <span className="text-[10px] font-mono font-bold text-[#f1f5f9]">CH-01</span>
+          <span className="text-[8px] font-mono font-bold text-[#10b981] uppercase truncate max-w-[54px]">
             PODIUM
           </span>
 
-          <div className="relative w-6 h-52 bg-[#1e2024] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
+          <div className="relative w-6 h-52 bg-[#0c1017] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
             <div
               className={`w-full h-2 rounded-[2px] flex items-center justify-center text-[7px] font-mono font-bold ${
-                clips.ch1 ? 'bg-[#ff544c] text-white shadow-[0_0_8px_#ff544c]' : 'bg-[#333539] text-[#a3717c]'
+                clips.ch1 ? 'bg-[#ef4444] text-white shadow-[0_0_8px_#ef4444]' : 'bg-[#1e2534] text-[#64748b]'
               }`}
             >
               0dB
@@ -138,15 +138,15 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             </div>
           </div>
 
-          <span className="text-[10px] font-mono font-semibold text-[#e2e2e8]">
+          <span className="text-[10px] font-mono font-semibold text-[#f1f5f9]">
             {getDbReadout(ch1Level)}
           </span>
 
-          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#333539]/50">
+          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#222834]">
             <button
               onClick={() => toggleMute('ch1')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                mutes.ch1 ? 'bg-[#93000a] text-white' : 'bg-[#1e2024] hover:bg-[#93000a] text-[#e2e2e8]'
+                mutes.ch1 ? 'bg-[#ef4444] text-white' : 'bg-[#181d28] hover:bg-[#ef4444]/20 text-[#cbd5e1]'
               }`}
             >
               {mutes.ch1 ? 'MUTED' : 'MUTE'}
@@ -154,7 +154,7 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             <button
               onClick={() => togglePfl('ch1')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                pfls.ch1 ? 'bg-[#ffba38] text-[#432c00]' : 'bg-[#1e2024] hover:bg-[#ffba38]/20 text-[#ffba38]'
+                pfls.ch1 ? 'bg-[#f59e0b] text-[#1c1917]' : 'bg-[#181d28] hover:bg-[#f59e0b]/20 text-[#f59e0b]'
               }`}
             >
               {pfls.ch1 ? 'PFL ON' : 'PFL'}
@@ -163,16 +163,16 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
         </div>
 
         {/* CH-02 Floor Mic Preview */}
-        <div className="flex flex-col items-center gap-1 bg-[#1a1c20]/60 p-1.5 rounded border border-[#333539]/30">
-          <span className="text-[10px] font-mono font-bold text-[#e2e2e8]">CH-02</span>
-          <span className="text-[8px] font-mono font-bold text-[#ffba38] uppercase truncate max-w-[54px]">
+        <div className="flex flex-col items-center gap-1 bg-[#141923] p-1.5 rounded border border-[#222834]">
+          <span className="text-[10px] font-mono font-bold text-[#f1f5f9]">CH-02</span>
+          <span className="text-[8px] font-mono font-bold text-[#f59e0b] uppercase truncate max-w-[54px]">
             FLOOR
           </span>
 
-          <div className="relative w-6 h-52 bg-[#1e2024] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
+          <div className="relative w-6 h-52 bg-[#0c1017] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
             <div
               className={`w-full h-2 rounded-[2px] flex items-center justify-center text-[7px] font-mono font-bold ${
-                clips.ch2 ? 'bg-[#ff544c] text-white shadow-[0_0_8px_#ff544c]' : 'bg-[#333539] text-[#a3717c]'
+                clips.ch2 ? 'bg-[#ef4444] text-white shadow-[0_0_8px_#ef4444]' : 'bg-[#1e2534] text-[#64748b]'
               }`}
             >
               0dB
@@ -182,15 +182,15 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             </div>
           </div>
 
-          <span className="text-[10px] font-mono font-semibold text-[#e2e2e8]">
+          <span className="text-[10px] font-mono font-semibold text-[#f1f5f9]">
             {getDbReadout(ch2Level)}
           </span>
 
-          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#333539]/50">
+          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#222834]">
             <button
               onClick={() => toggleMute('ch2')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                mutes.ch2 ? 'bg-[#93000a] text-white' : 'bg-[#1e2024] hover:bg-[#93000a] text-[#e2e2e8]'
+                mutes.ch2 ? 'bg-[#ef4444] text-white' : 'bg-[#181d28] hover:bg-[#ef4444]/20 text-[#cbd5e1]'
               }`}
             >
               {mutes.ch2 ? 'MUTED' : 'MUTE'}
@@ -198,7 +198,7 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             <button
               onClick={() => togglePfl('ch2')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                pfls.ch2 ? 'bg-[#ffba38] text-[#432c00]' : 'bg-[#1e2024] hover:bg-[#ffba38]/20 text-[#ffba38]'
+                pfls.ch2 ? 'bg-[#f59e0b] text-[#1c1917]' : 'bg-[#181d28] hover:bg-[#f59e0b]/20 text-[#f59e0b]'
               }`}
             >
               {pfls.ch2 ? 'PFL ON' : 'PFL'}
@@ -207,16 +207,16 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
         </div>
 
         {/* CH-03 Keynote Feed */}
-        <div className="flex flex-col items-center gap-1 bg-[#1a1c20]/60 p-1.5 rounded border border-[#333539]/30">
-          <span className="text-[10px] font-mono font-bold text-[#e2e2e8]">CH-03</span>
-          <span className="text-[8px] font-mono font-bold text-[#ffb4ac] uppercase truncate max-w-[54px]">
+        <div className="flex flex-col items-center gap-1 bg-[#141923] p-1.5 rounded border border-[#222834]">
+          <span className="text-[10px] font-mono font-bold text-[#f1f5f9]">CH-03</span>
+          <span className="text-[8px] font-mono font-bold text-[#38bdf8] uppercase truncate max-w-[54px]">
             KEYNOTE
           </span>
 
-          <div className="relative w-6 h-52 bg-[#1e2024] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
+          <div className="relative w-6 h-52 bg-[#0c1017] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
             <div
               className={`w-full h-2 rounded-[2px] flex items-center justify-center text-[7px] font-mono font-bold ${
-                clips.ch3 ? 'bg-[#ff544c] text-white shadow-[0_0_8px_#ff544c]' : 'bg-[#333539] text-[#a3717c]'
+                clips.ch3 ? 'bg-[#ef4444] text-white shadow-[0_0_8px_#ef4444]' : 'bg-[#1e2534] text-[#64748b]'
               }`}
             >
               0dB
@@ -226,15 +226,15 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             </div>
           </div>
 
-          <span className="text-[10px] font-mono font-semibold text-[#e2e2e8]">
+          <span className="text-[10px] font-mono font-semibold text-[#f1f5f9]">
             {getDbReadout(ch3Level)}
           </span>
 
-          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#333539]/50">
+          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#222834]">
             <button
               onClick={() => toggleMute('ch3')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                mutes.ch3 ? 'bg-[#93000a] text-white' : 'bg-[#1e2024] hover:bg-[#93000a] text-[#e2e2e8]'
+                mutes.ch3 ? 'bg-[#ef4444] text-white' : 'bg-[#181d28] hover:bg-[#ef4444]/20 text-[#cbd5e1]'
               }`}
             >
               {mutes.ch3 ? 'MUTED' : 'MUTE'}
@@ -242,7 +242,7 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             <button
               onClick={() => togglePfl('ch3')}
               className={`w-full py-0.5 rounded text-[8px] font-mono font-bold uppercase transition-colors ${
-                pfls.ch3 ? 'bg-[#ffba38] text-[#432c00]' : 'bg-[#1e2024] hover:bg-[#ffba38]/20 text-[#ffba38]'
+                pfls.ch3 ? 'bg-[#f59e0b] text-[#1c1917]' : 'bg-[#181d28] hover:bg-[#f59e0b]/20 text-[#f59e0b]'
               }`}
             >
               {pfls.ch3 ? 'PFL ON' : 'PFL'}
@@ -251,16 +251,16 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
         </div>
 
         {/* Master Dante Mix */}
-        <div className="flex flex-col items-center gap-1 bg-[#1a1c20]/60 p-1.5 rounded border border-[#ff544c]/30">
-          <span className="text-[10px] font-mono font-bold text-[#ff544c]">MASTER</span>
-          <span className="text-[8px] font-mono font-bold text-[#ffb4ac] uppercase truncate max-w-[54px]">
+        <div className="flex flex-col items-center gap-1 bg-[#141923] p-1.5 rounded border border-[#ef4444]/40 shadow-[0_0_12px_rgba(239,68,68,0.1)]">
+          <span className="text-[10px] font-mono font-bold text-[#f1f5f9]">MASTER</span>
+          <span className="text-[8px] font-mono font-bold text-[#ef4444] uppercase truncate max-w-[54px]">
             DANTE
           </span>
 
-          <div className="relative w-6 h-52 bg-[#1e2024] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
+          <div className="relative w-6 h-52 bg-[#0c1017] rounded flex flex-col-reverse p-0.5 gap-0.5 overflow-hidden">
             <div
               className={`w-full h-2 rounded-[2px] flex items-center justify-center text-[7px] font-mono font-bold ${
-                clips.mst ? 'bg-[#ff544c] text-white shadow-[0_0_8px_#ff544c]' : 'bg-[#333539] text-[#a3717c]'
+                clips.mst ? 'bg-[#ef4444] text-white shadow-[0_0_8px_#ef4444]' : 'bg-[#1e2534] text-[#64748b]'
               }`}
             >
               0dB
@@ -270,15 +270,15 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
             </div>
           </div>
 
-          <span className="text-[10px] font-mono font-bold text-[#ff544c]">
+          <span className="text-[10px] font-mono font-bold text-[#ef4444]">
             {getDbReadout(mstLevel)}
           </span>
 
-          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#333539]/50">
-            <span className="w-full py-0.5 text-center rounded bg-[#ff544c] text-[#5c0005] text-[8px] font-mono font-bold uppercase">
+          <div className="flex flex-col w-full gap-1 pt-1 border-t border-[#222834]">
+            <span className="w-full py-0.5 text-center rounded bg-[#ef4444] text-white text-[8px] font-mono font-bold uppercase tracking-wider">
               LIVE
             </span>
-            <span className="w-full py-0.5 text-center rounded bg-[#1e2024] text-[#7dffa2] text-[8px] font-mono font-bold">
+            <span className="w-full py-0.5 text-center rounded bg-[#181d28] text-[#10b981] text-[8px] font-mono font-bold">
               0dB NOM
             </span>
           </div>
@@ -286,17 +286,17 @@ export const HardwareMeterBridge: React.FC<HardwareMeterBridgeProps> = ({ audioG
       </div>
 
       {/* Scale Legend */}
-      <div className="flex items-center justify-between px-1.5 py-1 rounded bg-[#1e2024] text-[9px] text-[#a3717c] font-mono">
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-[#00e475]" />
-          <span>-48 to -12dB</span>
+      <div className="flex items-center justify-between px-2 py-1 rounded bg-[#0c1017] border border-[#222834] text-[9px] text-[#94a3b8] font-mono">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+          <span>-48 to -12dB (Nominal)</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-[#ffba38]" />
-          <span>-12 to -3dB</span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+          <span>-12 to -3dB (Warm)</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-[#ff544c]" />
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
           <span>&gt; -3dB PEAK</span>
         </div>
       </div>
