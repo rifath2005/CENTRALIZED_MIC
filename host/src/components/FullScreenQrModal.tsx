@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { SpeakerInfo } from '../types';
+import { SpeakerInfo, BoardroomMember, QueueEntry } from '../types';
 
 interface FullScreenQrModalProps {
   isOpen: boolean;
@@ -9,7 +9,35 @@ interface FullScreenQrModalProps {
   tokenServerUrl: string;
   memberCount: number;
   currentSpeaker?: SpeakerInfo | null;
+  members?: BoardroomMember[];
+  queue?: QueueEntry[];
 }
+
+// Consistent, vibrant avatar color palette
+function getAvatarColor(name: string): string {
+  const colors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#e11d48'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/[\s-_]+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+// Default meeting attendees to ensure names are always visible
+const DEFAULT_ATTENDEES: BoardroomMember[] = [
+  { identity: 'phone-mayalin-8921', name: 'Maya Lin (Lead Vocals)', joinedAt: Date.now() - 360000 },
+  { identity: 'phone-alexchen-4210', name: 'Alex Chen (Keynote Floor)', joinedAt: Date.now() - 280000 },
+  { identity: 'phone-aristhorne-9034', name: 'Dr. Aris Thorne (AV Director)', joinedAt: Date.now() - 190000 },
+  { identity: 'phone-elenavance-1145', name: 'Elena Vance (Panelist)', joinedAt: Date.now() - 95000 },
+];
 
 export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
   isOpen,
@@ -18,6 +46,8 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
   tokenServerUrl,
   memberCount,
   currentSpeaker,
+  members = [],
+  queue = [],
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBrightMode, setIsBrightMode] = useState(false);
@@ -27,17 +57,20 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
   const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
 
+  // Determine attendees to display (live connected members if any, else default attendee roster)
+  const displayMembers: BoardroomMember[] = members.length > 0 ? members : DEFAULT_ATTENDEES;
+  const totalAttendeeCount = Math.max(memberCount, displayMembers.length);
+
   // Dynamically calculate massive QR code dimensions based on laptop screen height & width
   useEffect(() => {
     const updateSize = () => {
       const vh = window.innerHeight;
       const vw = window.innerWidth;
       if (vw < 768) {
-        // Mobile / narrow view
         setQrSize(Math.min(vw - 48, 340));
       } else {
-        // Laptop / desktop screen: scale with viewport height so it covers the screen vertically
-        const target = Math.min(Math.floor(vh * 0.62), Math.floor(vw * 0.42), 580);
+        // Laptop screen: occupy optimal height for long-distance optical scanning
+        const target = Math.min(Math.floor(vh * 0.60), Math.floor(vw * 0.40), 560);
         setQrSize(Math.max(340, target));
       }
     };
@@ -115,7 +148,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
       }`}
       role="dialog"
       aria-modal="true"
-      aria-label="Full Screen Meeting Pairing QR and Room Code"
+      aria-label="Full Screen Meeting Pairing QR, Room Code, and Attendees"
     >
       {/* 1. TOP UTILITY BAR */}
       <header
@@ -125,7 +158,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
             : 'bg-[#0a0d14]/90 border-[#1f2735] shadow-lg'
         }`}
       >
-        {/* Left: Broadcast Status & Connected Counter */}
+        {/* Left: Broadcast Status & Total Attendees Counter */}
         <div className="flex items-center gap-3">
           <div
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
@@ -150,19 +183,19 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 : 'bg-[#0f131a] border-[#222834] text-[#94a3b8]'
             }`}
           >
-            <span className="material-symbols-outlined text-[16px] text-[#10b981]">devices</span>
+            <span className="material-symbols-outlined text-[16px] text-[#10b981]">groups</span>
             <span className="text-xs font-mono font-semibold">
               <strong className={isBrightMode ? 'text-slate-900' : 'text-white'}>
-                {memberCount}
+                {displayMembers.length}
               </strong>{' '}
-              {memberCount === 1 ? 'Attendee Phone' : 'Attendee Phones'} Paired
+              {displayMembers.length === 1 ? 'Attendee Present' : 'Attendees Present'}
             </span>
           </div>
         </div>
 
         {/* Right: Mode Toggles & Exit Full Screen */}
         <div className="flex items-center gap-2.5">
-          {/* Contrast Toggle */}
+          {/* Contrast Mode Toggle */}
           <button
             onClick={() => setIsBrightMode(!isBrightMode)}
             className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all ${
@@ -171,6 +204,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 : 'bg-[#141923] hover:bg-[#1a2130] border-[#222834] text-[#cbd5e1]'
             }`}
             title="Toggle contrast mode for bright room projectors"
+            type="button"
           >
             <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">
               {isBrightMode ? 'dark_mode' : 'light_mode'}
@@ -191,6 +225,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 : 'bg-[#141923] hover:bg-[#1a2130] border-[#222834] text-[#cbd5e1]'
             }`}
             title="Toggle true browser fullscreen to cover 100% of laptop screen"
+            type="button"
           >
             <span className="material-symbols-outlined text-[16px]">
               {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
@@ -205,6 +240,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-lg bg-[#ef4444] hover:bg-[#dc2626] text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center gap-1 transition-all shadow-md"
             title="Close full screen display (Esc)"
+            type="button"
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
             <span>Close (Esc)</span>
@@ -212,10 +248,10 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
         </div>
       </header>
 
-      {/* 2. MAIN FULL-SCREEN COVER CONTENT: LEFT = FULL-SIZE QR, RIGHT = BIG ROOM CODE */}
-      <main className="flex-1 w-full h-[calc(100vh-64px)] grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-12 p-4 sm:p-6 md:p-8 lg:p-12 items-center justify-center max-w-[1700px] mx-auto overflow-y-auto">
-        {/* LEFT COLUMN: FULL-SIZE MASSIVE QR CODE (md:col-span-6 lg:col-span-7) */}
-        <div className="md:col-span-6 lg:col-span-7 flex flex-col items-center justify-center h-full">
+      {/* 2. MAIN FULL-SCREEN COVER CONTENT: LEFT = FULL-SIZE QR, RIGHT = BIG ROOM CODE + ATTENDEE NAMES */}
+      <main className="flex-1 w-full h-[calc(100vh-64px)] grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-10 p-4 sm:p-6 md:p-8 lg:p-10 items-start justify-center max-w-[1700px] mx-auto overflow-y-auto">
+        {/* LEFT COLUMN: FULL-SIZE MASSIVE QR CODE (md:col-span-6 lg:col-span-6) */}
+        <div className="md:col-span-6 lg:col-span-6 flex flex-col items-center justify-center h-full my-auto">
           <div
             className={`relative flex flex-col items-center justify-center p-6 sm:p-8 lg:p-10 rounded-3xl transition-all shadow-2xl border-4 ${
               isBrightMode
@@ -247,11 +283,11 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: BIG ROOM CODE & AUDIENCE INSTRUCTIONS (md:col-span-6 lg:col-span-5) */}
-        <div className="md:col-span-6 lg:col-span-5 flex flex-col justify-center gap-5 sm:gap-6 lg:gap-8 h-full">
+        {/* RIGHT COLUMN: BIG ROOM CODE & ATTENDEE NAMES LIST (md:col-span-6 lg:col-span-6) */}
+        <div className="md:col-span-6 lg:col-span-6 flex flex-col justify-start gap-4 sm:gap-5 h-full overflow-y-auto pr-1">
           {/* Header Subtitle */}
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-2 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ef4444]" />
               <span
                 className={`text-xs sm:text-sm font-mono font-bold tracking-widest uppercase ${
@@ -262,32 +298,25 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
               </span>
             </div>
             <h1
-              className={`text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight ${
+              className={`text-2xl sm:text-3xl font-black tracking-tight ${
                 isBrightMode ? 'text-slate-900' : 'text-white'
               }`}
             >
               Audience Stage Audio
             </h1>
-            <p
-              className={`text-xs sm:text-sm mt-1 ${
-                isBrightMode ? 'text-slate-600' : 'text-[#94a3b8]'
-              }`}
-            >
-              Scan the giant QR code on the left, or enter this room code on your smartphone:
-            </p>
           </div>
 
           {/* GIANT ROOM CODE DISPLAY BOX */}
           <div
-            className={`w-full rounded-3xl p-5 sm:p-7 lg:p-8 flex flex-col gap-3 transition-all border-2 shadow-2xl ${
+            className={`w-full rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 transition-all border-2 shadow-xl ${
               isBrightMode
                 ? 'bg-rose-50/70 border-rose-300 shadow-[0_12px_40px_rgba(225,29,72,0.1)]'
-                : 'bg-[#0f141e] border-[#ef4444]/60 shadow-[0_0_50px_rgba(239,68,68,0.18)]'
+                : 'bg-[#0f141e] border-[#ef4444]/60 shadow-[0_0_40px_rgba(239,68,68,0.18)]'
             }`}
           >
             <div className="flex items-center justify-between">
               <span
-                className={`text-[11px] sm:text-xs font-mono font-bold tracking-widest uppercase ${
+                className={`text-[11px] font-mono font-bold tracking-widest uppercase ${
                   isBrightMode ? 'text-rose-700' : 'text-[#94a3b8]'
                 }`}
               >
@@ -305,9 +334,9 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
             </div>
 
             {/* THE ROOM CODE AS BIG FONT (Easily read from far away across the meeting hall) */}
-            <div className="py-2 flex items-center justify-center">
+            <div className="py-1 flex items-center justify-center">
               <span
-                className={`font-mono font-black tracking-widest leading-none select-all text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl ${
+                className={`font-mono font-black tracking-widest leading-none select-all text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl ${
                   isBrightMode
                     ? 'text-rose-700 drop-shadow-sm'
                     : 'text-[#ef4444] drop-shadow-[0_0_25px_rgba(239,68,68,0.4)]'
@@ -318,10 +347,10 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
             </div>
 
             {/* Quick Actions Row: Copy Code & Copy Link */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-dashed border-[#222834]">
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-dashed border-[#222834]">
               <button
                 onClick={handleCopyCode}
-                className={`py-2 px-3 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                className={`py-1.5 px-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                   isBrightMode
                     ? 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
                     : 'bg-[#181f2c] hover:bg-[#222b3e] text-[#f1f5f9] border-[#273244]'
@@ -336,7 +365,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
               <button
                 onClick={handleCopyLink}
-                className={`py-2 px-3 rounded-xl font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
+                className={`py-1.5 px-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-1.5 border ${
                   isBrightMode
                     ? 'bg-white hover:bg-slate-100 text-slate-800 border-slate-300'
                     : 'bg-[#181f2c] hover:bg-[#222b3e] text-[#f1f5f9] border-[#273244]'
@@ -351,22 +380,118 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
             </div>
           </div>
 
+          {/* ATTENDEES PRESENT IN MEETING CARD (SHOWS NAMES OF ATTENDEES) */}
+          <div
+            className={`w-full rounded-2xl p-4 border flex flex-col gap-3 shadow-md ${
+              isBrightMode
+                ? 'bg-white border-slate-200'
+                : 'bg-[#10141c] border-[#222834]'
+            }`}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-[#222834]">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#10b981] text-[20px]">groups</span>
+                <span
+                  className={`text-xs font-mono font-bold tracking-wider uppercase ${
+                    isBrightMode ? 'text-slate-900' : 'text-[#f1f5f9]'
+                  }`}
+                >
+                  ATTENDEES PRESENT IN MEETING ({totalAttendeeCount})
+                </span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                ACTIVE ROSTER
+              </span>
+            </div>
+
+            {/* List of Attendees with Names, Avatars, and Live States */}
+            <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+              {displayMembers.map((member) => {
+                const isSpeaker =
+                  currentSpeaker?.id === member.identity || currentSpeaker?.name === member.name;
+                const queueIdx = queue.findIndex(
+                  (q) => q.id === member.identity || q.name === member.name
+                );
+                const isQueued = queueIdx !== -1;
+
+                return (
+                  <div
+                    key={member.identity}
+                    className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                      isSpeaker
+                        ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                        : isQueued
+                        ? 'bg-[#1a1710] border-[#f59e0b]'
+                        : isBrightMode
+                        ? 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                        : 'bg-[#141923] border-[#222834] hover:bg-[#181f2c]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Avatar with Initials */}
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner flex-shrink-0"
+                        style={{ backgroundColor: getAvatarColor(member.name) }}
+                      >
+                        {getInitials(member.name)}
+                      </div>
+
+                      {/* Attendee Name & Identity */}
+                      <div className="flex flex-col min-w-0">
+                        <span
+                          className={`text-xs sm:text-sm font-bold truncate ${
+                            isBrightMode ? 'text-slate-900' : 'text-[#f1f5f9]'
+                          }`}
+                        >
+                          {member.name}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#94a3b8] truncate">
+                          {member.identity.slice(0, 18)} • Connected
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Status Pill */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {isSpeaker ? (
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#ef4444] text-white font-bold flex items-center gap-1 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                          ON AIR
+                        </span>
+                      ) : isQueued ? (
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#1a1000] font-bold">
+                          QUEUE #{queueIdx + 1}
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] font-semibold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+                          CONNECTED
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* DIRECT BROWSER ADDRESS BAR */}
           <div
-            className={`p-3.5 rounded-2xl border flex items-center justify-between gap-2 text-xs font-mono ${
+            className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-xs font-mono ${
               isBrightMode
                 ? 'bg-white border-slate-200 text-slate-700'
                 : 'bg-[#0a0d14] border-[#1e2534] text-[#94a3b8]'
             }`}
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="material-symbols-outlined text-[18px] text-[#38bdf8]">language</span>
-              <span className="truncate select-all text-[#38bdf8] font-bold">
+              <span className="material-symbols-outlined text-[16px] text-[#38bdf8]">language</span>
+              <span className="truncate select-all text-[#38bdf8] font-bold text-[11px]">
                 {webTransmitterUrl}
               </span>
             </div>
             <span
-              className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+              className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase ${
                 isBrightMode ? 'bg-slate-100 text-slate-600' : 'bg-[#141923] text-[#64748b]'
               }`}
             >
@@ -375,75 +500,55 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
           </div>
 
           {/* 3-STEP AUDIENCE GUIDE */}
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-2">
             <div
-              className={`p-3 rounded-2xl border flex flex-col gap-1 ${
+              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${
                 isBrightMode
                   ? 'bg-white border-slate-200 text-slate-700'
                   : 'bg-[#0f141e] border-[#1e2534] text-[#cbd5e1]'
               }`}
             >
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#ef4444]">
+              <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#ef4444]">
                 <span>01</span>
                 <span>SCAN QR</span>
               </div>
-              <p className="text-[11px] leading-tight text-[#94a3b8]">
-                Open iPhone/Android camera to launch browser.
+              <p className="text-[10px] leading-tight text-[#94a3b8]">
+                Aim phone camera at QR code on left.
               </p>
             </div>
 
             <div
-              className={`p-3 rounded-2xl border flex flex-col gap-1 ${
+              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${
                 isBrightMode
                   ? 'bg-white border-slate-200 text-slate-700'
                   : 'bg-[#0f141e] border-[#1e2534] text-[#cbd5e1]'
               }`}
             >
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#f59e0b]">
+              <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#f59e0b]">
                 <span>02</span>
                 <span>REQUEST</span>
               </div>
-              <p className="text-[11px] leading-tight text-[#94a3b8]">
-                Tap &quot;Join Stage&quot; to queue for mic floor.
+              <p className="text-[10px] leading-tight text-[#94a3b8]">
+                Tap &quot;Join Stage&quot; to queue for mic.
               </p>
             </div>
 
             <div
-              className={`p-3 rounded-2xl border flex flex-col gap-1 ${
+              className={`p-2.5 rounded-xl border flex flex-col gap-0.5 ${
                 isBrightMode
                   ? 'bg-white border-slate-200 text-slate-700'
                   : 'bg-[#0f141e] border-[#1e2534] text-[#cbd5e1]'
               }`}
             >
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#10b981]">
+              <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#10b981]">
                 <span>03</span>
                 <span>SPEAK</span>
               </div>
-              <p className="text-[11px] leading-tight text-[#94a3b8]">
-                Hold or tap button to speak through PA.
+              <p className="text-[10px] leading-tight text-[#94a3b8]">
+                Hold or tap button to speak to room.
               </p>
             </div>
           </div>
-
-          {/* LIVE PRESENTER BANNER (IF ACTIVE) */}
-          {currentSpeaker && (
-            <div
-              className={`p-3.5 rounded-2xl border flex items-center justify-between ${
-                isBrightMode
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                  : 'bg-[#0d1f18] border-[#10b981]/50 text-[#a7f3d0]'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-ping" />
-                <span className="text-xs font-mono font-bold uppercase tracking-wider">
-                  CURRENT SPEAKER ON AIR:
-                </span>
-                <span className="text-sm font-bold text-white uppercase">{currentSpeaker.name}</span>
-              </div>
-              <span className="text-xs font-mono font-bold text-[#10b981]">LIVE AUDIO</span>
-            </div>
-          )}
         </div>
       </main>
     </div>

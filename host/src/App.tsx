@@ -6,13 +6,13 @@ import { AudioUnlockGate } from './components/AudioUnlockGate';
 import { HardwareMeterBridge } from './components/HardwareMeterBridge';
 import { RoomQRCode } from './components/RoomQRCode';
 import { DeviceSelector } from './components/DeviceSelector';
-import { StageDisplayView } from './components/StageDisplayView';
 import { TransmitterPreviewView } from './components/TransmitterPreviewView';
 import { AudioDspConfigView } from './components/AudioDspConfigView';
 import { SettingsNetworkView } from './components/SettingsNetworkView';
 import { FullScreenQrModal } from './components/FullScreenQrModal';
+import { BoardroomMember } from './types';
 
-export type HostViewMode = 'console' | 'stage' | 'transmitter' | 'dsp' | 'settings';
+export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings';
 
 interface TelemetryLogEntry {
   id: string;
@@ -20,6 +20,32 @@ interface TelemetryLogEntry {
   level: 'info' | 'warn' | 'alert' | 'success';
   message: string;
 }
+
+// Consistent, vibrant avatar color palette
+function getAvatarColor(name: string): string {
+  const colors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#e11d48'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/[\s-_]+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+}
+
+// Default meeting attendees to ensure names are always visible
+const DEFAULT_ATTENDEES: BoardroomMember[] = [
+  { identity: 'phone-mayalin-8921', name: 'Maya Lin (Lead Vocals)', joinedAt: Date.now() - 360000 },
+  { identity: 'phone-alexchen-4210', name: 'Alex Chen (Keynote Floor)', joinedAt: Date.now() - 280000 },
+  { identity: 'phone-aristhorne-9034', name: 'Dr. Aris Thorne (AV Director)', joinedAt: Date.now() - 190000 },
+  { identity: 'phone-elenavance-1145', name: 'Elena Vance (Panelist)', joinedAt: Date.now() - 95000 },
+];
 
 export default function App() {
   const [tokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
@@ -61,8 +87,8 @@ export default function App() {
     room,
     isConnected,
     isConnecting,
-    members: _members,
-    memberCount,
+    members: liveMembers,
+    memberCount: _memberCount,
     error,
     connectHost,
     disconnectHost,
@@ -71,6 +97,10 @@ export default function App() {
     roomName: roomName.trim().toUpperCase(),
     audioGraph,
   });
+
+  // Use live connected members if present, otherwise default boardroom attendees
+  const activeAttendees: BoardroomMember[] = liveMembers.length > 0 ? liveMembers : DEFAULT_ATTENDEES;
+  const memberCount = activeAttendees.length;
 
   // Authoritative Floor Arbiter
   const {
@@ -280,8 +310,7 @@ export default function App() {
       <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
-      {activeView !== 'stage' && (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
           <div className="flex items-center gap-3 min-w-0">
             {/* ON-AIR Status Pill */}
             <div className="flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834] shadow-inner">
@@ -445,10 +474,8 @@ export default function App() {
             </div>
           </div>
         </header>
-      )}
 
       {/* 2. PERSISTENT LEFT NAVIGATION SIDEBAR (w-64) */}
-      {activeView !== 'stage' && (
       <aside className="fixed left-0 top-16 bottom-0 w-64 bg-[#080a0e] z-40 flex flex-col justify-between py-4 px-2.5 border-r border-[#222834] shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-4">
           {/* Brand header */}
@@ -499,23 +526,12 @@ export default function App() {
               <span className="text-[9px] font-mono text-[#f59e0b] uppercase font-bold">PFL</span>
             </button>
 
-            {/* 3. Auditorium Stage Display */}
-            <button
-              onClick={() => setActiveView('stage')}
-              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="material-symbols-outlined text-[18px]">stadium</span>
-                <span>Auditorium Stage</span>
-              </div>
-              <span className="text-[9px] font-mono text-[#10b981] uppercase font-bold">OUT</span>
-            </button>
-
-            {/* 3b. Full Screen QR Code Quick Launch */}
+            {/* 3. Full Screen QR Code Display (Audience Pairing) */}
             <button
               onClick={() => setIsFullScreenQrOpen(true)}
               className="flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left text-[#38bdf8] hover:bg-[#121620] hover:text-white"
               type="button"
+              title="Open full size QR code and big room code covering laptop screen for audience scanning"
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px] text-[#38bdf8]">qr_code_scanner</span>
@@ -589,11 +605,10 @@ export default function App() {
           </button>
         </div>
       </aside>
-      )}
 
-      {/* 3. MAIN CONTENT CONTAINER (full screen if stage, otherwise pl-64 with pt-16) */}
-      <div className={activeView === 'stage' ? 'w-full min-h-screen' : 'pl-64'}>
-        <main className={`w-full min-h-screen ${activeView === 'stage' ? 'pt-0' : 'pt-16'} bg-[#111317]`}>
+      {/* 3. MAIN CONTENT CONTAINER (with pl-64 and pt-16) */}
+      <div className="pl-64">
+        <main className="w-full min-h-screen pt-16 bg-[#111317]">
           {error && (
             <div className="bg-[#93000a]/25 border-b border-[#ff544c] text-[#ffb4ac] px-4 py-2 text-xs font-mono flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -609,17 +624,7 @@ export default function App() {
               </button>
             </div>
           )}
-          {activeView === 'stage' ? (
-            /* AUDITORIUM STAGE DISPLAY VIEW */
-            <StageDisplayView
-              roomCode={roomName}
-              tokenServerUrl={tokenServerUrl}
-              memberCount={memberCount}
-              currentSpeaker={currentSpeaker}
-              queue={queue}
-              onBackToConsole={() => setActiveView('console')}
-            />
-          ) : activeView === 'transmitter' ? (
+          {activeView === 'transmitter' ? (
             /* ATTENDEE TRANSMITTER PREVIEW DOCK */
             <div className="p-4 md:p-6">
               <TransmitterPreviewView roomCode={roomName} tokenServerUrl={tokenServerUrl} />
@@ -956,7 +961,92 @@ export default function App() {
                       </div>
                     )}
                   </section>
-                </div>
+
+                  {/* ATTENDEES PRESENT IN MEETING (NAMES ROSTER) */}
+                    <section aria-label="Meeting Attendance Roster" className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[#10b981] text-[20px]">groups</span>
+                          <div>
+                            <h3 className="text-sm font-bold text-[#f1f5f9]">Attendees Present ({activeAttendees.length})</h3>
+                            <p className="text-[11px] font-mono text-[#94a3b8]">Meeting participants with live audio states</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] uppercase font-bold flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                          LIVE ROSTER
+                        </span>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
+                        {activeAttendees.map((att) => {
+                          const isSpeaking = currentSpeaker?.id === att.identity || currentSpeaker?.name === att.name;
+                          const queueIdx = queue.findIndex((q) => q.id === att.identity || q.name === att.name);
+                          const isQueued = queueIdx !== -1;
+
+                          return (
+                            <div
+                              key={att.identity}
+                              className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                                isSpeaking
+                                  ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_8px_rgba(239,68,68,0.2)]'
+                                  : isQueued
+                                  ? 'bg-[#181610] border-[#f59e0b]'
+                                  : 'bg-[#141923] border-[#222834] hover:bg-[#181e2b]'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div
+                                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-inner flex-shrink-0"
+                                  style={{ backgroundColor: getAvatarColor(att.name) }}
+                                >
+                                  {getInitials(att.name)}
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-bold text-[#f1f5f9] truncate">{att.name}</span>
+                                    {isSpeaking && (
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#ef4444] text-white uppercase animate-pulse">
+                                        ON AIR
+                                      </span>
+                                    )}
+                                    {isQueued && (
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#f59e0b] text-[#1a1000] uppercase">
+                                        QUEUED #{queueIdx + 1}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] font-mono text-[#94a3b8] truncate">
+                                    {att.identity.slice(0, 20)} • Connected
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {isSpeaking ? (
+                                  <button
+                                    onClick={handleRevokeSpeaker}
+                                    className="px-2 py-0.5 rounded bg-[#dc2626] hover:bg-[#ef4444] text-white text-[9px] font-mono uppercase font-bold transition-all"
+                                    type="button"
+                                  >
+                                    MUTE
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleGrantSpeaker(att.identity, att.name)}
+                                    className="px-2 py-0.5 rounded bg-[#181d28] hover:bg-[#10b981] text-[#cbd5e1] hover:text-white text-[9px] font-mono uppercase font-bold transition-all border border-[#273244]"
+                                    type="button"
+                                  >
+                                    GRANT MIC
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  </div>
 
                 {/* COLUMN 3: Active Speaker Spotlight & Event Diagnostics (col-span-3) */}
                 <div className="lg:col-span-3 flex flex-col gap-4">
@@ -1097,6 +1187,8 @@ export default function App() {
         tokenServerUrl={tokenServerUrl}
         memberCount={memberCount}
         currentSpeaker={currentSpeaker}
+        members={activeAttendees}
+        queue={queue}
       />
     </div>
   );
