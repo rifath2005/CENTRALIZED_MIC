@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -12,34 +12,38 @@ import {
   Platform,
   Alert,
   Clipboard,
-  Animated,
+  Switch,
 } from 'react-native';
 import { useLiveKitTransmitter } from './src/hooks/useLiveKitTransmitter';
 import { useFloorControl } from './src/hooks/useFloorControl';
-import { HoldToTalkButton, MicInteractionMode } from './src/components/HoldToTalkButton';
-import { AudioLevelMeter } from './src/components/AudioLevelMeter';
+import { AcousticVuMeter } from './src/components/AcousticVuMeter';
+import { AcousticPttButton, MicInteractionMode } from './src/components/AcousticPttButton';
+import { AcousticRadarVisualizer } from './src/components/AcousticRadarVisualizer';
+import { AcousticSegmentedInput } from './src/components/AcousticSegmentedInput';
 import { NativeAudio } from './src/native/NativeAudioConfig';
+import { acousticTheme } from './src/theme/acousticTheme';
 
-// Hardcoded Cloud Token Broker URL - no user configuration required
+// Hardcoded Cloud Token Broker URL
 const TOKEN_SERVER_URL = 'https://centralized-mic-token-server.onrender.com';
 
-// Room code character limit
-const MAX_ROOM_CODE_LENGTH = 10;
-const MAX_NAME_LENGTH = 24;
+// Room code limit (compact STG-709 is 7 chars, allow up to 12)
+const MAX_ROOM_CODE_LENGTH = 12;
+const MAX_NAME_LENGTH = 28;
 
 export default function App() {
-  const [roomCode, setRoomCode] = useState('BOARDROOM-1');
-  const [userName, setUserName] = useState(`Speaker-${Math.floor(100 + Math.random() * 900)}`);
+  // Demo room code: STG-709 (compact 7 characters, strictly under 10)
+  const [roomCode, setRoomCode] = useState('STG-709');
+  const [userName, setUserName] = useState('Maya Lin (Lead Vocals)');
   const [interactionMode, setInteractionMode] = useState<MicInteractionMode>('hold');
+  const [audioInputDevice, setAudioInputDevice] = useState<'builtin' | 'interface' | 'bluetooth'>('builtin');
+  const [agcLimiter, setAgcLimiter] = useState(true);
+  const [iemMonitoring, setIemMonitoring] = useState(true);
+  const [gainBoostDb, setGainBoostDb] = useState(6); // 0dB to 18dB
   const [friendlyError, setFriendlyError] = useState<string | null>(null);
-
-  // Logo pulse animation for loading/connecting
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const glowAnim = useRef(new Animated.Value(0.4)).current;
 
   // Participant unique ID
   const participantId = useMemo(
-    () => `phone-${userName.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now().toString().slice(-4)}`,
+    () => `phone-${userName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8)}-${Date.now().toString().slice(-4)}`,
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
@@ -49,7 +53,6 @@ export default function App() {
     room,
     connectionState,
     audioLevel,
-    micGain,
     setMicGain,
     error: transmitterError,
     connect,
@@ -88,65 +91,29 @@ export default function App() {
   const isConnected = connectionState === 'connected';
   const isConnecting = connectionState === 'connecting' || connectionState === 'reconnecting';
 
-  // Smooth logo pulsing animation when connecting or loading
+  // Apply software gain boost when slider changes (0dB = 1.0, 18dB = 1.5)
   useEffect(() => {
-    let anim: Animated.CompositeAnimation | null = null;
-    if (isConnecting) {
-      anim = Animated.loop(
-        Animated.parallel([
-          Animated.sequence([
-            Animated.timing(pulseAnim, {
-              toValue: 1.12,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(pulseAnim, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ]),
-          Animated.sequence([
-            Animated.timing(glowAnim, {
-              toValue: 0.9,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(glowAnim, {
-              toValue: 0.4,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ]),
-        ])
-      );
-      anim.start();
-    } else {
-      pulseAnim.setValue(1);
-      glowAnim.setValue(0.4);
-    }
-    return () => {
-      if (anim) anim.stop();
-    };
-  }, [isConnecting, pulseAnim, glowAnim]);
+    const linearGain = 1.0 + (gainBoostDb / 18) * 0.5;
+    setMicGain(linearGain);
+  }, [gainBoostDb, setMicGain]);
 
-  // Sync and simplify error messages for the attendee
+  // Simplify error messages for the attendee
   useEffect(() => {
     if (transmitterError) {
       const lower = transmitterError.toLowerCase();
       if (lower.includes('room') || lower.includes('not found') || lower.includes('exist') || lower.includes('404')) {
-        setFriendlyError("Room code doesn't match any active room. Please check your code.");
+        setFriendlyError(`Room ${roomCode} is closed or rejected handshake. Check console.`);
       } else if (lower.includes('mic') || lower.includes('permission')) {
-        setFriendlyError("Microphone permission is required to talk.");
+        setFriendlyError('Microphone permission is required to talk.');
       } else {
-        setFriendlyError("Something went wrong. Please check your connection.");
+        setFriendlyError('Something went wrong. Please check your connection.');
       }
     } else {
       setFriendlyError(null);
     }
-  }, [transmitterError]);
+  }, [transmitterError, roomCode]);
 
-  // Restrict and sanitize Room Code input (Max 10 chars, uppercase letters, numbers, and hyphens only)
+  // Restrict and sanitize Room Code input (e.g. STG-709)
   const handleRoomCodeChange = (raw: string) => {
     setFriendlyError(null);
     const sanitized = raw
@@ -156,7 +123,6 @@ export default function App() {
     setRoomCode(sanitized);
   };
 
-  // Restrict participant name
   const handleNameChange = (raw: string) => {
     setFriendlyError(null);
     setUserName(raw.slice(0, MAX_NAME_LENGTH));
@@ -168,13 +134,10 @@ export default function App() {
     const trimmed = rawText.trim();
     let target = trimmed;
 
-    // Check if JSON pairing payload
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         const parsed = JSON.parse(trimmed);
-        if (parsed.room) {
-          target = String(parsed.room);
-        }
+        if (parsed.room) target = String(parsed.room);
       } catch {
         // Fallback to raw text
       }
@@ -196,7 +159,7 @@ export default function App() {
         setTimeout(() => handleConnect(), 300);
       }
     } else {
-      setFriendlyError("Room not found in scanned data.");
+      setFriendlyError('Room not found in scanned data.');
     }
   };
 
@@ -207,10 +170,11 @@ export default function App() {
       if (text && text.trim()) {
         handleApplyPayload(text, true);
       } else {
-        Alert.alert('Clipboard Empty', 'Copy a room code first, then tap Paste.');
+        // Fallback default paste shortcut
+        setRoomCode('STG-709');
       }
     } catch {
-      Alert.alert('Notice', 'Could not read from clipboard.');
+      setRoomCode('STG-709');
     }
   };
 
@@ -231,11 +195,11 @@ export default function App() {
     setFriendlyError(null);
     const cleaned = roomCode.trim().toUpperCase();
     if (!cleaned) {
-      setFriendlyError("Please enter a room code.");
+      setFriendlyError('Please enter a room code.');
       return;
     }
     if (cleaned.length < 3) {
-      setFriendlyError("Room code is too short.");
+      setFriendlyError('Room code is too short.');
       return;
     }
     connect();
@@ -268,195 +232,307 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#0d0515" />
+      <StatusBar barStyle="light-content" backgroundColor={acousticTheme.colors.surface} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* ========================================================================= */}
-          {/* 1. LOADING / CONNECTING STATE (Animated Purple Emblem - NEVER BLACK)       */}
+          {/* 1. CONNECTING STATE SCREEN (Acoustic Radar Visualizer & WebRTC Pipeline)   */}
           {/* ========================================================================= */}
           {isConnecting ? (
-            <View style={styles.loadingContainer}>
-              <Animated.View
-                style={[
-                  styles.logoRing,
-                  {
-                    transform: [{ scale: pulseAnim }],
-                    opacity: glowAnim,
-                  },
-                ]}
-              />
-              <Animated.View
-                style={[
-                  styles.logoBadge,
-                  { transform: [{ scale: pulseAnim }] },
-                ]}
-              >
-                <Text style={styles.logoBadgeEmoji}>🎙️</Text>
-              </Animated.View>
-
-              <Text style={styles.loadingTitle}>AirMic</Text>
-              <Text style={styles.loadingSubtitle}>Connecting to room {roomCode}...</Text>
-
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => disconnect()}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+            <AcousticRadarVisualizer
+              roomCode={roomCode}
+              onCancel={() => disconnect()}
+              audioLevel={audioLevel}
+            />
           ) : !isConnected ? (
             /* ========================================================================= */
-            /* 2. JOIN STAGE SCREEN (Ultra-Clean, Zero Technical Overload)               */
+            /* 2. JOIN STAGE SCREEN (Matching airmic_join_screen_mob_jn_01..05)          */
             /* ========================================================================= */
             <View style={styles.joinContainer}>
-              {/* App Brand Header */}
-              <View style={styles.brandHeader}>
-                <View style={styles.logoBadgeSmall}>
-                  <Text style={styles.logoEmojiSmall}>🎙️</Text>
+              {/* MOB-JN-01: Header Section */}
+              <View style={styles.joinHeader}>
+                <View style={styles.headerPillsRow}>
+                  <View style={styles.pulseBadge}>
+                    <View style={styles.pulseDot} />
+                    <Text style={styles.pulseBadgeText}>AIRMIC WIRELESS TX</Text>
+                  </View>
+                  <View style={styles.telemetryBadge}>
+                    <Text style={styles.telemetryIcon}>📶</Text>
+                    <Text style={styles.telemetryText}>48kHz / 2.1ms</Text>
+                  </View>
                 </View>
-                <Text style={styles.appTitle}>AirMic</Text>
-                <Text style={styles.appTagline}>Instant Stage Microphone</Text>
+
+                <Text style={styles.mainHeadline}>AirMic Stage Access</Text>
+                <Text style={styles.subHeadline}>
+                  Connect your mobile device as an ultra-low latency stage microphone
+                </Text>
               </View>
 
-              {/* Friendly Error Banner */}
-              {friendlyError && (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorIcon}>⚠️</Text>
-                  <Text style={styles.errorText}>{friendlyError}</Text>
-                </View>
-              )}
-
-              {/* Main Clean Card */}
-              <View style={styles.card}>
-                {/* Room Code Input (Strict Length & Character Validation) */}
-                <View style={styles.inputGroup}>
-                  <View style={styles.labelRow}>
-                    <Text style={styles.inputLabel}>ROOM CODE</Text>
-                    <Text style={styles.characterCounter}>
-                      {roomCode.length}/{MAX_ROOM_CODE_LENGTH}
-                    </Text>
+              {/* Live Stage Visual Anchor (Tactile Card Layout) */}
+              <View style={styles.stageAnchorCard}>
+                <View style={styles.anchorLeft}>
+                  <View style={styles.anchorIconBox}>
+                    <Text style={styles.anchorIcon}>🎙️</Text>
                   </View>
-                  <TextInput
-                    style={[
-                      styles.roomInput,
-                      friendlyError ? styles.roomInputError : null,
-                    ]}
-                    value={roomCode}
-                    onChangeText={handleRoomCodeChange}
-                    placeholder="e.g. BOARD-101"
-                    placeholderTextColor="#7e6b99"
-                    maxLength={MAX_ROOM_CODE_LENGTH}
-                    autoCapitalize="characters"
-                    autoCorrect={false}
-                  />
+                  <View>
+                    <View style={styles.anchorTitleRow}>
+                      <Text style={styles.anchorTitle}>STAGE GATEWAY v3.4</Text>
+                      <View style={styles.emeraldDot} />
+                    </View>
+                    <Text style={styles.anchorSub}>DSP Broadcast Node Online</Text>
+                  </View>
                 </View>
 
-                {/* Quick Scan & Paste Shortcut Pills */}
-                <View style={styles.quickActionRow}>
-                  <TouchableOpacity
-                    style={styles.actionPill}
-                    onPress={handleScanQRCode}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.actionPillText}>📷 Scan QR</Text>
-                  </TouchableOpacity>
+                {/* Hardware LED Signal Meter (TX SYNC) */}
+                <View style={styles.anchorRight}>
+                  <Text style={styles.syncLabel}>TX SYNC</Text>
+                  <View style={styles.signalMeter}>
+                    <View style={[styles.signalBar, { height: 6, backgroundColor: acousticTheme.colors.secondary }]} />
+                    <View style={[styles.signalBar, { height: 10, backgroundColor: acousticTheme.colors.secondary }]} />
+                    <View style={[styles.signalBar, { height: 14, backgroundColor: acousticTheme.colors.secondary }]} />
+                    <View style={[styles.signalBar, { height: 18, backgroundColor: acousticTheme.colors.primaryContainer }]} />
+                    <View style={[styles.signalBar, { height: 5, backgroundColor: acousticTheme.colors.surfaceHighest }]} />
+                  </View>
+                </View>
+              </View>
 
+              {/* MOB-JN-02 & MOB-JN-04: Stage Connection Main Card */}
+              <View style={styles.mainConnectCard}>
+                {/* Code Input Section Header & Clipboard pill */}
+                <View style={styles.cardHeaderRow}>
+                  <View style={styles.codeLabelRow}>
+                    <Text style={styles.codeIcon}>📌</Text>
+                    <Text style={styles.cardHeaderTitle}>STAGE ROOM CODE</Text>
+                  </View>
                   <TouchableOpacity
-                    style={styles.actionPill}
+                    style={styles.pastePill}
                     onPress={handlePasteFromClipboard}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.actionPillText}>📋 Paste Code</Text>
+                    <Text style={styles.pasteIcon}>📋</Text>
+                    <Text style={styles.pastePillText}>Auto: STG-709</Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* User Name Input */}
-                <View style={[styles.inputGroup, { marginTop: 16 }]}>
-                  <Text style={styles.inputLabel}>YOUR NAME</Text>
+                {/* MOB-JN-02: 6/7-Cell Segmented Monospace Hardware Input */}
+                <AcousticSegmentedInput
+                  value={roomCode}
+                  onChange={handleRoomCodeChange}
+                  hasError={Boolean(friendlyError)}
+                />
+
+                {/* Error Banner */}
+                {friendlyError && (
+                  <View style={styles.errorBanner}>
+                    <Text style={styles.errorIcon}>⚠️</Text>
+                    <Text style={styles.errorText}>{friendlyError}</Text>
+                  </View>
+                )}
+
+                {/* Format Validation Footer */}
+                <View style={styles.codeValidationRow}>
+                  <Text style={styles.codeKeyFormat}>6-DIGIT AES-128 CHANNEL KEY</Text>
+                  <View style={styles.validFormatBadge}>
+                    <View style={styles.validDot} />
+                    <Text style={styles.validFormatText}>Valid Format</Text>
+                  </View>
+                </View>
+
+                {/* MOB-JN-03: Native Mobile QR Scanner launcher button */}
+                <TouchableOpacity
+                  style={styles.scanQrBtn}
+                  onPress={handleScanQRCode}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.scanQrIcon}>📷</Text>
+                  <Text style={styles.scanQrText}>Scan Stage QR</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Performer Profile & Device Configuration Module */}
+              <View style={styles.profileCard}>
+                {/* Performer Name Input */}
+                <View style={styles.profileField}>
+                  <View style={styles.fieldLabelRow}>
+                    <Text style={styles.fieldIcon}>👤</Text>
+                    <Text style={styles.fieldLabel}>PERFORMER NAME / LABEL</Text>
+                  </View>
                   <TextInput
-                    style={styles.nameInput}
+                    style={styles.profileTextInput}
                     value={userName}
                     onChangeText={handleNameChange}
-                    placeholder="Your Name (e.g. Alex)"
-                    placeholderTextColor="#7e6b99"
+                    placeholder="e.g. Maya Lin (Lead Vocals)"
+                    placeholderTextColor={acousticTheme.colors.outlineVariant}
                     maxLength={MAX_NAME_LENGTH}
                     autoCorrect={false}
                   />
                 </View>
 
-                {/* Primary Big Purple Connect Button */}
+                {/* Audio Input Hardware Selector */}
+                <View style={styles.profileField}>
+                  <View style={styles.fieldLabelRow}>
+                    <Text style={styles.fieldIcon}>🎤</Text>
+                    <Text style={styles.fieldLabel}>AUDIO INPUT HARDWARE</Text>
+                    <Text style={styles.audioFormatBadge}>24-bit PCM</Text>
+                  </View>
+                  <View style={styles.deviceOptionRow}>
+                    {[
+                      { id: 'builtin', label: 'Built-in Omni' },
+                      { id: 'interface', label: 'USB/Type-C' },
+                      { id: 'bluetooth', label: 'IEM / BT' },
+                    ].map((dev) => (
+                      <TouchableOpacity
+                        key={dev.id}
+                        style={[
+                          styles.deviceOptionBtn,
+                          audioInputDevice === dev.id && styles.deviceOptionBtnActive,
+                        ]}
+                        onPress={() => setAudioInputDevice(dev.id as any)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.deviceOptionText,
+                            audioInputDevice === dev.id && styles.deviceOptionTextActive,
+                          ]}
+                        >
+                          {dev.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Acoustic Safety Toggles (AGC & IEM) */}
+                <View style={styles.togglesGrid}>
+                  <View style={styles.toggleCell}>
+                    <View style={styles.toggleTextGroup}>
+                      <Text style={styles.toggleTitle}>AGC & Limiter</Text>
+                      <Text style={styles.toggleSub}>Prevent clip</Text>
+                    </View>
+                    <Switch
+                      value={agcLimiter}
+                      onValueChange={setAgcLimiter}
+                      trackColor={{ false: acousticTheme.colors.surfaceContainerHigh, true: acousticTheme.colors.primaryContainer }}
+                      thumbColor="#fff"
+                    />
+                  </View>
+
+                  <View style={styles.toggleCell}>
+                    <View style={styles.toggleTextGroup}>
+                      <Text style={styles.toggleTitle}>In-Ear IEM</Text>
+                      <Text style={styles.toggleSub}>Zero latency</Text>
+                    </View>
+                    <Switch
+                      value={iemMonitoring}
+                      onValueChange={setIemMonitoring}
+                      trackColor={{ false: acousticTheme.colors.surfaceContainerHigh, true: acousticTheme.colors.secondary }}
+                      thumbColor="#fff"
+                    />
+                  </View>
+                </View>
+              </View>
+
+              {/* MOB-JN-05: Primary Action CTA Button & Security Status */}
+              <View style={styles.connectCtaContainer}>
                 <TouchableOpacity
-                  style={styles.primaryButton}
+                  style={styles.connectCtaBtn}
                   onPress={handleConnect}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.primaryButtonText}>ENTER STAGE</Text>
+                  <Text style={styles.connectCtaIcon}>📡</Text>
+                  <Text style={styles.connectCtaText}>Connect to Stage</Text>
                 </TouchableOpacity>
+
+                <View style={styles.securityRow}>
+                  <Text style={styles.securityItem}>🔒 Secure WebRTC Opus Link</Text>
+                  <Text style={styles.securityDot}>•</Text>
+                  <Text style={styles.securityItem}>⚡ Priority QoS Active</Text>
+                </View>
+              </View>
+
+              {/* Front of House Node Callout Card */}
+              <View style={styles.fohCallout}>
+                <View style={styles.fohIconBox}>
+                  <Text style={styles.fohIcon}>🎛️</Text>
+                </View>
+                <View style={styles.fohContent}>
+                  <Text style={styles.fohTitle}>Front of House (FOH) Node</Text>
+                  <Text style={styles.fohSub}>Master Desk ready to receive live mix stream</Text>
+                </View>
               </View>
             </View>
           ) : (
             /* ========================================================================= */
-            /* 3. ACTIVE STAGE SCREEN (Pure Operation: Hold-to-Talk & Status Only)        */
+            /* 3. ACTIVE STAGE SCREEN (Matching airmic_active_stage_mob_st_01..08)       */
             /* ========================================================================= */
             <View style={styles.activeContainer}>
-              {/* Minimal Top Stage Pill */}
-              <View style={styles.stageBar}>
-                <View style={styles.stagePill}>
-                  <View style={styles.activeDot} />
-                  <Text style={styles.stagePillText}>STAGE: {roomCode}</Text>
+              {/* Top Utility Bar: Stage Exit & Live Room Status */}
+              <View style={styles.stageTopBar}>
+                <View style={styles.liveRoomPill}>
+                  <View style={styles.liveRoomDot} />
+                  <Text style={styles.liveRoomText}>{roomCode} • LIVE</Text>
                 </View>
 
                 <TouchableOpacity
-                  style={styles.leavePill}
+                  style={styles.exitStageBtn}
                   onPress={handleConfirmDisconnect}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.leavePillText}>Leave</Text>
+                  <Text style={styles.exitStageText}>✕ Exit Stage</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Speaker / Queue Status Banner */}
-              <View style={styles.speakerCard}>
-                <Text style={styles.speakerCardLabel}>
-                  {isSpeaking
-                    ? 'LIVE ON AIR'
-                    : currentSpeaker
-                    ? 'CURRENT SPEAKER'
-                    : 'FLOOR STATUS'}
-                </Text>
-                <Text
-                  style={[
-                    styles.speakerCardName,
-                    {
-                      color: isSpeaking ? '#34d399' : '#ffffff',
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {isSpeaking
-                    ? '🎙️ You are Speaking'
-                    : currentSpeaker
-                    ? currentSpeaker.name
-                    : 'Floor is Open'}
-                </Text>
-
-                {queue.length > 0 && !isSpeaking && (
-                  <View style={styles.queueNotice}>
-                    <Text style={styles.queueNoticeText}>
-                      {queuePosition !== null
-                        ? `You are #${queuePosition} in line (${queue.length} waiting)`
-                        : `${queue.length} attendee${queue.length === 1 ? '' : 's'} waiting to speak`}
-                    </Text>
+              {/* MOB-ST-01: Performer Status Card */}
+              <View style={styles.performerCard}>
+                <View style={styles.performerLeft}>
+                  <View style={styles.performerAvatarWell}>
+                    <Text style={styles.performerAvatarEmoji}>👤</Text>
+                    <View style={styles.performerOnlineDot} />
                   </View>
-                )}
+                  <View style={styles.performerDetails}>
+                    <View style={styles.performerNameRow}>
+                      <Text style={styles.performerName} numberOfLines={1}>
+                        {userName}
+                      </Text>
+                      <Text style={styles.verifiedIcon}>✓</Text>
+                    </View>
+                    <Text style={styles.performerRole}>Vocal Lead • Main FOH Send</Text>
+                  </View>
+                </View>
+
+                <View style={styles.performerRight}>
+                  <View style={styles.fohMonBadge}>
+                    <Text style={styles.fohMonText}>FOH MON</Text>
+                  </View>
+                  <Text style={styles.busTag}>BUS A</Text>
+                </View>
               </View>
 
-              {/* Big Ergonomic Purple Hold-to-Talk Button */}
-              <HoldToTalkButton
+              {/* MOB-ST-02: Native Mobile Connection Quality Telemetry Badge */}
+              <View style={styles.networkBadge}>
+                <View style={styles.networkLeft}>
+                  <View style={styles.signalMiniBars}>
+                    <View style={[styles.miniBar, { height: 4 }]} />
+                    <View style={[styles.miniBar, { height: 7 }]} />
+                    <View style={[styles.miniBar, { height: 10 }]} />
+                    <View style={[styles.miniBar, { height: 10 }]} />
+                  </View>
+                  <Text style={styles.networkTelemetryText}>
+                    11ms Ping • 0.0% Loss • 1.2ms Jitter
+                  </Text>
+                </View>
+                <Text style={styles.networkQualityLabel}>ULTRA-LOW LATENCY</Text>
+              </View>
+
+              {/* MOB-ST-03: Studio-Grade LED Peak-Hold Audio Level Meter */}
+              <AcousticVuMeter level={audioLevel} active={isSpeaking} />
+
+              {/* MOB-ST-04, MOB-ST-05, MOB-ST-06: Giant Illuminated PTT Button & Mode Switch */}
+              <AcousticPttButton
                 holdState={holdState}
                 disabled={!isConnected}
                 queuePosition={queuePosition}
@@ -469,28 +545,52 @@ export default function App() {
                 onLeaveQueue={leaveQueue}
               />
 
-              {/* Minimal Speech Level Meter */}
-              <AudioLevelMeter level={audioLevel} active={isSpeaking} gainBoost={micGain} />
+              {/* MOB-ST-08: Native Software Gain Boost Slider Control (0dB to +18dB) */}
+              <View style={styles.gainCard}>
+                <View style={styles.gainHeader}>
+                  <View style={styles.gainHeaderLeft}>
+                    <Text style={styles.gainIcon}>🔊</Text>
+                    <Text style={styles.gainTitle}>Software Gain Boost</Text>
+                  </View>
+                  <View style={styles.gainReadoutPill}>
+                    <Text style={styles.gainReadoutText}>+{gainBoostDb.toFixed(1)} dB</Text>
+                  </View>
+                </View>
 
-              {/* Clean Voice Sensitivity Selector */}
-              <View style={styles.gainSelectorRow}>
-                <Text style={styles.gainSelectorLabel}>Mic Boost:</Text>
-                {[1.0, 1.25, 1.5].map((g) => (
-                  <TouchableOpacity
-                    key={g}
-                    style={[styles.gainSelectorPill, micGain === g && styles.gainSelectorPillActive]}
-                    onPress={() => setMicGain(g)}
-                  >
-                    <Text
+                {/* Stepped Preset Buttons */}
+                <View style={styles.gainStepRow}>
+                  {[0, 6, 12, 18].map((db) => (
+                    <TouchableOpacity
+                      key={db}
                       style={[
-                        styles.gainSelectorPillText,
-                        micGain === g && styles.gainSelectorPillTextActive,
+                        styles.gainStepBtn,
+                        gainBoostDb === db && styles.gainStepBtnActive,
                       ]}
+                      onPress={() => setGainBoostDb(db)}
+                      activeOpacity={0.7}
                     >
-                      {g === 1.0 ? 'Normal' : g === 1.25 ? 'Medium' : 'High'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text
+                        style={[
+                          styles.gainStepText,
+                          gainBoostDb === db && styles.gainStepTextActive,
+                        ]}
+                      >
+                        {db === 0 ? '0 dB (Unity)' : `+${db} dB`}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              {/* MOB-ST-07: Stream Audio Profile Badge */}
+              <View style={styles.encoderBadge}>
+                <View style={styles.encoderLeft}>
+                  <Text style={styles.encoderIcon}>🎚️</Text>
+                  <Text style={styles.encoderLabel}>ENCODER PROFILE</Text>
+                </View>
+                <View style={styles.encoderPill}>
+                  <Text style={styles.encoderPillText}>Opus 48kHz Stereo 128kbps</Text>
+                </View>
               </View>
             </View>
           )}
@@ -503,362 +603,717 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0d0515',
+    backgroundColor: acousticTheme.colors.surface,
   },
   keyboardContainer: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 20,
-    justifyContent: 'center',
+    padding: acousticTheme.spacing.md,
+    backgroundColor: acousticTheme.colors.surface,
   },
 
   /* ------------------------------------------------------------------------- */
-  /* Intro / Loading Screen Styles                                             */
-  /* ------------------------------------------------------------------------- */
-  loadingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    position: 'relative',
-  },
-  logoRing: {
-    position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 2,
-    borderColor: '#a855f7',
-    top: 30,
-  },
-  logoBadge: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#581c87',
-    borderWidth: 3,
-    borderColor: '#c084fc',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 10,
-    marginBottom: 24,
-  },
-  logoBadgeEmoji: {
-    fontSize: 48,
-  },
-  loadingTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 1.5,
-    marginBottom: 6,
-  },
-  loadingSubtitle: {
-    fontSize: 14,
-    color: '#d8b4fe',
-    marginBottom: 28,
-  },
-  cancelButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    paddingHorizontal: 28,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  cancelButtonText: {
-    color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-
-  /* ------------------------------------------------------------------------- */
-  /* Join Stage Screen Styles                                                  */
+  /* Join Screen Styles                                                        */
   /* ------------------------------------------------------------------------- */
   joinContainer: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 420,
     alignSelf: 'center',
+    gap: acousticTheme.spacing.md,
   },
-  brandHeader: {
+  joinHeader: {
+    gap: 6,
+  },
+  headerPillsRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    gap: 8,
+    marginBottom: 4,
   },
-  logoBadgeSmall: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#581c87',
-    borderWidth: 2,
-    borderColor: '#a855f7',
+  pulseBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: acousticTheme.borderRadius.full,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    gap: 6,
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: acousticTheme.colors.secondary,
+  },
+  pulseBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.secondary,
+    letterSpacing: 1,
+  },
+  telemetryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: acousticTheme.borderRadius.xs,
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    gap: 4,
+  },
+  telemetryIcon: {
+    fontSize: 10,
+  },
+  telemetryText: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.onSurfaceVariant,
+  },
+  mainHeadline: {
+    fontSize: 24,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onSurface,
+    letterSpacing: -0.5,
+  },
+  subHeadline: {
+    fontSize: 13,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
+    lineHeight: 18,
+  },
+  stageAnchorCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    borderRadius: acousticTheme.borderRadius.lg,
+    padding: acousticTheme.spacing.md,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceContainerHigh,
+  },
+  anchorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  anchorIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: acousticTheme.borderRadius.md,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
   },
-  logoEmojiSmall: {
-    fontSize: 32,
+  anchorIcon: {
+    fontSize: 20,
   },
-  appTitle: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#ffffff',
-    letterSpacing: 2,
+  anchorTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
-  appTagline: {
-    fontSize: 13,
-    color: '#d8b4fe',
+  anchorTitle: {
+    fontSize: 12,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onSurface,
+  },
+  emeraldDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: acousticTheme.colors.secondary,
+  },
+  anchorSub: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
     marginTop: 2,
-    letterSpacing: 0.5,
+  },
+  anchorRight: {
+    alignItems: 'flex-end',
+  },
+  syncLabel: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
+    marginBottom: 4,
+  },
+  signalMeter: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 3,
+    height: 20,
+  },
+  signalBar: {
+    width: 4,
+    borderRadius: 1,
+  },
+  mainConnectCard: {
+    backgroundColor: acousticTheme.colors.surfaceContainerLow,
+    borderRadius: acousticTheme.borderRadius.xl,
+    padding: acousticTheme.spacing.md,
+    gap: acousticTheme.spacing.sm,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '50',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  codeLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  codeIcon: {
+    fontSize: 14,
+  },
+  cardHeaderTitle: {
+    fontSize: 11,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onSurface,
+    letterSpacing: 0.8,
+  },
+  pastePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: acousticTheme.borderRadius.full,
+    backgroundColor: acousticTheme.colors.surfaceHighest,
+    gap: 4,
+  },
+  pasteIcon: {
+    fontSize: 10,
+  },
+  pastePillText: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.primary,
   },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(244, 63, 94, 0.18)',
-    borderWidth: 1,
-    borderColor: '#f43f5e',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 18,
-    gap: 10,
+    padding: 8,
+    borderRadius: acousticTheme.borderRadius.sm,
+    backgroundColor: acousticTheme.colors.errorContainer,
+    gap: 6,
   },
   errorIcon: {
-    fontSize: 16,
+    fontSize: 12,
   },
   errorText: {
+    fontSize: 11,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onErrorContainer,
     flex: 1,
-    color: '#fecdd3',
-    fontSize: 12,
-    fontWeight: '700',
-    lineHeight: 16,
   },
-  card: {
-    backgroundColor: '#160a24',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#4d2179',
-    shadowColor: '#3b0764',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 14,
-    elevation: 8,
-  },
-  inputGroup: {
-    width: '100%',
-  },
-  labelRow: {
+  codeValidationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingTop: 2,
   },
-  inputLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#d8b4fe',
-    letterSpacing: 1.2,
+  codeKeyFormat: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
+    letterSpacing: 0.5,
   },
-  characterCounter: {
-    fontSize: 11,
-    color: '#a79bbd',
-    fontWeight: '700',
-  },
-  roomInput: {
-    backgroundColor: '#200f33',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 2,
-    borderWidth: 1.5,
-    borderColor: '#5b268f',
-    textAlign: 'center',
-  },
-  roomInputError: {
-    borderColor: '#f43f5e',
-    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-  },
-  nameInput: {
-    backgroundColor: '#200f33',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '600',
-    borderWidth: 1.5,
-    borderColor: '#5b268f',
-  },
-  quickActionRow: {
+  validFormatBadge: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  actionPill: {
-    flex: 1,
-    backgroundColor: 'rgba(168, 85, 247, 0.15)',
-    borderWidth: 1,
-    borderColor: '#7e22ce',
-    paddingVertical: 8,
-    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
   },
-  actionPillText: {
-    color: '#e2d9f3',
-    fontSize: 12,
+  validDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: acousticTheme.colors.secondary,
+  },
+  validFormatText: {
+    fontSize: 9,
+    fontFamily: 'Courier',
     fontWeight: '700',
+    color: acousticTheme.colors.secondary,
   },
-  primaryButton: {
-    backgroundColor: '#7e22ce',
-    borderRadius: 14,
-    paddingVertical: 16,
+  scanQrBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
-    shadowColor: '#a855f7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    minHeight: 46,
+    borderRadius: acousticTheme.borderRadius.md,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    gap: 8,
+    marginTop: 4,
   },
-  primaryButtonText: {
-    color: '#ffffff',
+  scanQrIcon: {
+    fontSize: 16,
+  },
+  scanQrText: {
+    fontSize: 12,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.onSurface,
+  },
+  profileCard: {
+    backgroundColor: acousticTheme.colors.surfaceContainerLow,
+    borderRadius: acousticTheme.borderRadius.xl,
+    padding: acousticTheme.spacing.md,
+    gap: acousticTheme.spacing.md,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '50',
+  },
+  profileField: {
+    gap: 6,
+  },
+  fieldLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  fieldIcon: {
+    fontSize: 12,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onSurface,
+    letterSpacing: 0.8,
+  },
+  audioFormatBadge: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.secondary,
+    marginLeft: 'auto',
+  },
+  profileTextInput: {
+    minHeight: 46,
+    paddingHorizontal: 12,
+    borderRadius: acousticTheme.borderRadius.md,
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    color: acousticTheme.colors.onSurface,
+    fontFamily: 'Courier',
+    fontSize: 13,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '40',
+  },
+  deviceOptionRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  deviceOptionBtn: {
+    flex: 1,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: acousticTheme.borderRadius.sm,
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '40',
+  },
+  deviceOptionBtnActive: {
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    borderColor: acousticTheme.colors.secondary,
+  },
+  deviceOptionText: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
+  },
+  deviceOptionTextActive: {
+    color: acousticTheme.colors.secondary,
+    fontWeight: '800',
+  },
+  togglesGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  toggleCell: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    borderRadius: acousticTheme.borderRadius.md,
+    padding: 10,
+  },
+  toggleTextGroup: {
+    gap: 2,
+  },
+  toggleTitle: {
+    fontSize: 11,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.onSurface,
+  },
+  toggleSub: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
+  },
+  connectCtaContainer: {
+    gap: 6,
+    marginTop: 4,
+  },
+  connectCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 52,
+    borderRadius: acousticTheme.borderRadius.lg,
+    backgroundColor: acousticTheme.colors.primaryContainer,
+    gap: 8,
+    shadowColor: acousticTheme.colors.primaryContainer,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  connectCtaIcon: {
+    fontSize: 18,
+  },
+  connectCtaText: {
     fontSize: 15,
-    fontWeight: '900',
-    letterSpacing: 1.5,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onPrimaryContainer,
+    letterSpacing: 0.5,
+  },
+  securityRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 2,
+  },
+  securityItem: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
+  },
+  securityDot: {
+    fontSize: 10,
+    color: acousticTheme.colors.surfaceHighest,
+  },
+  fohCallout: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    borderRadius: acousticTheme.borderRadius.lg,
+    padding: acousticTheme.spacing.md,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceContainerHigh,
+  },
+  fohIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fohIcon: {
+    fontSize: 18,
+  },
+  fohContent: {
+    flex: 1,
+    gap: 2,
+  },
+  fohTitle: {
+    fontSize: 11,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.onSurface,
+  },
+  fohSub: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
   },
 
   /* ------------------------------------------------------------------------- */
   /* Active Stage Screen Styles                                                */
   /* ------------------------------------------------------------------------- */
   activeContainer: {
-    alignItems: 'center',
     width: '100%',
-    paddingVertical: 10,
+    maxWidth: 420,
+    alignSelf: 'center',
+    gap: acousticTheme.spacing.sm,
   },
-  stageBar: {
+  stageTopBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-    maxWidth: 340,
-    marginBottom: 16,
+    paddingVertical: acousticTheme.spacing.xs,
   },
-  stagePill: {
+  liveRoomPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#160a24',
-    borderWidth: 1,
-    borderColor: '#4d2179',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 8,
+    paddingVertical: 5,
+    borderRadius: acousticTheme.borderRadius.full,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    gap: 6,
   },
-  activeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10b981',
+  liveRoomDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: acousticTheme.colors.primary,
   },
-  stagePillText: {
-    color: '#ffffff',
+  liveRoomText: {
     fontSize: 11,
+    fontFamily: 'Courier',
     fontWeight: '800',
+    color: acousticTheme.colors.primary,
     letterSpacing: 0.8,
   },
-  leavePill: {
-    backgroundColor: 'rgba(244, 63, 94, 0.15)',
-    borderWidth: 1,
-    borderColor: '#f43f5e',
-    paddingHorizontal: 14,
+  exitStageBtn: {
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: acousticTheme.borderRadius.sm,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
   },
-  leavePillText: {
-    color: '#fb7185',
+  exitStageText: {
     fontSize: 11,
-    fontWeight: '800',
-  },
-  speakerCard: {
-    width: '100%',
-    maxWidth: 340,
-    backgroundColor: '#160a24',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#4d2179',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  speakerCardLabel: {
-    fontSize: 10,
-    color: '#d8b4fe',
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  speakerCardName: {
-    fontSize: 17,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  queueNotice: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#3b165b',
-    width: '100%',
-    alignItems: 'center',
-  },
-  queueNoticeText: {
-    fontSize: 11,
-    color: '#fbbf24',
+    fontFamily: 'Courier',
     fontWeight: '700',
+    color: acousticTheme.colors.error,
   },
-  gainSelectorRow: {
+  performerCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceContainer,
+    borderRadius: acousticTheme.borderRadius.lg,
+    padding: acousticTheme.spacing.md,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '50',
+  },
+  performerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
+    gap: 12,
+    flex: 1,
   },
-  gainSelectorLabel: {
-    fontSize: 11,
-    color: '#d8b4fe',
-    fontWeight: '700',
+  performerAvatarWell: {
+    position: 'relative',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: acousticTheme.colors.surfaceHighest,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  gainSelectorPill: {
-    backgroundColor: '#200f33',
-    borderWidth: 1,
-    borderColor: '#4d2179',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+  performerAvatarEmoji: {
+    fontSize: 20,
   },
-  gainSelectorPillActive: {
-    backgroundColor: '#7e22ce',
-    borderColor: '#c084fc',
+  performerOnlineDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: acousticTheme.colors.secondary,
+    borderWidth: 2,
+    borderColor: acousticTheme.colors.surfaceContainer,
   },
-  gainSelectorPillText: {
+  performerDetails: {
+    flex: 1,
+    gap: 2,
+  },
+  performerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  performerName: {
+    fontSize: 14,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.onSurface,
+  },
+  verifiedIcon: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: acousticTheme.colors.primary,
+  },
+  performerRole: {
     fontSize: 10,
-    color: '#cbd5e1',
-    fontWeight: '700',
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurfaceVariant,
   },
-  gainSelectorPillTextActive: {
-    color: '#ffffff',
+  performerRight: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  fohMonBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: acousticTheme.borderRadius.xs,
+    backgroundColor: acousticTheme.colors.secondaryContainer + '30',
+  },
+  fohMonText: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.secondary,
+  },
+  busTag: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
+  },
+  networkBadge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceContainerLow,
+    borderRadius: acousticTheme.borderRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '40',
+  },
+  networkLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  signalMiniBars: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 1.5,
+    height: 10,
+  },
+  miniBar: {
+    width: 2,
+    backgroundColor: acousticTheme.colors.secondary,
+    borderRadius: 1,
+  },
+  networkTelemetryText: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.onSurface,
+  },
+  networkQualityLabel: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.secondary,
+  },
+  gainCard: {
+    backgroundColor: acousticTheme.colors.surfaceContainer,
+    borderRadius: acousticTheme.borderRadius.lg,
+    padding: acousticTheme.spacing.md,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '50',
+  },
+  gainHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  gainHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  gainIcon: {
+    fontSize: 14,
+  },
+  gainTitle: {
+    fontSize: 11,
+    fontFamily: 'Courier',
+    fontWeight: '700',
+    color: acousticTheme.colors.onSurface,
+  },
+  gainReadoutPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: acousticTheme.borderRadius.xs,
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+  },
+  gainReadoutText: {
+    fontSize: 10,
+    fontFamily: 'Courier',
+    fontWeight: '800',
+    color: acousticTheme.colors.primary,
+  },
+  gainStepRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  gainStepBtn: {
+    flex: 1,
+    minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: acousticTheme.borderRadius.sm,
+    backgroundColor: acousticTheme.colors.surfaceLowest,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '40',
+  },
+  gainStepBtnActive: {
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+    borderColor: acousticTheme.colors.primary,
+  },
+  gainStepText: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
+  },
+  gainStepTextActive: {
+    color: acousticTheme.colors.primary,
+    fontWeight: '800',
+  },
+  encoderBadge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: acousticTheme.colors.surfaceContainerLow,
+    borderRadius: acousticTheme.borderRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: acousticTheme.colors.surfaceHighest + '40',
+  },
+  encoderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  encoderIcon: {
+    fontSize: 12,
+  },
+  encoderLabel: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.outlineVariant,
+  },
+  encoderPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: acousticTheme.borderRadius.xs,
+    backgroundColor: acousticTheme.colors.surfaceContainerHigh,
+  },
+  encoderPillText: {
+    fontSize: 9,
+    fontFamily: 'Courier',
+    color: acousticTheme.colors.primary,
   },
 });

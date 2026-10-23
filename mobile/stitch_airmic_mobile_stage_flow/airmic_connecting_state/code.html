@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-primary-fixed": "#2a1700", "on-primary": "#472a00", "on-secondary-container": "#00311f", "surface-container-high": "#252a36", "on-surface-variant": "#d8c3ad", "primary-fixed-dim": "#ffb95f", "outline-variant": "#534434", "on-surface": "#dee2f2", "surface-container-lowest": "#090e19", "inverse-surface": "#dee2f2", "surface-variant": "#303541", "secondary-fixed": "#6ffbbe", "tertiary-container": "#ff938c", "on-secondary-fixed-variant": "#005236", "primary-fixed": "#ffddb8", "outline": "#a08e7a", "tertiary": "#ffbcb7", "surface": "#0e131e", "surface-container": "#1b202b", "surface-container-low": "#171b27", "on-primary-fixed-variant": "#653e00", "error": "#ffb4ab", "on-tertiary-container": "#8d0012", "background": "#0e131e", "primary": "#ffc174", "on-primary-container": "#613b00", "error-container": "#93000a", "surface-dim": "#0e131e", "on-tertiary-fixed-variant": "#930013", "inverse-primary": "#855300", "secondary-fixed-dim": "#4edea3", "primary-container": "#f59e0b", "on-background": "#dee2f2", "on-tertiary-fixed": "#410004", "secondary-container": "#00a572", "tertiary-fixed": "#ffdad7", "surface-tint": "#ffb95f", "tertiary-fixed-dim": "#ffb3ad", "on-secondary-fixed": "#002113", "secondary": "#4edea3", "on-error": "#690005", "on-error-container": "#ffdad6", "on-tertiary": "#68000a", "on-secondary": "#003824", "surface-bright": "#343945", "surface-container-highest": "#303541", "inverse-on-surface": "#2b303c" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "margin": "1rem", "space-lg": "1.5rem", "margin-md": "1.5rem", "space-xl": "2rem", "space-xs": "0.25rem", "gutter": "1rem", "space-sm": "0.5rem", "gutter-lg": "1.5rem", "space-md": "1rem", "margin-lg": "2rem" }, "fontFamily": { "label-md": ["JetBrains Mono"], "headline-sm": ["Space Grotesk"], "body-md": ["Hanken Grotesk"], "body-sm": ["Hanken Grotesk"], "headline-xl": ["Space Grotesk"], "headline-xl-mobile": ["Space Grotesk"], "headline-lg": ["Space Grotesk"], "headline-md": ["Space Grotesk"], "label-lg": ["JetBrains Mono"], "headline-lg-mobile": ["Space Grotesk"], "body-lg": ["Hanken Grotesk"], "label-sm": ["JetBrains Mono"] }, "fontSize": { "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "500"}], "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "500"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}], "headline-xl": ["40px", {"lineHeight": "48px", "fontWeight": "700"}], "headline-xl-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "700"}], "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}], "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}], "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "500"}], "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-sm": ["10px", {"lineHeight": "14px", "fontWeight": "500"}] } } } };</script></head><body class="bg-surface text-on-surface font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container"><main class="flex flex-col relative w-full px-margin pt-safe pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full pb-8 select-none">
+<!-- Top Navigation & Stage Breadcrumb Bar -->
+<div class="flex items-center justify-between py-3 mb-2">
+<div class="flex items-center space-x-2">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container-high text-primary">
+<span class="material-symbols-outlined text-[18px]">cell_tower</span>
+</span>
+<span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">AirMic Live</span>
+</div>
+<!-- Encrypted Room Badge -->
+<div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined text-primary text-[14px]">lock</span>
+<span class="font-label-md text-label-md uppercase tracking-wider text-primary">STG-709</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping ml-0.5"></span>
+</div>
+</div>
+<!-- Hero Acoustic Radar Visualizer Card -->
+<div class="relative flex flex-col items-center justify-center p-6 mb-4 rounded-xl bg-surface-container overflow-hidden shadow-xl">
+<!-- Ambient Broadcast Amber Scrim -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary-container/15 blur-3xl pointer-events-none rounded-full"></div>
+<div class="absolute -bottom-10 right-0 w-48 h-48 bg-secondary-container/10 blur-2xl pointer-events-none rounded-full"></div>
+<!-- Pulsating Radar Rings with Central Mic Glyph -->
+<div class="relative flex items-center justify-center w-44 h-44 my-3">
+<!-- Expanding Radar Rings -->
+<div class="absolute inset-0 rounded-full bg-primary-container/10 animate-ping opacity-60" style="animation-duration: 2.8s;"></div>
+<div class="absolute inset-3 rounded-full bg-surface-container-high/80 scale-105"></div>
+<div class="absolute inset-7 rounded-full bg-surface-container-lowest/90 flex items-center justify-center shadow-inner"></div>
+<!-- Rotating Radar Sweep Line -->
+<div class="absolute inset-0 flex items-center justify-center animate-spin pointer-events-none" style="animation-duration: 4s;">
+<div class="w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-primary"></div>
+</div>
+<!-- Center Pulse Target Indicator -->
+<div class="relative z-10 flex flex-col items-center justify-center w-20 h-20 rounded-full bg-surface-container-high shadow-2xl text-primary">
+<span class="material-symbols-outlined text-[34px] animate-pulse" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-label-sm text-label-sm text-primary tracking-widest mt-0.5">SYNC</span>
+</div>
+</div>
+<!-- Handshake Status Subheading -->
+<div class="text-center mt-3 z-10">
+<div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-surface-container-lowest mb-2">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-primary">Connecting Stage</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs mx-auto">
+        Negotiating low-latency audio stream with host console
+      </p>
+</div>
+</div>
+<!-- Live Microphone Pre-Broadcast Level Preview -->
+<div class="flex flex-col p-4 mb-4 rounded-xl bg-surface-container shadow-md">
+<div class="flex items-center justify-between mb-2.5">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">graphic_eq</span>
+<span class="font-label-md text-label-md text-on-surface">Input Level Preview</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-surface-container-lowest px-1.5 py-0.5 rounded" id="vu-peak-db">
+        -14.2 dB
+      </span>
+</div>
+<!-- Segmented VU Meter -->
+<div class="flex items-center space-x-1 h-3.5 px-1 py-0.5 rounded-lg bg-surface-container-lowest w-full">
+<!-- Safe Green Blocks -->
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-secondary transition-opacity duration-75"></div>
+<!-- Warning Amber Blocks -->
+<div class="vu-seg h-full flex-1 rounded-sm bg-primary-container transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-primary-container transition-opacity duration-75"></div>
+<div class="vu-seg h-full flex-1 rounded-sm bg-primary-container transition-opacity duration-75"></div>
+<!-- Peak Red Block -->
+<div class="vu-seg h-full flex-1 rounded-sm bg-tertiary-container transition-opacity duration-75 opacity-20"></div>
+</div>
+<div class="flex justify-between items-center mt-2 font-label-sm text-label-sm text-on-surface-variant">
+<span>-48 dB</span>
+<span>MIC PRE-GAIN OK (48kHz FLAC/OPUS)</span>
+<span>0 dB CLIP</span>
+</div>
+</div>
+<!-- Negotiation Telemetry & Pipeline Steps -->
+<div class="flex flex-col p-4 mb-4 rounded-xl bg-surface-container shadow-md space-y-3">
+<div class="flex items-center justify-between pb-2">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wide">Audio Pipeline Handshake</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ICE GATHERING</span>
+</div>
+<!-- Step 1: Verified Token -->
+<div class="flex items-center space-x-3 p-2.5 rounded-lg bg-surface-container-high">
+<div class="flex items-center justify-center w-6 h-6 rounded-full bg-secondary-container text-on-secondary">
+<span class="material-symbols-outlined text-[15px]">check</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<p class="font-body-md text-body-md text-on-surface font-medium truncate">Verifying Room Token...</p>
+<span class="font-label-sm text-label-sm text-secondary">OK</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">Auth: RSA-4096 Signer verified</p>
+</div>
+</div>
+<!-- Step 2: In-Progress Audio Pipeline -->
+<div class="flex items-center space-x-3 p-2.5 rounded-lg bg-surface-container-high">
+<div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-primary-container text-on-primary">
+<span class="material-symbols-outlined text-[15px] animate-spin">sync</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<p class="font-body-md text-body-md text-primary font-medium truncate">Establishing Opus Audio Pipeline...</p>
+<span class="font-label-sm text-label-sm text-primary animate-pulse">48 kbps/ch</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">SDP Answer generated · STUN host matched</p>
+</div>
+</div>
+<!-- Step 3: Calibrating Buffer -->
+<div class="flex items-center space-x-3 p-2.5 rounded-lg bg-surface-container-low opacity-60">
+<div class="flex items-center justify-center w-6 h-6 rounded-full bg-surface-variant text-on-surface-variant">
+<span class="material-symbols-outlined text-[15px]">timer</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between">
+<p class="font-body-md text-body-md text-on-surface font-medium truncate">Calibrating Buffer &amp; Latency (&lt; 12ms)...</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">QUEUED</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant truncate">Target Jitter: 2.4ms · Ring buffer 64f</p>
+</div>
+</div>
+</div>
+<!-- Real-time WebRTC Raw Telemetry Console Block -->
+<div class="flex flex-col p-3.5 mb-5 rounded-xl bg-surface-container-lowest text-on-surface-variant shadow-inner">
+<div class="flex items-center justify-between mb-1.5 font-label-sm text-label-sm">
+<span class="text-primary flex items-center space-x-1">
+<span class="material-symbols-outlined text-[13px]">terminal</span>
+<span>ICE NEGOTIATION LOG</span>
+</span>
+<span class="text-secondary font-label-sm text-label-sm">RTT: ~9.8ms</span>
+</div>
+<div class="font-label-sm text-label-sm space-y-0.5 leading-tight opacity-90 overflow-hidden">
+<div class="truncate text-on-surface">&gt; ICE candidate srflx 198.51.100.44:54320 accepted</div>
+<div class="truncate">&gt; DTLS cipher suite: TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256</div>
+<div class="truncate text-primary">&gt; WebRTC DataChannel [audio-control-v1] open</div>
+</div>
+</div>
+<!-- Studio Personnel In-Stage Snapshot Card -->
+<div class="flex items-center justify-between p-3.5 mb-5 rounded-xl bg-surface-container shadow-sm">
+<div class="flex items-center space-x-3 min-w-0">
+<div class="relative w-10 h-10 rounded-full overflow-hidden shrink-0 bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="Close up cinematic shot of a professional audio sound engineer wearing over-ear monitoring headphones in a dark mixing console booth with amber control panel lights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdbLqB4DFY6E4unLZ9iAPDfh8AAlexAz3WbgTRex906o6B_YIad-DGUbnhzvnWioGLsyQlrvWmxQHL_2PjyNLKx0eO0EhiBFdOynORa9NVOkRnRRla5Abk4ZHna6QQBAK4-qI6VZx7adc3d--bhEhuDeHotCPj-Pdm_EG2Og6vK8a6kgZMkakbls_Lll64TBY70gPjlvV_JrCEYg9xm2Z9_PXMlQxIypBgywwifVNNssX22hljURpnjg"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-body-md text-body-md text-on-surface font-semibold truncate">FOH Studio Desk</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant truncate">Console #02 · Engineer active</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded text-label-sm font-label-sm uppercase bg-surface-container-high text-primary tracking-wider">
+      READY
+    </span>
+</div>
+<!-- Action Row: Cancel Connection Button -->
+<div class="mt-auto pt-2 flex flex-col space-y-2">
+<button class="w-full h-12 flex items-center justify-center space-x-2 rounded-lg bg-surface-container-high text-on-surface font-body-md text-body-md font-medium active:bg-surface-container-highest transition-all duration-150 shadow-md" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+<span>Cancel Connection</span>
+</button>
+<p class="font-label-sm text-label-sm text-center text-on-surface-variant opacity-75">
+      Session will automatically timeout if handshake stalls past 30s
+    </p>
+</div>
+</div>
+<script>
+  // Simulated dynamic microphone VU level reaction for visual delight
+  (function() {
+    const segments = document.querySelectorAll('.vu-seg');
+    const peakDb = document.getElementById('vu-peak-db');
+    if (!segments.length) return;
+
+    setInterval(() => {
+      // Pick a random level from 4 to 11 illuminated segments
+      const activeCount = Math.floor(Math.random() * 6) + 5;
+      const dbValue = (-32 + (activeCount * 2.3)).toFixed(1);
+      
+      if (peakDb) {
+        peakDb.textContent = `${dbValue} dB`;
+      }
+
+      segments.forEach((seg, idx) => {
+        if (idx < activeCount) {
+          seg.style.opacity = '1';
+        } else {
+          seg.style.opacity = '0.15';
+        }
+      });
+    }, 140);
+  })();
+</script></main></body></html>

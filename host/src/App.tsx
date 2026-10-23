@@ -22,7 +22,7 @@ interface TelemetryLogEntry {
 
 export default function App() {
   const [tokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
-  const [roomName, setRoomName] = useState('BOARDROOM-1');
+  const [roomName, setRoomName] = useState('STG-709');
   const [activeView, setActiveView] = useState<HostViewMode>('console');
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [volume, setVolume] = useState(0.75);
@@ -31,7 +31,7 @@ export default function App() {
   const [isEmergencyMuted, setIsEmergencyMuted] = useState(false);
   const [selectedBitrate, setSelectedBitrate] = useState('96k');
   const [isEditingRoom, setIsEditingRoom] = useState(false);
-  const [tempRoomInput, setTempRoomInput] = useState('BOARDROOM-1');
+  const [tempRoomInput, setTempRoomInput] = useState('STG-709');
   const [copiedRoomCode, setCopiedRoomCode] = useState(false);
 
   // Safety Interlock Cut: Guarded toggle button
@@ -46,7 +46,7 @@ export default function App() {
   const [telemetryLogs, setTelemetryLogs] = useState<TelemetryLogEntry[]>([
     { id: '1', timestamp: '19:20:10.04', level: 'info', message: 'CONSOLE 4.2: Session started. System clock initialized.' },
     { id: '2', timestamp: '19:20:12.18', level: 'success', message: 'DANTE RX: PTP Clock locked at 48kHz / 24-bit.' },
-    { id: '3', timestamp: '19:20:15.42', level: 'info', message: 'ROOM TARGET: Attached to LiveKit SFU channel BOARDROOM-1.' },
+    { id: '3', timestamp: '19:20:15.42', level: 'info', message: 'ROOM TARGET: Attached to LiveKit SFU channel STG-709.' },
   ]);
 
   const logContainerRef = useRef<HTMLDivElement>(null);
