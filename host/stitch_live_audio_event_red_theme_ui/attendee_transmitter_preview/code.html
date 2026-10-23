@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-primary-container":"#5c0005","secondary-fixed":"#62ff96","surface-container-low":"#1a1c20","surface-dim":"#111317","on-primary-fixed":"#410002","inverse-surface":"#e2e2e8","surface-container":"#1e2024","secondary-fixed-dim":"#00e475","on-tertiary":"#432c00","outline":"#ab8985","on-tertiary-fixed":"#281900","primary-container":"#ff544c","primary-fixed-dim":"#ffb4ac","surface-container-lowest":"#0c0e12","background":"#111317","primary":"#ffb4ac","surface-tint":"#ffb4ac","surface-variant":"#333539","on-secondary-container":"#00622e","outline-variant":"#5b403d","surface":"#111317","error":"#ffb4ab","on-primary-fixed-variant":"#93000d","inverse-on-surface":"#2f3035","secondary-container":"#05e777","on-error":"#690005","inverse-primary":"#bb171c","on-secondary-fixed":"#00210b","surface-container-high":"#282a2e","tertiary-fixed-dim":"#ffba38","on-surface-variant":"#e4beb9","surface-bright":"#37393e","on-tertiary-container":"#3a2600","tertiary-container":"#c08600","primary-fixed":"#ffdad6","on-primary":"#690006","tertiary":"#ffba38","on-background":"#e2e2e8","on-error-container":"#ffdad6","secondary":"#7dffa2","surface-container-highest":"#333539","error-container":"#93000a","on-secondary-fixed-variant":"#005226","on-tertiary-fixed-variant":"#604100","on-surface":"#e2e2e8","on-secondary":"#003918","tertiary-fixed":"#ffdeac"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-lg":"1rem","margin":"0.75rem","margin-desktop":"1.25rem","gutter":"0.5rem","gutter-desktop":"0.75rem","space-sm":"0.5rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem"},"fontFamily":{"headline-xl":["Inter"],"label-telemetry-sm":["JetBrains Mono"],"body-md":["Inter"],"headline-xl-mobile":["Inter"],"body-lg":["Inter"],"label-numeric-md":["JetBrains Mono"],"headline-md":["Inter"],"headline-lg":["Inter"],"headline-lg-mobile":["Inter"],"label-meter-micro":["JetBrains Mono"],"body-sm":["Inter"],"label-numeric-lg":["JetBrains Mono"]},"fontSize":{"headline-xl":["36px",{"lineHeight":"44px","fontWeight":"700"}],"label-telemetry-sm":["11px",{"lineHeight":"14px","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-numeric-md":["14px",{"lineHeight":"18px","fontWeight":"600"}],"headline-md":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"700"}],"headline-lg-mobile":["20px",{"lineHeight":"28px","fontWeight":"700"}],"label-meter-micro":["9px",{"lineHeight":"10px","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-numeric-lg":["20px",{"lineHeight":"24px","fontWeight":"700"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-error-container selection:text-on-error-container"><header class="fixed top-0 left-0 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs"><div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse shadow-[0_0_8px_#ff544c]"></div><div class="flex flex-col"><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface uppercase tracking-wider font-bold">ON-AIR</span><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">CH-01 FEED</span></div></div><div class="h-6 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-secondary text-[16px]">sensors</span><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase">RTT</span><span class="font-label-numeric-md text-label-numeric-md text-secondary">12ms</span><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant font-bold">| JIT 0.4ms</span></div><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-tertiary text-[16px]">tag</span><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase">ROOM</span><span class="font-label-numeric-md text-label-numeric-md text-tertiary tracking-widest">AUD-704</span></div></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-colors active:translate-y-px" type="button"><span class="material-symbols-outlined text-[18px]">mic_off</span><span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wide">PANIC MUTE ALL</span></button><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-on-surface-variant text-[16px]">schedule</span><span class="font-label-numeric-md text-label-numeric-md text-on-surface tracking-wider">01:42:18.04</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md px-space-xs shadow-[1px_0_12px_rgba(0,0,0,0.5)]"><div class="flex flex-col gap-space-md"><div class="px-space-sm pb-space-xs"><div class="flex items-center gap-space-xs text-primary"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-headline-md text-headline-md font-bold tracking-tight uppercase">STAGE PULSE</span></div><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant tracking-wider uppercase">BROADCAST CONSOLE 4.2</span></div><nav class="flex flex-col gap-space-xs px-space-xs" data-active-classes="bg-surface-container-high text-primary font-bold"><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="operator-console" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">tune</span><span class="font-body-md text-body-md">Operator Console</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-secondary uppercase">MAIN</span></a><a aria-current="page" class="flex items-center justify-between px-space-sm py-space-sm rounded transition-all bg-surface-container-high text-primary font-bold" data-path="transmitter-preview" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">podcasts</span><span class="font-body-md text-body-md">Transmitter Preview</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-tertiary uppercase">PFL</span></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="stage-display" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">stadium</span><span class="font-body-md text-body-md">Auditorium Stage</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-on-surface-variant uppercase">OUT</span></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="matrix-routing" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">alt_route</span><span class="font-body-md text-body-md">Matrix Routing</span></div></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="telemetry-diagnostics" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">vital_signs</span><span class="font-body-md text-body-md">Telemetry &amp; Dante</span></div></a></nav></div><div class="flex flex-col gap-space-xs px-space-sm"><div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">CLOCK SYNC</span><span class="font-label-meter-micro text-label-meter-micro text-secondary uppercase font-bold">PTP LOCKED</span></div><div class="flex items-center justify-between"><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">DANTE RX</span><span class="font-label-numeric-md text-label-numeric-md text-on-surface">48 kHz / 24b</span></div></div><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors" data-path="broadcast-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Global Settings</span></a></div></aside><div class="pl-64"><main class="w-full min-h-screen pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Workbench Header Ribbon -->
+<div class="px-space-md py-space-sm bg-surface-container-low flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary-container font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-widest">
+        SPEC: WEB-TR-01..08
+      </span>
+<span class="text-on-surface-variant font-label-telemetry-sm text-label-telemetry-sm">
+        ATTENDEE TRANSMITTER / MOBILE PWA PREVIEW DOCK (server/public/mic.html)
+      </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="flex items-center gap-1 font-label-meter-micro text-label-meter-micro text-secondary uppercase bg-surface-container-lowest px-space-xs py-0.5 rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+        WEBRTC OPUS 48kHz
+      </span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant">REV 4.2.1-PROD</span>
+</div>
+</div>
+<!-- Main Viewport Studio Layout -->
+<div class="p-space-md grid grid-cols-1 xl:grid-cols-12 gap-space-md">
+<!-- LEFT COLUMN: The Interactive Live Mobile Emulator (Viewports TR-01 - TR-08) -->
+<div class="xl:col-span-5 flex flex-col items-center">
+<div class="w-full max-w-[420px] bg-surface-container-lowest rounded-xl p-space-sm shadow-xl relative">
+<!-- Mobile Device Chrome Simulation -->
+<div class="flex items-center justify-between px-space-sm pb-space-xs text-on-surface-variant">
+<span class="font-label-meter-micro text-label-meter-micro tracking-wider">STAGEPULSE PWA // WEBRTC</span>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[14px]">wifi</span>
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface">98%</span>
+<span class="material-symbols-outlined text-[14px]">battery_full</span>
+</div>
+</div>
+<!-- Phone Screen Frame -->
+<div class="w-full bg-surface-dim rounded-lg p-space-md flex flex-col justify-between min-h-[760px] relative overflow-hidden transition-all duration-300" id="mobile-viewport">
+<!-- TOP: WEB-TR-04 Error Banner & Room / Stream Bar -->
+<div class="flex flex-col gap-space-sm">
+<!-- WEB-TR-04: Dismissible Audio Permission Error Banner -->
+<div class="w-full bg-error-container text-on-error-container p-space-sm rounded flex items-center justify-between shadow-md transition-all" id="tr04-error-banner" role="alert">
+<div class="flex items-center gap-space-xs min-w-0">
+<span class="material-symbols-outlined text-primary-container text-[20px] shrink-0">mic_off</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase truncate">Microphone permission denied</span>
+<span class="font-body-sm text-body-sm text-on-error-container/80 truncate">Tap retry to grant browser media access</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="px-space-xs py-0.5 rounded bg-on-error-container text-error-container font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase hover:opacity-90" id="btn-retry-mic" type="button">
+                  Retry
+                </button>
+<button aria-label="Dismiss" class="text-on-error-container hover:text-white" id="btn-dismiss-error" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Stage Context Pill & Pulsar Indicator (WEB-TR-05) -->
+<div class="flex items-center justify-between bg-surface-container-low p-space-xs rounded">
+<div class="flex items-center gap-space-xs">
+<!-- Pulsar Element -->
+<div class="relative flex items-center justify-center w-6 h-6">
+<div class="absolute inset-0 rounded-full bg-primary-container/30 animate-ping" id="radar-ring-1"></div>
+<div class="absolute w-4 h-4 rounded-full bg-primary-container/50" id="radar-ring-2"></div>
+<div class="w-2 h-2 rounded-full bg-primary-container z-10"></div>
+</div>
+<div class="flex flex-col">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface uppercase font-bold tracking-tight">Main Auditorium Floor</span>
+<span class="font-label-meter-micro text-label-meter-micro text-secondary font-bold" id="telemetry-rtt">PTP SYNC // 8ms RTT</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container px-space-xs py-0.5 rounded">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant font-bold uppercase">ROOM:</span>
+<span class="font-label-numeric-md text-label-numeric-md text-tertiary" id="active-room-tag">AUD-7042</span>
+</div>
+</div>
+<!-- WEB-TR-06: Attendee State Card (Interactive display reflecting selected state) -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs transition-all shadow-md" id="attendee-state-card">
+<div class="flex items-center justify-between">
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase tracking-wider font-bold">ATTENDEE TRANSMITTER STATUS</span>
+<span class="px-space-xs py-0.5 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-secondary/20 text-secondary" id="state-badge">
+                  STANDBY
+                </span>
+</div>
+<div class="flex items-baseline justify-between mt-1">
+<span class="font-headline-md text-headline-md font-bold text-on-surface" id="state-title">Floor Standby</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant" id="state-meta">Tap Join Stage to Queue</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="state-desc">
+                You are registered in the room. Audio hardware is calibrated and awaiting stage floor request.
+              </p>
+</div>
+</div>
+<!-- MIDDLE: Inputs (TR-01, TR-02, TR-03) & Metering (TR-07) -->
+<div class="flex flex-col gap-space-md my-space-sm">
+<!-- Setup Form Drawer (Collapsible when LIVE) -->
+<div class="flex flex-col gap-space-sm bg-surface-container-low p-space-sm rounded" id="tr-setup-form">
+<!-- WEB-TR-01: Room Code Input with strictly crimson focus glow (no purple/gold) -->
+<div class="flex flex-col gap-1">
+<label class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface uppercase font-bold tracking-wide" for="room-code-input">
+                  1. Room Access Code
+                </label>
+<div class="relative">
+<input class="w-full h-12 bg-surface-container-lowest text-on-surface font-label-numeric-md text-label-numeric-md px-space-sm rounded outline-none transition-shadow shadow-inner focus:shadow-[0_0_0_3px_rgba(229,57,53,0.4)]" id="room-code-input" placeholder="e.g. AUD-7042" type="text" value="AUD-7042"/>
+<span class="material-symbols-outlined absolute right-3 top-3 text-[18px] text-secondary">verified</span>
+</div>
+</div>
+<!-- WEB-TR-02: Clear Accessible Display Name Input (48px Touch Target) -->
+<div class="flex flex-col gap-1">
+<label class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface uppercase font-bold tracking-wide" for="display-name-input">
+                  2. Your Name / Organization
+                </label>
+<input class="w-full h-12 bg-surface-container-lowest text-on-surface font-body-md text-body-md px-space-sm rounded outline-none transition-shadow shadow-inner focus:shadow-[0_0_0_3px_rgba(229,57,53,0.4)]" id="display-name-input" placeholder="e.g. Alex Rivera (Tech Lead)" type="text" value="Alex Rivera (Tech Lead)"/>
+</div>
+<!-- WEB-TR-03: Action CTA Primary Button -->
+<button class="w-full h-12 rounded bg-primary-container text-on-primary-container font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wider flex items-center justify-center gap-space-xs shadow-md hover:opacity-95 active:translate-y-px transition-all" id="btn-join-stage" type="button">
+<span class="material-symbols-outlined text-[18px]">podcasts</span>
+<span>Request Mic / Join Stage</span>
+</button>
+</div>
+<!-- WEB-TR-07: Real-time Audio Level Meter (24 Segments with dB scale) -->
+<div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">equalizer</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase text-on-surface">MIC INPUT METER</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold uppercase" id="clip-indicator">
+                    CLIP OK
+                  </span>
+<span class="font-label-numeric-md text-label-numeric-md text-secondary" id="meter-numeric">-∞ dB</span>
+</div>
+</div>
+<!-- 24-Segment LED Array -->
+<div class="grid grid-cols-24 gap-0.5 h-6 bg-surface-container-lowest p-1 rounded" id="segment-bar-container">
+<!-- 24 Segment Divs Generated Dynamically or Static Template below -->
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<!-- Yellow / caution zone 17-21 -->
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<!-- Crimson peak zone 22-24 -->
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+<div class="segment bg-surface-variant rounded-sm h-full"></div>
+</div>
+<!-- dB Tick Scale -->
+<div class="flex justify-between font-label-meter-micro text-label-meter-micro text-on-surface-variant px-0.5">
+<span>-36dB</span>
+<span>-24dB</span>
+<span>-12dB</span>
+<span>-6dB</span>
+<span>0dB</span>
+<span class="text-error font-bold">+3dB</span>
+</div>
+</div>
+</div>
+<!-- BOTTOM: WEB-TR-08 Massive Push-To-Talk Button (140px Touch Target) -->
+<div class="flex flex-col items-center justify-center pt-space-xs pb-space-sm relative">
+<div class="text-center mb-space-xs">
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase tracking-wider text-on-surface-variant font-bold" id="ptt-helper-text">
+                HOLD TO BROADCAST (PTT SAFE)
+              </span>
+</div>
+<!-- Outer Ripple Anchor -->
+<div class="relative flex items-center justify-center">
+<div class="absolute w-40 h-40 rounded-full bg-primary-container/0 transition-all pointer-events-none" id="ptt-ripple"></div>
+<!-- 140px Thumb-friendly button -->
+<button aria-label="Push To Talk Microphone Control" class="w-[140px] h-[140px] rounded-full bg-surface-container-high text-on-surface flex flex-col items-center justify-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] select-none cursor-pointer transition-transform duration-75 active:scale-95 touch-none" id="ptt-button" type="button">
+<span class="material-symbols-outlined text-[44px] text-on-surface-variant transition-colors" id="ptt-icon">mic</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wider text-on-surface-variant" id="ptt-label">PRESS &amp; HOLD</span>
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant/70 uppercase" id="ptt-state-text">AUDIO STANDBY</span>
+</button>
+</div>
+<div class="mt-space-sm flex items-center gap-space-sm">
+<button class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-meter-micro text-label-meter-micro uppercase hover:text-on-surface" id="btn-toggle-latch" type="button">
+                Mode: Momentary (Push)
+              </button>
+<button class="px-space-xs py-0.5 rounded bg-surface-container text-tertiary font-label-meter-micro text-label-meter-micro uppercase hover:text-white" id="btn-simulate-floor" type="button">
+                Simulate Mic Level
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN: Multi-State Coverage Matrix & Architectural Specs -->
+<div class="xl:col-span-7 flex flex-col gap-space-md">
+<!-- Interactive State Matrix Controller & Live Preview Tabs -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-lg flex flex-col gap-space-md">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">WEB-TR-06 Attendee State Coverage Matrix</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">4 distinct unmistakable live broadcast states with strict luminance parity.</p>
+</div>
+<!-- Quick State Switchers to drive the interactive emulator on left -->
+<div class="flex items-center gap-space-xs bg-surface-container-low p-1 rounded">
+<button class="state-btn px-space-xs py-1 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-surface-container-highest text-primary" data-select-state="1" type="button">1. Standby</button>
+<button class="state-btn px-space-xs py-1 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold text-on-surface-variant hover:text-on-surface" data-select-state="2" type="button">2. Floor Queue</button>
+<button class="state-btn px-space-xs py-1 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold text-on-surface-variant hover:text-on-surface" data-select-state="3" type="button">3. ON-AIR LIVE</button>
+<button class="state-btn px-space-xs py-1 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold text-on-surface-variant hover:text-on-surface" data-select-state="4" type="button">4. Muted / Released</button>
+</div>
+</div>
+<!-- 4 Grid Cards Showing All States Simultaneously for Inspection -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+<!-- State 1: Standby / Disconnected -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col justify-between h-44 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant font-bold uppercase">STATE 01: STANDBY</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-meter-micro text-label-meter-micro uppercase font-bold">READY</span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-on-surface font-bold">Auditorium Standby</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Transmitter authenticated. Audio device primed with zero stage broadcast privilege.</p>
+</div>
+<div class="flex items-center justify-between font-label-meter-micro text-label-meter-micro text-on-surface-variant">
+<span>TX: MUTED</span>
+<span>BUFFER: 2.1ms</span>
+<span>DANTE BUS: IDLE</span>
+</div>
+</div>
+<!-- State 2: In Floor Queue (#2 in line) -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col justify-between h-44 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-tertiary font-bold uppercase">STATE 02: IN QUEUE</span>
+<span class="px-space-xs py-0.5 rounded bg-tertiary-container text-on-tertiary-container font-label-meter-micro text-label-meter-micro uppercase font-bold">POS #2 IN LINE</span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-tertiary font-bold">Floor Floor Privilege Pending</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Console operator received your floor request. Stand by for live cue chime.</p>
+</div>
+<div class="flex items-center justify-between font-label-meter-micro text-label-meter-micro text-tertiary">
+<span>PFL ROUTED</span>
+<span>PRIORITY: ATTENDEE</span>
+<span>EST WAIT: ~45 SEC</span>
+</div>
+</div>
+<!-- State 3: ON-AIR LIVE (Vivid Red Border & Broadcast Pill) -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col justify-between h-44 shadow-[0_0_16px_rgba(255,84,76,0.25)] relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1 bg-primary-container"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-primary font-bold uppercase flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>
+                STATE 03: ON-AIR LIVE
+              </span>
+<span class="px-space-xs py-0.5 rounded bg-primary-container text-on-primary-container font-label-meter-micro text-label-meter-micro uppercase font-bold shadow-[0_0_8px_#ff544c]">
+                MAIN PA ACTIVE
+              </span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-primary font-bold">You Are Speaking to Stage</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Live DSP matrix path open. PTT holds microphone active at +4.2dB unity gain.</p>
+</div>
+<div class="flex items-center justify-between font-label-meter-micro text-label-meter-micro text-primary-fixed">
+<span>TX: OPEN 48kHz</span>
+<span>LATENCY: 11ms</span>
+<span>MASTER CH: 14</span>
+</div>
+</div>
+<!-- State 4: Muted / Floor Released -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col justify-between h-44 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-error font-bold uppercase">STATE 04: MUTED / RELEASED</span>
+<span class="px-space-xs py-0.5 rounded bg-error-container text-on-error-container font-label-meter-micro text-label-meter-micro uppercase font-bold">
+                STAGE OVERRIDE
+              </span>
+</div>
+<div>
+<span class="font-headline-md text-headline-md text-error font-bold">Floor Floor Released</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Operator concluded floor time or master panic mute engaged. Transmit disabled.</p>
+</div>
+<div class="flex items-center justify-between font-label-meter-micro text-label-meter-micro text-error">
+<span>TX: HARD-LOCKED</span>
+<span>MIC: DORMANT</span>
+<span>QUEUE: RESET</span>
+</div>
+</div>
+</div>
+</div>
+<!-- UX Fix Verification & Architectural Blueprint Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm">
+<!-- Spec Card 1: Touch & Focus Ergonomics -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-secondary">
+<span class="material-symbols-outlined text-[18px]">touch_app</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase">WEB-TR-01 &amp; 02 Specs</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Crimson focus ring <code class="text-primary font-label-meter-micro">box-shadow: 0 0 0 3px rgba(229,57,53,0.4)</code> strictly enforced across all inputs. Purged outdated purple/gold styling. Display name input guarantees &gt;48px mobile touch clearance.
+          </p>
+</div>
+<!-- Spec Card 2: Safe PTT Multi-Touch System -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[18px]">fingerprint</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase">WEB-TR-08 PTT Engine</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Thumb-centric 140px target with multi-event safety. Activates strictly on <code class="text-secondary font-label-meter-micro">touchstart/mousedown</code>; auto-disarms on <code class="text-error font-label-meter-micro">touchend, touchcancel, pointerleave</code> to eliminate stuck open hot mics.
+          </p>
+</div>
+<!-- Spec Card 3: Reduced Motion Fallback -->
+<div class="bg-surface-container-low p-space-sm rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-tertiary">
+<span class="material-symbols-outlined text-[18px]">motion_sensor_active</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase">WEB-TR-05 Pulsar</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Smooth multi-layer crimson circular wave radar. Automatically respects <code class="text-tertiary font-label-meter-micro">@media (prefers-reduced-motion)</code> fallback, replacing continuous pulse with static high-contrast neon beacon.
+          </p>
+</div>
+</div>
+<!-- Real-time Telemetry Data Hub & Event Monitor -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-lg flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">monitor_heart</span>
+<span class="font-headline-md text-headline-md text-on-surface font-bold">Live PWA Event Logger</span>
+</div>
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase">LISTENING ON WEBSOCKET</span>
+</div>
+<!-- Monospace Console Log Terminal -->
+<div class="h-32 bg-surface-dim p-space-sm rounded font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant flex flex-col gap-1 overflow-y-auto" id="pwa-event-log">
+<div><span class="text-secondary font-bold">[00:00:01]</span> PWA Service Worker Registered (Cache: mic-v4.2.1)</div>
+<div><span class="text-secondary font-bold">[00:00:02]</span> WebRTC AudioContext: 48,000Hz 24-bit PCM primed</div>
+<div><span class="text-tertiary font-bold">[00:00:03]</span> ICE Candidate gathering complete. RTT: 8ms to AUD-7042 master</div>
+<div><span class="text-primary font-bold">[00:00:04]</span> PTT Safety Layer Active: Multi-pointer listeners bound to #ptt-button</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Client-side Logic for Live Workbench Interactions (PTT, VU Meter simulation, Error Banner, State Matrix Switching) -->
+<script>
+    (function() {
+      // Elements
+      var pttBtn = document.getElementById('ptt-button');
+      var pttRipple = document.getElementById('ptt-ripple');
+      var pttIcon = document.getElementById('ptt-icon');
+      var pttLabel = document.getElementById('ptt-label');
+      var pttStateText = document.getElementById('ptt-state-text');
+      var meterNumeric = document.getElementById('meter-numeric');
+      var clipIndicator = document.getElementById('clip-indicator');
+      var segmentContainer = document.getElementById('segment-bar-container');
+      var segments = segmentContainer ? segmentContainer.querySelectorAll('.segment') : [];
+      var logContainer = document.getElementById('pwa-event-log');
+      var btnSimulate = document.getElementById('btn-simulate-floor');
+      var stateButtons = document.querySelectorAll('.state-btn');
+      var attendeeCard = document.getElementById('attendee-state-card');
+      var stateBadge = document.getElementById('state-badge');
+      var stateTitle = document.getElementById('state-title');
+      var stateMeta = document.getElementById('state-meta');
+      var stateDesc = document.getElementById('state-desc');
+      var errorBanner = document.getElementById('tr04-error-banner');
+      var btnDismissError = document.getElementById('btn-dismiss-error');
+      var btnRetryMic = document.getElementById('btn-retry-mic');
+      var btnJoinStage = document.getElementById('btn-join-stage');
+      var activeRoomTag = document.getElementById('active-room-tag');
+      var roomCodeInput = document.getElementById('room-code-input');
+
+      var isLiveOnAir = false;
+      var isPttDepressed = false;
+      var isSimulating = false;
+      var simInterval = null;
+
+      function addLog(msg, tone) {
+        if (!logContainer) return;
+        var line = document.createElement('div');
+        var now = new Date().toTimeString().split(' ')[0];
+        var toneClass = tone === 'red' ? 'text-primary' : (tone === 'amber' ? 'text-tertiary' : 'text-secondary');
+        line.innerHTML = '<span class="' + toneClass + ' font-bold">[' + now + ']</span> ' + msg;
+        logContainer.appendChild(line);
+        logContainer.scrollTop = logContainer.scrollHeight;
+      }
+
+      // Room code syncer
+      if (roomCodeInput && activeRoomTag) {
+        roomCodeInput.addEventListener('input', function() {
+          activeRoomTag.textContent = this.value || 'AUD-7042';
+        });
+      }
+
+      // Error Banner actions
+      if (btnDismissError && errorBanner) {
+        btnDismissError.addEventListener('click', function() {
+          errorBanner.style.display = 'none';
+          addLog('WEB-TR-04: Audio warning banner dismissed by user.', 'amber');
+        });
+      }
+      if (btnRetryMic && errorBanner) {
+        btnRetryMic.addEventListener('click', function() {
+          errorBanner.classList.add('opacity-50');
+          setTimeout(function() {
+            errorBanner.style.display = 'none';
+            addLog('WEB-TR-04: Microphone permissions granted successfully.', 'green');
+          }, 400);
+        });
+      }
+
+      // State Matrix Switcher
+      function applyState(stateIndex) {
+        stateButtons.forEach(function(b) {
+          b.classList.remove('bg-surface-container-highest', 'text-primary');
+          b.classList.add('text-on-surface-variant');
+        });
+
+        if (stateIndex === 1) { // Standby
+          isLiveOnAir = false;
+          stateBadge.textContent = 'STANDBY';
+          stateBadge.className = 'px-space-xs py-0.5 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-secondary/20 text-secondary';
+          stateTitle.textContent = 'Floor Standby';
+          stateTitle.className = 'font-headline-md text-headline-md font-bold text-on-surface';
+          stateMeta.textContent = 'Tap Join Stage to Queue';
+          stateDesc.textContent = 'You are registered in the room. Audio hardware is calibrated and awaiting stage floor request.';
+          attendeeCard.className = 'bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs transition-all shadow-md';
+          pttIcon.textContent = 'mic';
+          pttIcon.className = 'material-symbols-outlined text-[44px] text-on-surface-variant transition-colors';
+          pttLabel.textContent = 'PRESS & HOLD';
+          pttStateText.textContent = 'AUDIO STANDBY';
+          pttBtn.className = 'w-[140px] h-[140px] rounded-full bg-surface-container-high text-on-surface flex flex-col items-center justify-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] select-none cursor-pointer transition-transform duration-75 active:scale-95 touch-none';
+          addLog('WEB-TR-06: State switched to [1. Standby / Disconnected]', 'green');
+        } else if (stateIndex === 2) { // Queue
+          isLiveOnAir = false;
+          stateBadge.textContent = 'QUEUED #2';
+          stateBadge.className = 'px-space-xs py-0.5 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-tertiary-container text-on-tertiary-container';
+          stateTitle.textContent = 'In Floor Queue (#2)';
+          stateTitle.className = 'font-headline-md text-headline-md font-bold text-tertiary';
+          stateMeta.textContent = 'Estimated: 45s';
+          stateDesc.textContent = 'Floor request acknowledged by audio console director. Stand by for active on-air cue.';
+          attendeeCard.className = 'bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs transition-all shadow-md';
+          pttLabel.textContent = 'QUEUED';
+          pttStateText.textContent = 'WAITING CUE';
+          pttIcon.className = 'material-symbols-outlined text-[44px] text-tertiary transition-colors';
+          addLog('WEB-TR-06: State switched to [2. In Floor Queue]', 'amber');
+        } else if (stateIndex === 3) { // LIVE ON AIR
+          isLiveOnAir = true;
+          stateBadge.textContent = 'ON-AIR LIVE';
+          stateBadge.className = 'px-space-xs py-0.5 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-primary-container text-on-primary-container shadow-[0_0_8px_#ff544c]';
+          stateTitle.textContent = 'ON-AIR BROADCAST';
+          stateTitle.className = 'font-headline-md text-headline-md font-bold text-primary';
+          stateMeta.textContent = 'DSP Path Active';
+          stateDesc.textContent = 'You have the stage floor! Speak clearly. Push and hold the microphone button to transmit live audio.';
+          attendeeCard.className = 'bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs transition-all shadow-md shadow-primary-container/20';
+          pttIcon.textContent = 'record_voice_over';
+          pttIcon.className = 'material-symbols-outlined text-[44px] text-primary transition-colors';
+          pttLabel.textContent = 'TRANSMIT READY';
+          pttStateText.textContent = 'HOLD TO SPEAK';
+          addLog('WEB-TR-06: State switched to [3. ON-AIR LIVE] - PA Feed Live', 'red');
+        } else if (stateIndex === 4) { // Muted / Floor Released
+          isLiveOnAir = false;
+          stateBadge.textContent = 'RELEASED / MUTED';
+          stateBadge.className = 'px-space-xs py-0.5 rounded font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold bg-error-container text-on-error-container';
+          stateTitle.textContent = 'Stage Floor Released';
+          stateTitle.className = 'font-headline-md text-headline-md font-bold text-error';
+          stateMeta.textContent = 'Master Override Engaged';
+          stateDesc.textContent = 'Audio transmit channel has been closed by stage control. Please wait before requesting mic again.';
+          attendeeCard.className = 'bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs transition-all shadow-md';
+          pttIcon.textContent = 'mic_off';
+          pttIcon.className = 'material-symbols-outlined text-[44px] text-error transition-colors';
+          pttLabel.textContent = 'FLOOR CLOSED';
+          pttStateText.textContent = 'TX LOCKED';
+          pttBtn.className = 'w-[140px] h-[140px] rounded-full bg-surface-container-high/60 text-on-surface flex flex-col items-center justify-center gap-1 shadow-none select-none cursor-not-allowed';
+          addLog('WEB-TR-06: State switched to [4. Muted / Floor Released]', 'red');
+        }
+      }
+
+      stateButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var state = parseInt(this.getAttribute('data-select-state'), 10);
+          applyState(state);
+          this.classList.add('bg-surface-container-highest', 'text-primary');
+          this.classList.remove('text-on-surface-variant');
+        });
+      });
+
+      // Join Stage Action Button
+      if (btnJoinStage) {
+        btnJoinStage.addEventListener('click', function() {
+          applyState(2);
+          addLog('WEB-TR-03: Action CTA activated - Floor queue ticket #2 generated', 'amber');
+          setTimeout(function() {
+            applyState(3); // Promote to Live after 2s simulation
+          }, 2400);
+        });
+      }
+
+      // VU Meter Engine Simulation (WEB-TR-07)
+      function renderMeter(level) { // level from 0.0 to 1.0
+        var activeCount = Math.floor(level * segments.length);
+        var db = level === 0 ? -Infinity : Math.round((level * 39) - 36);
+        
+        meterNumeric.textContent = level === 0 ? '-∞ dB' : (db > 0 ? '+' + db + ' dB' : db + ' dB');
+        
+        if (db >= 0) {
+          clipIndicator.className = 'font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-error-container text-on-error-container font-bold uppercase animate-pulse';
+          clipIndicator.textContent = 'OVER +0dB';
+        } else {
+          clipIndicator.className = 'font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold uppercase';
+          clipIndicator.textContent = 'CLIP OK';
+        }
+
+        segments.forEach(function(seg, i) {
+          if (i < activeCount) {
+            if (i >= 21) {
+              seg.className = 'segment bg-primary-container rounded-sm h-full shadow-[0_0_4px_#ff544c]';
+            } else if (i >= 16) {
+              seg.className = 'segment bg-tertiary rounded-sm h-full shadow-[0_0_4px_#ffba38]';
+            } else {
+              seg.className = 'segment bg-secondary rounded-sm h-full';
+            }
+          } else {
+            seg.className = 'segment bg-surface-variant rounded-sm h-full';
+          }
+        });
+      }
+
+      // Simulate Live Mic Activity
+      if (btnSimulate) {
+        btnSimulate.addEventListener('click', function() {
+          isSimulating = !isSimulating;
+          if (isSimulating) {
+            btnSimulate.classList.add('bg-tertiary', 'text-on-tertiary');
+            addLog('WEB-TR-07: Audio Signal Generator active (Sine sweep + random pink noise)', 'green');
+            simInterval = setInterval(function() {
+              var val = isPttDepressed ? (0.4 + Math.random() * 0.58) : (Math.random() * 0.15);
+              renderMeter(val);
+            }, 80);
+          } else {
+            btnSimulate.classList.remove('bg-tertiary', 'text-on-tertiary');
+            clearInterval(simInterval);
+            renderMeter(0);
+            addLog('WEB-TR-07: Audio Signal Generator silenced', 'amber');
+          }
+        });
+      }
+
+      // WEB-TR-08: Safe Push-to-Talk Multi-Touch Handling
+      function activatePTT(e) {
+        if (e) e.preventDefault();
+        isPttDepressed = true;
+        
+        pttBtn.classList.remove('bg-surface-container-high');
+        pttBtn.classList.add('bg-primary-container', 'shadow-[0_0_32px_rgba(255,84,76,0.6)]');
+        pttIcon.classList.remove('text-on-surface-variant');
+        pttIcon.classList.add('text-on-primary-container');
+        pttLabel.classList.remove('text-on-surface-variant');
+        pttLabel.classList.add('text-on-primary-container');
+        pttStateText.classList.remove('text-on-surface-variant/70');
+        pttStateText.classList.add('text-on-primary-container');
+        pttStateText.textContent = 'TRANSMITTING LIVE';
+
+        // Ripple pulse trigger
+        pttRipple.className = 'absolute w-44 h-44 rounded-full bg-primary-container/40 animate-ping pointer-events-none';
+
+        addLog('WEB-TR-08: PTT ENGAGED [' + (e ? e.type : 'manual') + '] -> WebRTC Opus Stream Unmuted', 'red');
+        
+        if (!isSimulating) {
+          renderMeter(0.72);
+        }
+      }
+
+      function disarmPTT(e) {
+        if (!isPttDepressed) return;
+        isPttDepressed = false;
+        
+        pttBtn.classList.remove('bg-primary-container', 'shadow-[0_0_32px_rgba(255,84,76,0.6)]');
+        pttBtn.classList.add('bg-surface-container-high');
+        pttIcon.classList.remove('text-on-primary-container');
+        pttIcon.classList.add('text-on-surface-variant');
+        pttLabel.classList.remove('text-on-primary-container');
+        pttLabel.classList.add('text-on-surface-variant');
+        pttStateText.classList.remove('text-on-primary-container');
+        pttStateText.classList.add('text-on-surface-variant/70');
+        pttStateText.textContent = isLiveOnAir ? 'HOLD TO SPEAK' : 'AUDIO STANDBY';
+
+        pttRipple.className = 'absolute w-40 h-40 rounded-full bg-primary-container/0 transition-all pointer-events-none';
+
+        addLog('WEB-TR-08: PTT DISARMED [' + (e ? e.type : 'safety') + '] -> WebRTC Opus Stream Safe-Muted', 'green');
+        
+        if (!isSimulating) {
+          renderMeter(0);
+        }
+      }
+
+      if (pttBtn) {
+        // Multi-touch & pointer safety matrix
+        pttBtn.addEventListener('mousedown', activatePTT);
+        pttBtn.addEventListener('touchstart', activatePTT, { passive: false });
+        
+        pttBtn.addEventListener('mouseup', disarmPTT);
+        pttBtn.addEventListener('mouseleave', disarmPTT);
+        pttBtn.addEventListener('touchend', disarmPTT);
+        pttBtn.addEventListener('touchcancel', disarmPTT);
+        pttBtn.addEventListener('pointerleave', disarmPTT);
+      }
+
+      // Initial state render
+      renderMeter(0);
+    })();
+  </script>
+</div></main></div></body></html>

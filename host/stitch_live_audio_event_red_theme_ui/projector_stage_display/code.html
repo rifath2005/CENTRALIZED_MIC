@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-primary-container":"#5c0005","secondary-fixed":"#62ff96","surface-container-low":"#1a1c20","surface-dim":"#111317","on-primary-fixed":"#410002","inverse-surface":"#e2e2e8","surface-container":"#1e2024","secondary-fixed-dim":"#00e475","on-tertiary":"#432c00","outline":"#ab8985","on-tertiary-fixed":"#281900","primary-container":"#ff544c","primary-fixed-dim":"#ffb4ac","surface-container-lowest":"#0c0e12","background":"#111317","primary":"#ffb4ac","surface-tint":"#ffb4ac","surface-variant":"#333539","on-secondary-container":"#00622e","outline-variant":"#5b403d","surface":"#111317","error":"#ffb4ab","on-primary-fixed-variant":"#93000d","inverse-on-surface":"#2f3035","secondary-container":"#05e777","on-error":"#690005","inverse-primary":"#bb171c","on-secondary-fixed":"#00210b","surface-container-high":"#282a2e","tertiary-fixed-dim":"#ffba38","on-surface-variant":"#e4beb9","surface-bright":"#37393e","on-tertiary-container":"#3a2600","tertiary-container":"#c08600","primary-fixed":"#ffdad6","on-primary":"#690006","tertiary":"#ffba38","on-background":"#e2e2e8","on-error-container":"#ffdad6","secondary":"#7dffa2","surface-container-highest":"#333539","error-container":"#93000a","on-secondary-fixed-variant":"#005226","on-tertiary-fixed-variant":"#604100","on-surface":"#e2e2e8","on-secondary":"#003918","tertiary-fixed":"#ffdeac"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-lg":"1rem","margin":"0.75rem","margin-desktop":"1.25rem","gutter":"0.5rem","gutter-desktop":"0.75rem","space-sm":"0.5rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem"},"fontFamily":{"headline-xl":["Inter"],"label-telemetry-sm":["JetBrains Mono"],"body-md":["Inter"],"headline-xl-mobile":["Inter"],"body-lg":["Inter"],"label-numeric-md":["JetBrains Mono"],"headline-md":["Inter"],"headline-lg":["Inter"],"headline-lg-mobile":["Inter"],"label-meter-micro":["JetBrains Mono"],"body-sm":["Inter"],"label-numeric-lg":["JetBrains Mono"]},"fontSize":{"headline-xl":["36px",{"lineHeight":"44px","fontWeight":"700"}],"label-telemetry-sm":["11px",{"lineHeight":"14px","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-numeric-md":["14px",{"lineHeight":"18px","fontWeight":"600"}],"headline-md":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","fontWeight":"700"}],"headline-lg-mobile":["20px",{"lineHeight":"28px","fontWeight":"700"}],"label-meter-micro":["9px",{"lineHeight":"10px","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-numeric-lg":["20px",{"lineHeight":"24px","fontWeight":"700"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-error-container selection:text-on-error-container"><header class="fixed top-0 left-0 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-space-md"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-xs"><div class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse shadow-[0_0_8px_#ff544c]"></div><div class="flex flex-col"><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface uppercase tracking-wider font-bold">ON-AIR</span><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">CH-01 FEED</span></div></div><div class="h-6 w-px bg-surface-container-highest"></div><div class="flex items-center gap-space-sm bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-secondary text-[16px]">sensors</span><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase">RTT</span><span class="font-label-numeric-md text-label-numeric-md text-secondary">12ms</span><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant font-bold">| JIT 0.4ms</span></div><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-tertiary text-[16px]">tag</span><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase">ROOM</span><span class="font-label-numeric-md text-label-numeric-md text-tertiary tracking-widest">AUD-704</span></div></div><div class="flex items-center gap-space-md"><button class="flex items-center gap-space-xs px-space-md py-space-xs rounded bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-colors active:translate-y-px" type="button"><span class="material-symbols-outlined text-[18px]">mic_off</span><span class="font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wide">PANIC MUTE ALL</span></button><div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-space-xs rounded"><span class="material-symbols-outlined text-on-surface-variant text-[16px]">schedule</span><span class="font-label-numeric-md text-label-numeric-md text-on-surface tracking-wider">01:42:18.04</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md px-space-xs shadow-[1px_0_12px_rgba(0,0,0,0.5)]"><div class="flex flex-col gap-space-md"><div class="px-space-sm pb-space-xs"><div class="flex items-center gap-space-xs text-primary"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-headline-md text-headline-md font-bold tracking-tight uppercase">STAGE PULSE</span></div><span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant tracking-wider uppercase">BROADCAST CONSOLE 4.2</span></div><nav class="flex flex-col gap-space-xs px-space-xs" data-active-classes="bg-surface-container-high text-primary font-bold"><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="operator-console" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">tune</span><span class="font-body-md text-body-md">Operator Console</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-secondary uppercase">MAIN</span></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="transmitter-preview" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">podcasts</span><span class="font-body-md text-body-md">Transmitter Preview</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-tertiary uppercase">PFL</span></a><a aria-current="page" class="flex items-center justify-between px-space-sm py-space-sm rounded transition-all bg-surface-container-high text-primary font-bold" data-path="stage-display" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">stadium</span><span class="font-body-md text-body-md">Auditorium Stage</span></div><span class="font-label-meter-micro text-label-meter-micro px-1 py-0.5 rounded bg-surface-container-highest text-on-surface-variant uppercase">OUT</span></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="matrix-routing" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">alt_route</span><span class="font-body-md text-body-md">Matrix Routing</span></div></a><a class="flex items-center justify-between px-space-sm py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="telemetry-diagnostics" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">vital_signs</span><span class="font-body-md text-body-md">Telemetry &amp; Dante</span></div></a></nav></div><div class="flex flex-col gap-space-xs px-space-sm"><div class="bg-surface-container-low p-space-sm rounded flex flex-col gap-space-xs"><div class="flex items-center justify-between"><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">CLOCK SYNC</span><span class="font-label-meter-micro text-label-meter-micro text-secondary uppercase font-bold">PTP LOCKED</span></div><div class="flex items-center justify-between"><span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase">DANTE RX</span><span class="font-label-numeric-md text-label-numeric-md text-on-surface">48 kHz / 24b</span></div></div><a class="flex items-center gap-space-sm px-space-sm py-space-xs text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors" data-path="broadcast-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span><span class="font-body-sm text-body-sm">Global Settings</span></a></div></aside><div class="pl-64"><main class="w-full min-h-screen pt-16 bg-surface"><div class="flex flex-col w-full text-on-surface">
+<!-- Mode Controls Bar (Stage Tech Utility - Top Corner Floater) -->
+<div class="w-full bg-surface-container-lowest px-margin-desktop py-space-sm flex items-center justify-between shadow-md">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-space-xs rounded">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-secondary uppercase tracking-widest font-bold">STAGE REPEATER :: AUD-704</span>
+</div>
+<div class="hidden md:flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">visibility</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase">100FT PROJECTOR SPEC (CALIBRATED NIT 850)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<!-- High-Contrast Bright Hall Ambient Toggle -->
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded bg-surface-container-high text-on-surface hover:bg-surface-bright transition-all active:scale-95 shadow-sm" id="contrastToggle">
+<span class="material-symbols-outlined text-[18px]" id="contrastIcon">wb_sunny</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold" id="contrastLabel">High-Glare Mode: OFF</span>
+</button>
+<!-- Emergency Stage Intercept Trigger -->
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-all active:scale-95 shadow-md" id="panicToggle">
+<span class="material-symbols-outlined text-[18px]">warning</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold">Simulate Emergency Broadcast</span>
+</button>
+</div>
+</div>
+<!-- EMERGENCY BROADCAST OVERLAY (WEB-ST-06) -->
+<div class="hidden w-full bg-error text-on-error p-space-lg shadow-xl relative overflow-hidden transition-all duration-300" id="emergencyBanner">
+<div class="flex flex-col lg:flex-row items-center justify-between gap-space-md relative z-10">
+<div class="flex items-center gap-space-lg">
+<div class="w-14 h-14 rounded bg-on-error flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-error text-[36px]" style="font-variation-settings: 'FILL' 1;">error</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-lg text-headline-lg uppercase font-bold tracking-tight">STAGE PRIORITY OVERRIDE :: ALL INPUTS INHIBITED</span>
+<span class="font-label-numeric-lg text-label-numeric-lg text-on-error uppercase font-bold tracking-wider">ALL MICS SILENCED BY STAGE MANAGER — STAND BY FOR DIRECTIVES</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md flex-shrink-0">
+<div class="px-space-md py-space-xs rounded bg-surface-container-lowest text-primary font-label-numeric-lg text-label-numeric-lg tracking-widest font-bold">
+          LOCKOUT: 00:48s
+        </div>
+<button class="px-space-md py-space-xs rounded bg-on-error text-error font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold hover:opacity-90" id="dismissAlert">
+          Acknowledge
+        </button>
+</div>
+</div>
+</div>
+<!-- MAIN PROJECTOR CANVAS (100FT VISIBILITY OPTIMIZED) -->
+<div class="w-full p-margin-desktop flex flex-col gap-space-xl transition-colors duration-200" id="displayContainer">
+<!-- TOP SECTION: GIANT PIN & AUDIENCE ACCESS (WEB-ST-01, WEB-ST-02) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-stretch">
+<!-- GIANT PIN PANEL -->
+<div class="lg:col-span-8 bg-surface-container-low rounded-xl p-space-xl flex flex-col justify-between shadow-xl relative overflow-hidden">
+<div class="flex items-center justify-between z-10">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[28px]" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="font-headline-md text-headline-md uppercase tracking-wider text-on-surface">Auditorium Key &amp; Q&amp;A Session</span>
+</div>
+<span class="font-label-meter-micro text-label-meter-micro px-space-sm py-space-xs rounded bg-surface-container-highest text-secondary uppercase tracking-widest font-bold">
+            LATENCY BUFFER: 0.8ms
+          </span>
+</div>
+<!-- Ultra-Large Room Code for 100ft Readability -->
+<div class="my-space-lg z-10">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-on-surface-variant uppercase tracking-widest block mb-space-xs">Interactive Room Passcode</span>
+<div class="font-label-numeric-lg text-[64px] sm:text-[96px] lg:text-[112px] leading-none tracking-[0.12em] font-bold text-tertiary select-all">
+            AUD-7042
+          </div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-md z-10 pt-space-md bg-surface-container/60 -mx-space-xl -mb-space-xl px-space-xl py-space-md rounded-b-xl">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[24px]">wifi</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold text-on-surface">Network: <span class="text-secondary font-label-numeric-md text-label-numeric-md">Auditorium_HighSpeed_5G</span></span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">verified_user</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase text-on-surface-variant">SSID Auth: Open Gateway | Port 8080 SSL</span>
+</div>
+</div>
+</div>
+<!-- HIGH-DENSITY HIGH-CONTRAST QR CODE (WEB-ST-02) -->
+<div class="lg:col-span-4 bg-surface-container-low rounded-xl p-space-lg flex flex-col items-center justify-between shadow-xl text-center">
+<div class="flex items-center gap-space-xs text-on-surface-variant mb-space-xs">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase tracking-wider font-bold">Instant Stage Join</span>
+</div>
+<!-- 300x300 Pro Scaled QR Visual -->
+<div class="p-space-sm bg-white rounded-lg shadow-md my-space-xs flex items-center justify-center">
+<svg class="w-56 h-56 sm:w-64 sm:h-64" fill="none" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<!-- Precise SVG QR Code pattern for ultra-sharp projection scan -->
+<rect fill="#FFFFFF" height="200" width="200"></rect>
+<!-- Top-Left Target -->
+<rect fill="#0C0E12" height="50" rx="4" width="50" x="15" y="15"></rect>
+<rect fill="#FFFFFF" height="34" rx="2" width="34" x="23" y="23"></rect>
+<rect fill="#0C0E12" height="18" rx="2" width="18" x="31" y="31"></rect>
+<!-- Top-Right Target -->
+<rect fill="#0C0E12" height="50" rx="4" width="50" x="135" y="15"></rect>
+<rect fill="#FFFFFF" height="34" rx="2" width="34" x="143" y="23"></rect>
+<rect fill="#0C0E12" height="18" rx="2" width="18" x="151" y="31"></rect>
+<!-- Bottom-Left Target -->
+<rect fill="#0C0E12" height="50" rx="4" width="50" x="15" y="135"></rect>
+<rect fill="#FFFFFF" height="34" rx="2" width="34" x="23" y="143"></rect>
+<rect fill="#0C0E12" height="18" rx="2" width="18" x="31" y="151"></rect>
+<!-- High density data pixels -->
+<rect fill="#0C0E12" height="10" width="10" x="75" y="18"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="95" y="18"></rect>
+<rect fill="#0C0E12" height="10" width="10" x="115" y="18"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="75" y="38"></rect>
+<rect fill="#0C0E12" height="10" width="10" x="105" y="38"></rect>
+<rect fill="#0C0E12" height="30" width="10" x="75" y="58"></rect>
+<rect fill="#0C0E12" height="10" width="30" x="95" y="68"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="18" y="75"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="48" y="75"></rect>
+<rect fill="#0C0E12" height="30" width="10" x="18" y="95"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="38" y="105"></rect>
+<!-- Center Matrix Core -->
+<rect fill="#0C0E12" height="20" width="20" x="75" y="95"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="105" y="95"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="105" y="115"></rect>
+<rect fill="#0C0E12" height="20" width="20" x="125" y="105"></rect>
+<rect fill="#0C0E12" height="30" width="10" x="85" y="125"></rect>
+<rect fill="#0C0E12" height="20" width="20" x="75" y="165"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="105" y="155"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="135" y="145"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="165" y="145"></rect>
+<rect fill="#0C0E12" height="20" width="20" x="135" y="165"></rect>
+<rect fill="#0C0E12" height="10" width="20" x="165" y="175"></rect>
+<rect fill="#0C0E12" height="20" width="20" x="145" y="75"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="175" y="85"></rect>
+<rect fill="#0C0E12" height="20" width="10" x="135" y="105"></rect>
+</svg>
+</div>
+<div class="bg-surface-container px-space-md py-space-xs rounded-full shadow-sm mt-space-xs">
+<span class="font-body-sm text-body-sm text-on-surface uppercase tracking-wide font-bold">
+            Scan to ask question or join queue
+          </span>
+</div>
+</div>
+</div>
+<!-- MIDDLE SECTION: CURRENT ACTIVE SPEAKER CARD (WEB-ST-03) -->
+<div class="w-full bg-surface-container-low rounded-xl p-space-xl shadow-xl flex flex-col gap-space-lg relative overflow-hidden">
+<!-- On-Air Status Header Bar -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="px-space-md py-space-xs rounded bg-primary-container text-on-primary-container flex items-center gap-space-xs shadow-md">
+<span class="w-3 h-3 rounded-full bg-on-primary-container animate-ping"></span>
+<span class="font-headline-md text-headline-md uppercase tracking-wider font-bold">LIVE ON-AIR</span>
+</div>
+<div class="px-space-md py-space-xs rounded bg-surface-container text-secondary font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold tracking-widest">
+            DIRECT CHANNEL 01 :: WIRELESS MIC A
+          </div>
+</div>
+<!-- Big Elapsed Clock for the Speaker to Track Pace -->
+<div class="flex items-center gap-space-sm bg-surface-container px-space-lg py-space-xs rounded-xl shadow-inner">
+<span class="material-symbols-outlined text-primary text-[28px]">timer</span>
+<div class="flex flex-col">
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase tracking-wider">SPEAKING WINDOW REMAINING</span>
+<span class="font-label-numeric-lg text-[32px] sm:text-[40px] leading-none text-primary font-bold tracking-wider" id="speakerTimer">07:14</span>
+</div>
+</div>
+</div>
+<!-- Massive Speaker Identification Panel -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center pt-space-xs">
+<!-- Speaker Avatar & Photo Presence -->
+<div class="lg:col-span-3 flex justify-center lg:justify-start">
+<div class="relative w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden bg-surface-container-high shadow-xl flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="High-contrast front portrait of Marcus Reed, an authoritative senior architect with glasses, captured with sharp dramatic stage rim-lighting, black backdrop, deep crimson and amber ambient glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDO3D0CdPuiyzH2nv0ItPFhEJU_kW8hQOzXczZzP7zPDcHPKZYT4eOkMFMnZlP3Llk-GIfGq2c0gGSjsdFlBPF55UPtFvqVIdY9q-pv25Vxl8fdpUuk19AqfhxT8gDPVI9ziPkmeRoDQie_zZhIkKFGX45azIjlpauSej7jNaY6RxjGRJYEr4Sp7DmUMGDoAG87n5IPiRDMcdydNHv3qOknuLmEu6npQtbWZAsxNa45E8-p2cxftKHUgw"/>
+<div class="absolute bottom-2 left-2 bg-surface-container-lowest/90 px-space-sm py-space-xs rounded font-label-meter-micro text-label-meter-micro text-secondary uppercase font-bold tracking-widest">
+              PODIUM POSITION A
+            </div>
+</div>
+</div>
+<!-- Speaker Credentials & Topic Block -->
+<div class="lg:col-span-9 flex flex-col gap-space-xs min-w-0">
+<span class="font-label-telemetry-sm text-label-telemetry-sm text-primary uppercase font-bold tracking-widest">CURRENT KEYNOTE PRESENTER</span>
+<h1 class="font-headline-xl text-[42px] sm:text-[60px] lg:text-[76px] leading-[1.05] font-bold text-on-surface tracking-tight truncate">
+            Marcus Reed
+          </h1>
+<div class="flex flex-wrap items-center gap-space-sm pt-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface-variant">Principal Systems Architect</span>
+<span class="w-1.5 h-1.5 rounded-full bg-surface-container-highest"></span>
+<span class="font-headline-md text-headline-md text-tertiary">Global Infrastructure Lab</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-4xl pt-space-xs line-clamp-2">
+            Session: "Zero-Latency Real-Time Telemetry Arrays &amp; Resilience Protocols in Master Live Broadcast Systems"
+          </p>
+</div>
+</div>
+<!-- LIVE PROJECTOR VU AUDIO LEVEL METER (WEB-ST-04) -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-inner flex flex-col gap-space-sm mt-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">graphic_eq</span>
+<span class="font-label-telemetry-sm text-label-telemetry-sm uppercase font-bold tracking-wider text-on-surface">Stage Mic Level :: Audio Envelope (48-Segment Array)</span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-numeric-md text-label-numeric-md text-secondary" id="dbReadout">-6.2 dBFS</span>
+<span class="font-label-meter-micro text-label-meter-micro px-1.5 py-0.5 rounded bg-surface-container-high text-primary font-bold">PEAK HOLD: -1.4 dB</span>
+</div>
+</div>
+<!-- Massive 48-Segment Meter Ladder for Visible Stage Wings Monitoring -->
+<div class="w-full h-9 bg-surface-container-high rounded p-1 flex items-center gap-1 shadow-inner overflow-hidden" id="meterLadder">
+<!-- Dynamically populated 48 segments for rich tactile feeling -->
+</div>
+<!-- Scale markers -->
+<div class="flex justify-between font-label-meter-micro text-label-meter-micro text-on-surface-variant px-1 font-bold">
+<span>-∞ dB</span>
+<span>-36 dB</span>
+<span>-24 dB</span>
+<span>-18 dB</span>
+<span>-12 dB (NOMINAL)</span>
+<span>-6 dB</span>
+<span>-2 dB</span>
+<span class="text-primary-container">0 dB (PEAK CLIP)</span>
+</div>
+</div>
+</div>
+<!-- BOTTOM SECTION: UPCOMING QUEUE PREVIEW & AUDIENCE INTERACTION (WEB-ST-05) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Next Up & On Deck Queue Cards -->
+<div class="lg:col-span-8 bg-surface-container-low rounded-xl p-space-xl shadow-xl flex flex-col justify-between">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[24px]">queue_music</span>
+<span class="font-headline-md text-headline-md uppercase tracking-wider text-on-surface font-bold">Speaker Stage Queue (Upcoming)</span>
+</div>
+<span class="font-label-numeric-md text-label-numeric-md px-space-sm py-space-xs rounded bg-surface-container text-secondary font-bold">
+            3 IN ROTATION
+          </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Next Up Priority 01 -->
+<div class="bg-surface-container rounded-lg p-space-lg flex flex-col justify-between shadow-md relative overflow-hidden">
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-space-sm py-space-xs rounded bg-secondary-container text-on-secondary-container font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wider">
+                NEXT UP (QUEUE #1)
+              </span>
+<span class="font-label-numeric-md text-label-numeric-md text-secondary font-bold">EST: ~3 MIN</span>
+</div>
+<div class="flex items-center gap-space-md my-space-sm">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container-high flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Portrait photo of Elena Vance, head of broadcast networking, wearing professional navy studio attire with high clarity studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZmV4WGqpULCmg5RVi7jqgqiCfybHzdLsPijSWdFcbiwQWWLUha1RwLOXIZh79w1n04hLV8WvOfQVqAcRWruodr8JzBdtFjkDn9Y9MIkKTqjVWLkAxX2xeS5qqeD4ANVMwAakdzYyrX74QC9uQECP38q-HwlzsyUtL4vTY0PCZFcIo43XVYsiToMMutp_dj5Ce9EG_a96dH1krd8XPKI8PjIbNU0uuiiEkolj8r5B-Cv2c4hhC2Crjxw"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md font-bold text-on-surface truncate">Elena Vance</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">VP Broadcast Automation</span>
+<span class="font-label-meter-micro text-label-meter-micro text-secondary font-bold uppercase mt-space-xs">MIC B :: TRANSMITTER ARMED</span>
+</div>
+</div>
+<div class="pt-space-xs text-on-surface-variant font-body-sm text-body-sm truncate">
+              Topic: "Dante AES67 Failover Topologies"
+            </div>
+</div>
+<!-- On Deck Priority 02 -->
+<div class="bg-surface-container rounded-lg p-space-lg flex flex-col justify-between shadow-md relative overflow-hidden">
+<div class="flex items-center justify-between mb-space-sm">
+<span class="px-space-sm py-space-xs rounded bg-surface-container-highest text-on-surface font-label-telemetry-sm text-label-telemetry-sm font-bold uppercase tracking-wider">
+                ON DECK (QUEUE #2)
+              </span>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface-variant font-bold">EST: ~15 MIN</span>
+</div>
+<div class="flex items-center gap-space-md my-space-sm">
+<div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container-high flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Portrait photo of Dr. K. Aris, senior telecommunications researcher, speaking with confidence against dark slate architectural background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWDjENncE4nNED0LSyjOBGxomMHeedisPOvBy-5IzT-ww1rodPyK1tUrTewxjgpiLZbfb7DY5sonBGRJrblHQSyrMDd-6BxonK6WVK_FoEQuKZapD6OVyKj0G3U4u5RpxkZAs_vVm4y8vr_F5k2ltUbSOz-ZDO-FFH9mSHNKoO9cm9jv_Wp3hmMb47deolLgmYFYKtoOOghbupQlFL7Ab1J3jLVWJkMxa23jZgfj31FOFqhoC6KvamZg"/>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-md text-headline-md font-bold text-on-surface truncate">Dr. K. Aris</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Lead RF Diagnostics</span>
+<span class="font-label-meter-micro text-label-meter-micro text-tertiary font-bold uppercase mt-space-xs">MIC C :: STANDBY IN WINGS</span>
+</div>
+</div>
+<div class="pt-space-xs text-on-surface-variant font-body-sm text-body-sm truncate">
+              Topic: "Microwave Band Interference in Arenas"
+            </div>
+</div>
+</div>
+</div>
+<!-- Stage Telemetry & Audience Question Pulse -->
+<div class="lg:col-span-4 bg-surface-container-low rounded-xl p-space-xl shadow-xl flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-space-md">
+<span class="font-headline-md text-headline-md font-bold uppercase tracking-wider text-on-surface">Audience Pulse</span>
+<div class="flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded text-tertiary">
+<span class="material-symbols-outlined text-[16px]">how_to_vote</span>
+<span class="font-label-numeric-md text-label-numeric-md">482 LIVE</span>
+</div>
+</div>
+<!-- Dynamic Question Leader -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs shadow-inner">
+<div class="flex items-center justify-between">
+<span class="font-label-meter-micro text-label-meter-micro text-tertiary uppercase font-bold tracking-wider">TOP UPVOTED QUESTION (#1)</span>
+<span class="font-label-numeric-md text-label-numeric-md text-tertiary font-bold">+148 VOTES</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface font-semibold pt-1">
+              "How does Stage Pulse handle packet loss during unmanaged Dante switch storms?"
+            </p>
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant">Submitted from Floor Mic Section 3</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-md bg-surface-container/30 rounded-lg p-space-sm mt-space-md">
+<div class="flex flex-col">
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase font-bold">STAGE MONITORS</span>
+<span class="font-label-numeric-md text-label-numeric-md text-secondary">ACTIVE 88 dBA</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-meter-micro text-label-meter-micro text-on-surface-variant uppercase font-bold">PROJECTOR REFRESH</span>
+<span class="font-label-numeric-md text-label-numeric-md text-on-surface">120 Hz SYNCED</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function () {
+    // 1. Generate 48-Segment Segmented VU Meter for Projector Stage Rig
+    const meterContainer = document.getElementById('meterLadder');
+    const dbReadout = document.getElementById('dbReadout');
+    const totalSegments = 48;
+    const segmentEls = [];
+
+    if (meterContainer) {
+      meterContainer.innerHTML = '';
+      for (let i = 0; i < totalSegments; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'flex-1 h-full rounded-xs transition-opacity duration-75';
+        
+        // Phosphor coloring rules per design spec
+        // 0 to 32 (-infinity to -12 dB): Phosphor Green (secondary-fixed-dim / #00e475)
+        // 33 to 42 (-12 to -2 dB): Amber Caution (tertiary / #ffba38)
+        // 43 to 48 (-2 dB to +3 dB clip): Crimson Alert (primary-container / #ff544c)
+        if (i < 32) {
+          seg.style.backgroundColor = '#00e475';
+        } else if (i < 42) {
+          seg.style.backgroundColor = '#ffba38';
+        } else {
+          seg.style.backgroundColor = '#ff544c';
+        }
+        
+        seg.style.opacity = '0.15';
+        meterContainer.appendChild(seg);
+        segmentEls.push(seg);
+      }
+    }
+
+    // Live Audio Simulation loop for Stage Display
+    let currentLevel = 28;
+    setInterval(() => {
+      // Natural speech rhythm with modulation
+      const target = Math.floor(Math.random() * 22) + 18 + (Math.random() > 0.85 ? 10 : 0);
+      currentLevel += (target - currentLevel) * 0.35;
+      
+      const activeCount = Math.min(totalSegments, Math.max(2, Math.round(currentLevel)));
+      
+      segmentEls.forEach((el, index) => {
+        if (index <= activeCount) {
+          el.style.opacity = '1';
+          el.style.boxShadow = index > 42 ? '0 0 6px #ff544c' : (index > 32 ? '0 0 4px #ffba38' : '0 0 3px #00e475');
+        } else {
+          el.style.opacity = '0.15';
+          el.style.boxShadow = 'none';
+        }
+      });
+
+      // Calculate approximate dBFS readout
+      if (dbReadout) {
+        const dB = ((activeCount / totalSegments) * 48 - 48).toFixed(1);
+        dbReadout.textContent = (dB > -0.5 ? '0.0' : dB) + ' dBFS';
+      }
+    }, 90);
+
+    // 2. Countdown Clock simulation
+    let secondsLeft = 7 * 60 + 14;
+    const timerEl = document.getElementById('speakerTimer');
+    setInterval(() => {
+      if (secondsLeft > 0) {
+        secondsLeft--;
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        if (timerEl) {
+          timerEl.textContent = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+      }
+    }, 1000);
+
+    // 3. High-Contrast Bright Room Toggle (WEB-ST-01 / WEB-ST-06)
+    const contrastBtn = document.getElementById('contrastToggle');
+    const contrastIcon = document.getElementById('contrastIcon');
+    const contrastLabel = document.getElementById('contrastLabel');
+    const displayContainer = document.getElementById('displayContainer');
+    let isHighContrast = false;
+
+    if (contrastBtn && displayContainer) {
+      contrastBtn.addEventListener('click', () => {
+        isHighContrast = !isHighContrast;
+        if (isHighContrast) {
+          displayContainer.classList.add('bg-white');
+          displayContainer.classList.remove('bg-surface');
+          contrastIcon.textContent = 'wb_incandescent';
+          contrastLabel.textContent = 'High-Glare Mode: ON (NIT MAX)';
+          contrastBtn.classList.add('bg-primary-container', 'text-on-primary-container');
+        } else {
+          displayContainer.classList.remove('bg-white');
+          contrastIcon.textContent = 'wb_sunny';
+          contrastLabel.textContent = 'High-Glare Mode: OFF';
+          contrastBtn.classList.remove('bg-primary-container', 'text-on-primary-container');
+        }
+      });
+    }
+
+    // 4. Emergency Stage Alert Toggle (WEB-ST-06)
+    const panicBtn = document.getElementById('panicToggle');
+    const emergencyBanner = document.getElementById('emergencyBanner');
+    const dismissAlert = document.getElementById('dismissAlert');
+
+    if (panicBtn && emergencyBanner) {
+      panicBtn.addEventListener('click', () => {
+        emergencyBanner.classList.toggle('hidden');
+      });
+    }
+    if (dismissAlert && emergencyBanner) {
+      dismissAlert.addEventListener('click', () => {
+        emergencyBanner.classList.add('hidden');
+      });
+    }
+  })();
+</script></main></div></body></html>
