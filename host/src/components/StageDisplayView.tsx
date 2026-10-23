@@ -24,6 +24,24 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
   const [isHighContrast, setIsHighContrast] = useState<boolean>(false);
   const [copied, setCopied] = useState(false);
   const [elapsedSpeakerSeconds, setElapsedSpeakerSeconds] = useState(0);
+  const [dynamicQrSize, setDynamicQrSize] = useState<number>(480);
+
+  // Dynamic QR resize listener
+  useEffect(() => {
+    const handleResize = () => {
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
+      if (vw < 768) {
+        setDynamicQrSize(Math.min(vw - 64, 320));
+      } else {
+        const target = Math.min(Math.floor(vh * 0.58), Math.floor(vw * 0.42), 520);
+        setDynamicQrSize(Math.max(340, target));
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Sync fullscreen state
   useEffect(() => {
@@ -232,18 +250,21 @@ export const StageDisplayView: React.FC<StageDisplayViewProps> = ({
             <div
               style={{
                 ...styles.qrFrame,
-                backgroundColor: isHighContrast ? '#ffffff' : redTheme.colors.bgDeepest,
+                backgroundColor: '#ffffff',
                 borderColor: isHighContrast ? '#be123c' : redTheme.colors.primary,
-                boxShadow: isHighContrast ? '0 12px 30px rgba(190, 18, 60, 0.2)' : redTheme.shadows.glowPrimary,
+                boxShadow: isHighContrast
+                  ? '0 12px 30px rgba(190, 18, 60, 0.2)'
+                  : '0 0 60px rgba(239, 68, 68, 0.25)',
+                padding: '24px',
               }}
             >
               <QRCodeSVG
                 value={webTransmitterUrl}
-                size={260}
-                bgColor={isHighContrast ? '#ffffff' : redTheme.colors.bgDeepest}
-                fgColor={isHighContrast ? '#881337' : redTheme.colors.accentBright}
+                size={dynamicQrSize}
+                bgColor="#ffffff"
+                fgColor="#000000"
                 level="Q"
-                includeMargin={false}
+                includeMargin={true}
               />
             </div>
             <span
@@ -599,15 +620,18 @@ const styles: Record<string, React.CSSProperties> = {
   },
   codeBanner: {
     border: '2px solid',
-    borderRadius: '14px',
-    padding: '12px 28px',
-    display: 'inline-block',
+    borderRadius: '20px',
+    padding: '16px 36px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bigCodeText: {
-    fontSize: '42px',
+    fontSize: 'clamp(52px, 6vw, 84px)',
     fontWeight: 900,
-    letterSpacing: '6px',
+    letterSpacing: '8px',
     fontFamily: 'monospace',
+    lineHeight: '1',
   },
   copyCodeBtn: {
     border: '1px solid',

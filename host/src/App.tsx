@@ -10,6 +10,7 @@ import { StageDisplayView } from './components/StageDisplayView';
 import { TransmitterPreviewView } from './components/TransmitterPreviewView';
 import { AudioDspConfigView } from './components/AudioDspConfigView';
 import { SettingsNetworkView } from './components/SettingsNetworkView';
+import { FullScreenQrModal } from './components/FullScreenQrModal';
 
 export type HostViewMode = 'console' | 'stage' | 'transmitter' | 'dsp' | 'settings';
 
@@ -24,6 +25,7 @@ export default function App() {
   const [tokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
   const [roomName, setRoomName] = useState('STG-709');
   const [activeView, setActiveView] = useState<HostViewMode>('console');
+  const [isFullScreenQrOpen, setIsFullScreenQrOpen] = useState(false);
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [volume, setVolume] = useState(0.75);
   const [gainTrim, setGainTrim] = useState(0);
@@ -278,161 +280,175 @@ export default function App() {
       <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* ON-AIR Status Pill */}
-          <div className="flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834] shadow-inner">
-            <div className="relative flex items-center justify-center">
-              <span className={`absolute w-3.5 h-3.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] animate-ping opacity-75' : 'bg-[#10b981]/40'}`} />
-              <span className={`relative w-2.5 h-2.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#10b981]'}`} />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
-                  {currentSpeaker ? 'ON-AIR' : 'STANDBY'}
-                </span>
-                <span className="px-1 py-0.2 rounded bg-[#181d28] text-[8px] font-mono text-[#10b981] font-bold uppercase">
-                  LIVE
-                </span>
+      {activeView !== 'stage' && (
+        <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* ON-AIR Status Pill */}
+            <div className="flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834] shadow-inner">
+              <div className="relative flex items-center justify-center">
+                <span className={`absolute w-3.5 h-3.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] animate-ping opacity-75' : 'bg-[#10b981]/40'}`} />
+                <span className={`relative w-2.5 h-2.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#10b981]'}`} />
               </div>
-              <span className="text-[9px] font-mono text-[#94a3b8] uppercase tracking-wider truncate max-w-[140px]">
-                {currentSpeaker ? currentSpeaker.name : 'CH-01 FEED • MAIN STAGE'}
-              </span>
-            </div>
-          </div>
-
-          <div className="h-6 w-px bg-[#222834]" />
-
-          {/* RTT & PTP Telemetry */}
-          <div className="hidden sm:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
-            <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">RTT</span>
-                <span className="text-[12px] font-mono text-[#10b981] font-bold">&lt; 300ms</span>
-              </div>
-              <span className="text-[9px] font-mono text-[#64748b]">JIT 0.4ms • PTP LOCK</span>
-            </div>
-          </div>
-
-          {/* Room Target Pill */}
-          <div className="flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
-            <span className="material-symbols-outlined text-[#f59e0b] text-[18px]">meeting_room</span>
-            <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">ROOM TARGET</span>
-              {isEditingRoom ? (
-                <div className="flex items-center gap-1 mt-0.5">
-                  <input
-                    type="text"
-                    value={tempRoomInput}
-                    onChange={(e) => setTempRoomInput(e.target.value.toUpperCase())}
-                    className="w-24 bg-[#181d28] border border-[#f59e0b] rounded px-1 py-0.5 text-xs font-mono font-bold text-white uppercase outline-none"
-                    autoFocus
-                  />
-                  <button onClick={handleSaveRoomCode} className="text-[9px] font-mono bg-[#f59e0b] text-[#1a1000] px-1 py-0.5 rounded font-bold">
-                    ✓
-                  </button>
-                  <button onClick={() => setIsEditingRoom(false)} className="text-[9px] font-mono bg-[#181d28] text-[#94a3b8] px-1 py-0.5 rounded">
-                    ✕
-                  </button>
-                </div>
-              ) : (
+              <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => { setTempRoomInput(roomName); setIsEditingRoom(true); }}
-                    className="text-[12px] font-mono text-[#f59e0b] font-bold tracking-wider hover:underline text-left flex items-center gap-1"
-                    title="Click to switch room code"
-                  >
-                    <span>{roomName}</span>
-                    <span className="text-[10px] text-[#64748b]">✏️</span>
-                  </button>
-                  <button
-                    onClick={handleCopyCode}
-                    className="text-[#64748b] hover:text-[#f59e0b] transition-colors p-0.5 rounded"
-                    title="Copy room code"
-                    type="button"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">
-                      {copiedRoomCode ? 'check' : 'content_copy'}
-                    </span>
-                  </button>
+                  <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
+                    {currentSpeaker ? 'ON-AIR' : 'STANDBY'}
+                  </span>
+                  <span className="px-1 py-0.2 rounded bg-[#181d28] text-[8px] font-mono text-[#10b981] font-bold uppercase">
+                    LIVE
+                  </span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Dante Audio Format */}
-          <div className="hidden xl:flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
-            <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">sync_alt</span>
-            <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">DANTE RX</span>
-              <span className="text-[12px] font-mono text-[#f1f5f9] font-semibold">48 kHz / 24b</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Header Right: Safety Interlock + Stopwatch + Operator Profile */}
-        <div className="flex items-center gap-3">
-          {/* Guarded Panic Cut Cluster */}
-          <div className="flex items-center bg-[#10141c] p-1 rounded-lg border border-[#222834] shadow-inner">
-            <button
-              onClick={handleToggleSafetyArm}
-              className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
-                isSafetyArmed
-                  ? 'bg-[#f59e0b] text-[#1a1000] shadow-[0_0_8px_#f59e0b]'
-                  : 'bg-[#181d28] hover:bg-[#202530] text-[#94a3b8]'
-              }`}
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">shield</span>
-              <span>{isSafetyArmed ? 'ARMED (5s)' : 'ARM CUT'}</span>
-            </button>
-
-            <button
-              onClick={handleTriggerPanicMute}
-              disabled={!isSafetyArmed && !isEmergencyMuted}
-              className={`ml-1 px-3 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
-                isEmergencyMuted
-                  ? 'bg-[#ef4444] text-white shadow-[0_0_14px_#ef4444] animate-pulse cursor-pointer'
-                  : isSafetyArmed
-                  ? 'bg-[#dc2626] text-white hover:bg-[#ef4444] cursor-pointer shadow-[0_0_10px_#ef4444]'
-                  : 'bg-[#181d28] opacity-50 cursor-not-allowed text-[#64748b]'
-              }`}
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px] text-white">mic_off</span>
-              <span className="tracking-wider text-white">
-                {isEmergencyMuted ? 'UNMUTE PA' : 'PANIC MUTE'}
-              </span>
-            </button>
-          </div>
-
-          {/* Broadcast Elapsed Timer */}
-          <div className="hidden md:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
-            <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">timer</span>
-            <div className="flex flex-col">
-              <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">BROADCAST TIME</span>
-              <span className="text-[12px] font-mono text-[#f1f5f9] font-bold tracking-wider">
-                {formatTimerClock(broadcastSeconds)}
-              </span>
-            </div>
-          </div>
-
-          {/* Operator Avatar Indicator */}
-          <div className="flex items-center gap-1 pl-1">
-            <div className="relative flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full bg-[#181d28] border border-slate-700 flex items-center justify-center shadow">
-                <span className="material-symbols-outlined text-slate-300 text-[18px]">person</span>
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase tracking-wider truncate max-w-[140px]">
+                  {currentSpeaker ? currentSpeaker.name : 'CH-01 FEED • MAIN STAGE'}
+                </span>
               </div>
-              <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#080a0e] ${
-                isConnected ? 'bg-[#10b981] shadow-[0_0_6px_#10b981]' : 'bg-[#64748b]'
-              }`} />
+            </div>
+
+            <div className="h-6 w-px bg-[#222834]" />
+
+            {/* RTT & PTP Telemetry */}
+            <div className="hidden sm:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+              <span className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_6px_#10b981]" />
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">RTT</span>
+                  <span className="text-[12px] font-mono text-[#10b981] font-bold">&lt; 300ms</span>
+                </div>
+                <span className="text-[9px] font-mono text-[#64748b]">JIT 0.4ms • PTP LOCK</span>
+              </div>
+            </div>
+
+            {/* Room Target Pill */}
+            <div className="flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+              <span className="material-symbols-outlined text-[#f59e0b] text-[18px]">meeting_room</span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">ROOM TARGET</span>
+                {isEditingRoom ? (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <input
+                      type="text"
+                      value={tempRoomInput}
+                      onChange={(e) => setTempRoomInput(e.target.value.toUpperCase())}
+                      className="w-24 bg-[#181d28] border border-[#f59e0b] rounded px-1 py-0.5 text-xs font-mono font-bold text-white uppercase outline-none"
+                      autoFocus
+                    />
+                    <button onClick={handleSaveRoomCode} className="text-[9px] font-mono bg-[#f59e0b] text-[#1a1000] px-1 py-0.5 rounded font-bold">
+                      ✓
+                    </button>
+                    <button onClick={() => setIsEditingRoom(false)} className="text-[9px] font-mono bg-[#181d28] text-[#94a3b8] px-1 py-0.5 rounded">
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => { setTempRoomInput(roomName); setIsEditingRoom(true); }}
+                      className="text-[12px] font-mono text-[#f59e0b] font-bold tracking-wider hover:underline text-left flex items-center gap-1"
+                      title="Click to switch room code"
+                    >
+                      <span>{roomName}</span>
+                      <span className="text-[10px] text-[#64748b]">✏️</span>
+                    </button>
+                    <button
+                      onClick={handleCopyCode}
+                      className="text-[#64748b] hover:text-[#f59e0b] transition-colors p-0.5 rounded"
+                      title="Copy room code"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        {copiedRoomCode ? 'check' : 'content_copy'}
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Dante Audio Format */}
+            <div className="hidden xl:flex items-center gap-1.5 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+              <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">sync_alt</span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">DANTE RX</span>
+                <span className="text-[12px] font-mono text-[#f1f5f9] font-semibold">48 kHz / 24b</span>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+
+          {/* Header Right: Full Screen QR + Safety Interlock + Stopwatch + Operator Profile */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Full Screen QR Code button (Full Laptop Screen QR Cover) */}
+            <button
+              onClick={() => setIsFullScreenQrOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1c2434] border border-[#222834] hover:border-[#ef4444] text-[#f1f5f9] text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm"
+              title="Open full size QR code and big room code covering laptop screen for audience scanning"
+              type="button"
+            >
+              <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">qr_code_scanner</span>
+              <span className="hidden sm:inline">FULL SCREEN QR</span>
+            </button>
+
+            {/* Guarded Panic Cut Cluster */}
+            <div className="flex items-center bg-[#10141c] p-1 rounded-lg border border-[#222834] shadow-inner">
+              <button
+                onClick={handleToggleSafetyArm}
+                className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
+                  isSafetyArmed
+                    ? 'bg-[#f59e0b] text-[#1a1000] shadow-[0_0_8px_#f59e0b]'
+                    : 'bg-[#181d28] hover:bg-[#202530] text-[#94a3b8]'
+                }`}
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">shield</span>
+                <span>{isSafetyArmed ? 'ARMED (5s)' : 'ARM CUT'}</span>
+              </button>
+
+              <button
+                onClick={handleTriggerPanicMute}
+                disabled={!isSafetyArmed && !isEmergencyMuted}
+                className={`ml-1 px-3 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
+                  isEmergencyMuted
+                    ? 'bg-[#ef4444] text-white shadow-[0_0_14px_#ef4444] animate-pulse cursor-pointer'
+                    : isSafetyArmed
+                    ? 'bg-[#dc2626] text-white hover:bg-[#ef4444] cursor-pointer shadow-[0_0_10px_#ef4444]'
+                    : 'bg-[#181d28] opacity-50 cursor-not-allowed text-[#64748b]'
+                }`}
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[16px] text-white">mic_off</span>
+                <span className="tracking-wider text-white">
+                  {isEmergencyMuted ? 'UNMUTE PA' : 'PANIC MUTE'}
+                </span>
+              </button>
+            </div>
+
+            {/* Broadcast Elapsed Timer */}
+            <div className="hidden md:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
+              <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">timer</span>
+              <div className="flex flex-col">
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase font-bold">BROADCAST TIME</span>
+                <span className="text-[12px] font-mono text-[#f1f5f9] font-bold tracking-wider">
+                  {formatTimerClock(broadcastSeconds)}
+                </span>
+              </div>
+            </div>
+
+            {/* Operator Avatar Indicator */}
+            <div className="flex items-center gap-1 pl-1">
+              <div className="relative flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-[#181d28] border border-slate-700 flex items-center justify-center shadow">
+                  <span className="material-symbols-outlined text-slate-300 text-[18px]">person</span>
+                </div>
+                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#080a0e] ${
+                  isConnected ? 'bg-[#10b981] shadow-[0_0_6px_#10b981]' : 'bg-[#64748b]'
+                }`} />
+              </div>
+            </div>
+          </div>
+        </header>
+      )}
 
       {/* 2. PERSISTENT LEFT NAVIGATION SIDEBAR (w-64) */}
+      {activeView !== 'stage' && (
       <aside className="fixed left-0 top-16 bottom-0 w-64 bg-[#080a0e] z-40 flex flex-col justify-between py-4 px-2.5 border-r border-[#222834] shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-4">
           {/* Brand header */}
@@ -486,17 +502,28 @@ export default function App() {
             {/* 3. Auditorium Stage Display */}
             <button
               onClick={() => setActiveView('stage')}
-              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
-                activeView === 'stage'
-                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
-                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
-              }`}
+              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]"
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">stadium</span>
                 <span>Auditorium Stage</span>
               </div>
               <span className="text-[9px] font-mono text-[#10b981] uppercase font-bold">OUT</span>
+            </button>
+
+            {/* 3b. Full Screen QR Code Quick Launch */}
+            <button
+              onClick={() => setIsFullScreenQrOpen(true)}
+              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left text-[#38bdf8] hover:bg-[#121620] hover:text-white"
+              type="button"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[18px] text-[#38bdf8]">qr_code_scanner</span>
+                <span>Full Screen QR</span>
+              </div>
+              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#181d28] text-[#38bdf8] font-bold">
+                EXPAND
+              </span>
             </button>
 
             {/* 4. Matrix Routing / Audio DSP */}
@@ -562,10 +589,11 @@ export default function App() {
           </button>
         </div>
       </aside>
+      )}
 
-      {/* 3. MAIN CONTENT CONTAINER (with pl-64 and pt-16) */}
-      <div className="pl-64">
-        <main className="w-full min-h-screen pt-16 bg-[#111317]">
+      {/* 3. MAIN CONTENT CONTAINER (full screen if stage, otherwise pl-64 with pt-16) */}
+      <div className={activeView === 'stage' ? 'w-full min-h-screen' : 'pl-64'}>
+        <main className={`w-full min-h-screen ${activeView === 'stage' ? 'pt-0' : 'pt-16'} bg-[#111317]`}>
           {error && (
             <div className="bg-[#93000a]/25 border-b border-[#ff544c] text-[#ffb4ac] px-4 py-2 text-xs font-mono flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1018,7 +1046,11 @@ export default function App() {
 
                   {/* Room Pairing QR Code Card */}
                   <div className="bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834]">
-                    <RoomQRCode roomCode={roomName} tokenServerUrl={tokenServerUrl} />
+                    <RoomQRCode
+                      roomCode={roomName}
+                      tokenServerUrl={tokenServerUrl}
+                      onOpenFullScreen={() => setIsFullScreenQrOpen(true)}
+                    />
                   </div>
 
                   {/* Live Diagnostic Telemetry Console */}
@@ -1056,6 +1088,16 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* 4. DEDICATED FULL SCREEN QR MODAL (Full laptop screen with massive QR on left & giant room code on right) */}
+      <FullScreenQrModal
+        isOpen={isFullScreenQrOpen}
+        onClose={() => setIsFullScreenQrOpen(false)}
+        roomCode={roomName}
+        tokenServerUrl={tokenServerUrl}
+        memberCount={memberCount}
+        currentSpeaker={currentSpeaker}
+      />
     </div>
   );
 }

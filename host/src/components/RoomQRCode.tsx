@@ -5,9 +5,14 @@ import { redTheme } from '../tokens/redTheme';
 interface RoomQRCodeProps {
   roomCode: string;
   tokenServerUrl: string;
+  onOpenFullScreen?: () => void;
 }
 
-export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl }) => {
+export const RoomQRCode: React.FC<RoomQRCodeProps> = ({
+  roomCode,
+  tokenServerUrl,
+  onOpenFullScreen,
+}) => {
   const [copiedType, setCopiedType] = useState<'code' | 'link' | null>(null);
 
   const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
@@ -38,10 +43,10 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
         <QRCodeSVG
           value={webTransmitterUrl}
           size={148}
-          bgColor={redTheme.colors.bgSurfaceDark}
-          fgColor={redTheme.colors.accentBright}
-          level="M"
-          includeMargin={false}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          level="Q"
+          includeMargin={true}
         />
       </div>
 
@@ -74,6 +79,18 @@ export const RoomQRCode: React.FC<RoomQRCodeProps> = ({ roomCode, tokenServerUrl
             {copiedType === 'link' ? '✓ Copied Link!' : '🔗 Copy Web Link'}
           </button>
         </div>
+
+        {onOpenFullScreen && (
+          <button
+            onClick={onOpenFullScreen}
+            style={styles.fullScreenBtn}
+            type="button"
+            title="Present full size QR code and big room code on full laptop screen"
+          >
+            <span style={{ fontSize: '14px' }}>⤢</span>
+            <span>PRESENT FULL SCREEN QR</span>
+          </button>
+        )}
       </div>
     </div>
   );
@@ -169,6 +186,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '11px',
     fontWeight: 700,
     cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  },
+  fullScreenBtn: {
+    backgroundColor: '#181d28',
+    border: '1px solid #273244',
+    color: '#f1f5f9',
+    borderRadius: '8px',
+    padding: '8px 14px',
+    fontSize: '11px',
+    fontFamily: 'monospace',
+    fontWeight: 800,
+    letterSpacing: '0.8px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    marginTop: '6px',
+    width: '100%',
     transition: 'all 0.15s ease',
   },
 };
