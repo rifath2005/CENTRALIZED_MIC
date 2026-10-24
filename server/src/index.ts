@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
 import {
   HostTokenRequestSchema,
@@ -87,15 +88,41 @@ function getRoomServiceClient(): RoomServiceClient {
   return roomServiceClient;
 }
 
+function getLocalIpAddresses(): string[] {
+  const interfaces = os.networkInterfaces();
+  const addresses: string[] = [];
+  for (const k of Object.keys(interfaces)) {
+    for (const iface of interfaces[k] || []) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        addresses.push(iface.address);
+      }
+    }
+  }
+  return addresses;
+}
+
 /**
- * Health check endpoint
+ * Health check & LAN network discovery endpoint
  */
 app.get('/api/health', (_req: Request, res: Response) => {
   const configured = Boolean(LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET);
+  const lanIps = getLocalIpAddresses();
   res.status(200).json({
     status: 'ok',
     livekitConfigured: configured,
+    primaryLanIp: lanIps[0] || 'localhost',
+    lanIps,
+    port: PORT,
     timestamp: new Date().toISOString(),
+  });
+});
+
+app.get('/api/info', (_req: Request, res: Response) => {
+  const lanIps = getLocalIpAddresses();
+  res.status(200).json({
+    primaryLanIp: lanIps[0] || 'localhost',
+    lanIps,
+    port: PORT,
   });
 });
 

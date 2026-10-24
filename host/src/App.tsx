@@ -208,6 +208,27 @@ export default function App() {
     addTelemetryLog(`CONFIG: Token server endpoint set to ${sanitized}`, 'info');
   };
 
+  // Auto-detect LAN IP so that phone QR codes resolve to the host Wi-Fi IP instead of unroutable localhost
+  useEffect(() => {
+    if (tokenServerUrl.includes('localhost') || tokenServerUrl.includes('127.0.0.1')) {
+      const controller = new AbortController();
+      fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/health`, { signal: controller.signal })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.primaryLanIp && data.primaryLanIp !== 'localhost' && data.primaryLanIp !== '127.0.0.1') {
+            const lanUrl = `http://${data.primaryLanIp}:${data.port || 4000}`;
+            const userManualChoice = localStorage.getItem('centralized_mic_token_server_manual');
+            if (!userManualChoice) {
+              setTokenServerUrl(lanUrl);
+              addTelemetryLog(`NETWORK: Resolved Wi-Fi IP for phone QR pairing: ${lanUrl}`, 'info');
+            }
+          }
+        })
+        .catch(() => {});
+      return () => controller.abort();
+    }
+  }, [tokenServerUrl]);
+
   useEffect(() => {
     if (isAudioUnlocked && !isConnected && !isConnecting) {
       connectHost();
