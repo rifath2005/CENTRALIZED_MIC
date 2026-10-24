@@ -691,16 +691,14 @@
 
         <!-- WEB-TR-02: WebNameInput -->
         <div class="field-group">
-          <label class="field-label" for="name-input">Your Name</label>
+          <label class="field-label" for="name-input">Your Name <span style="color: #94a3b8; font-weight: normal; font-size: 11px;">(Optional)</span></label>
           <input 
             type="text" 
             id="name-input" 
             class="text-input" 
-            placeholder="e.g. Alex" 
+            placeholder="e.g. Alex (or tap Join Stage)" 
             maxlength="24" 
             autocomplete="name"
-            required
-            aria-required="true"
           />
         </div>
 
@@ -897,13 +895,9 @@
         return;
       }
 
-      const participantName = nameInput.value.trim();
+      let participantName = nameInput.value.trim();
       if (!participantName) {
-        errorText.innerText = "Please enter your name to join the room.";
-        errorBanner.classList.add('visible');
-        nameInput.classList.add('input-error');
-        nameInput.focus();
-        return;
+        participantName = 'Attendee ' + Math.floor(100 + Math.random() * 900);
       }
       localStorage.setItem('airmic_name', participantName);
       currentParticipantName = participantName;

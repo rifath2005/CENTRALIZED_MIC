@@ -138,16 +138,10 @@ app.get('/api/room/verify', async (req: Request, res: Response) => {
       return res.status(400).json({ exists: false, error: 'Room parameter missing' });
     }
     const client = getRoomServiceClient();
-    const rooms = await client.listRooms([rawRoom]);
-    const matched = rooms.find((r) => r.name.toUpperCase() === rawRoom);
-    if (!matched || matched.numParticipants === 0) {
-      return res.status(404).json({
-        exists: false,
-        error: 'ROOM_NOT_FOUND',
-        message: `Room "${rawRoom}" does not exist or is not active.`,
-      });
-    }
-    return res.status(200).json({ exists: true, participants: matched.numParticipants });
+    try {
+      await client.createRoom({ name: rawRoom, emptyTimeout: 3600 });
+    } catch (_) {}
+    return res.status(200).json({ exists: true, room: rawRoom });
   } catch (err) {
     return res.status(500).json({ exists: false, error: 'VERIFICATION_ERROR' });
   }
@@ -231,23 +225,12 @@ app.post('/api/token/participant', async (req: Request, res: Response<TokenRespo
     const { roomName, participantIdentity, participantName } = parseResult.data;
     const sanitizedRoom = roomName.trim().toUpperCase();
 
-    // Verify room actually exists on LiveKit and has an active host receiver
+    // Ensure room exists on LiveKit Cloud (create if not already existing)
     try {
       const client = getRoomServiceClient();
-      const rooms = await client.listRooms([sanitizedRoom]);
-      const matched = rooms.find((r) => r.name.toUpperCase() === sanitizedRoom);
-      if (!matched || matched.numParticipants === 0) {
-        return res.status(404).json({
-          error: 'ROOM_NOT_FOUND',
-          message: `Room "${sanitizedRoom}" does not exist or has no active host receiver.`,
-        });
-      }
+      await client.createRoom({ name: sanitizedRoom, emptyTimeout: 3600 }).catch(() => {});
     } catch (checkErr) {
-      console.error('[Server] Room existence verification check error:', checkErr);
-      return res.status(500).json({
-        error: 'VERIFICATION_FAILED',
-        message: 'Unable to verify room availability with audio server.',
-      });
+      console.warn('[Server] Room creation notice:', checkErr);
     }
 
     const identity = participantIdentity || `phone-${crypto.randomBytes(4).toString('hex')}`;
