@@ -664,7 +664,7 @@
         <p class="app-subtitle">Instant Stage Microphone</p>
       </div>
 
-      <div class="form-card">
+      <form id="join-form" class="form-card" onsubmit="event.preventDefault(); handleJoin(event);">
         <!-- WEB-TR-04: WebErrorBanner (Top of Form) -->
         <div id="error-banner" class="error-banner" role="alert" aria-live="assertive">
           <span style="font-size: 16px;" aria-hidden="true">⚠️</span>
@@ -678,14 +678,13 @@
             type="text" 
             id="room-input" 
             class="text-input code-input" 
-            placeholder="e.g. STG-709" 
+            placeholder="STG-709" 
+            value="STG-709"
             maxlength="16" 
             autocomplete="off" 
             autocorrect="off" 
             autocapitalize="characters" 
             spellcheck="false"
-            required
-            aria-required="true"
           />
         </div>
 
@@ -703,14 +702,14 @@
         </div>
 
         <!-- WEB-TR-03: WebJoinButton -->
-        <button id="join-btn" class="btn-primary" aria-label="Join Stage and Connect Microphone">
+        <button id="join-btn" type="submit" class="btn-primary" aria-label="Join Stage and Connect Microphone">
           <span>Join Stage</span>
         </button>
 
         <p class="helper-text">
           Instant low-latency connection.<br>No app download or account required.
         </p>
-      </div>
+      </form>
 
       <footer class="footer-note">AirMic Stage System &bull; Powered by LiveKit &amp; WebRTC</footer>
     </main>
@@ -829,8 +828,10 @@
     function initParams() {
       const urlParams = new URLSearchParams(window.location.search);
       const roomParam = urlParams.get('room');
-      if (roomParam) {
-        roomInput.value = roomParam.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10);
+      if (roomParam && roomParam.trim()) {
+        roomInput.value = roomParam.trim().toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16);
+      } else if (!roomInput.value) {
+        roomInput.value = 'STG-709';
       }
       
       const savedName = localStorage.getItem('airmic_name');
@@ -887,15 +888,22 @@
     }
 
     // Connect to room
-    async function handleJoin() {
+    async function handleJoin(e) {
+      if (e && e.preventDefault) e.preventDefault();
       clearError();
-      const rawRoom = roomInput.value.trim().toUpperCase();
-      if (!rawRoom) {
-        showError("Please enter a room code.");
+
+      if (!window.LivekitClient) {
+        showError("Audio system is still loading. Please wait 2 seconds and tap Join Stage again.");
         return;
       }
 
-      let participantName = nameInput.value.trim();
+      let rawRoom = (roomInput.value || '').trim().toUpperCase();
+      if (!rawRoom) {
+        rawRoom = 'STG-709';
+        roomInput.value = 'STG-709';
+      }
+
+      let participantName = (nameInput.value || '').trim();
       if (!participantName) {
         participantName = 'Attendee ' + Math.floor(100 + Math.random() * 900);
       }
@@ -907,47 +915,41 @@
       showScreen('connecting');
 
       try {
-        // 1. Verify room exists on server
-        const verifyRes = await fetch(`/api/room/verify?room=${encodeURIComponent(rawRoom)}`);
-        if (!verifyRes.ok) {
-          const errData = await verifyRes.json().catch(() => ({}));
-          throw new Error(errData.error === 'ROOM_NOT_FOUND' ? 'ROOM_NOT_FOUND' : 'VERIFY_FAILED');
-        }
+        const { Room, RoomEvent, createLocalAudioTrack } = window.LivekitClient;
 
-        // 2. Fetch participant token
-        const tokenRes = await fetch('/api/token/participant', {
+        // 1. Immediately request microphone track while user gesture is fresh (prevents mobile permission drop)
+        const micPromise = createLocalAudioTrack({
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        });
+
+        // 2. Concurrently fetch participant token from server
+        const tokenPromise = fetch('/api/token/participant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             roomName: rawRoom,
             participantName: participantName
           })
-        });
-
-        if (!tokenRes.ok) {
-          const errData = await tokenRes.json().catch(() => ({}));
-          if (tokenRes.status === 404 || errData.error === 'ROOM_NOT_FOUND') {
-            throw new Error('ROOM_NOT_FOUND');
+        }).then(async (res) => {
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.message || errData.error || 'TOKEN_FAILED');
           }
-          throw new Error(errData.error || 'TOKEN_FAILED');
-        }
-
-        const { token, url, identity } = await tokenRes.json();
-        currentParticipantIdentity = identity;
-
-        // 3. Acquire Microphone track with hardware echo cancellation
-        const { Room, RoomEvent, createLocalAudioTrack } = window.LivekitClient;
-        
-        localTrack = await createLocalAudioTrack({
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+          return res.json();
         });
+
+        // Await microphone and token in parallel
+        const [acquiredTrack, tokenData] = await Promise.all([micPromise, tokenPromise]);
+        localTrack = acquiredTrack;
+        const { token, url, identity } = tokenData;
+        currentParticipantIdentity = identity;
 
         // Initially mute local track until floor is granted
         await localTrack.mute();
 
-        // 4. Connect to LiveKit Room
+        // 3. Connect to LiveKit Room
         room = new Room({
           adaptiveStream: false,
           dynacast: false,
@@ -959,8 +961,8 @@
           try {
             const data = JSON.parse(new TextDecoder().decode(payload));
             handleFloorMessage(data);
-          } catch (e) {
-            console.warn('[AirMic Web] Floor payload decode error:', e);
+          } catch (err) {
+            console.warn('[AirMic Web] Floor payload decode error:', err);
           }
         });
 
@@ -981,13 +983,13 @@
       } catch (err) {
         console.error('[AirMic Web] Join failed:', err);
         showScreen('join');
-        if (err.message === 'ROOM_NOT_FOUND') {
-          showError("Room code doesn't match any active room. Please check your code.");
-        } else if (err.name === 'NotAllowedError' || (err.message && err.message.includes('Permission'))) {
-          showError("Microphone access is required to use AirMic. Please tap Allow.");
-        } else {
-          showError("Unable to connect to stage. Please check connection and try again.");
+        let errMsg = err.message || err.name || 'Connection error';
+        if (err.name === 'NotAllowedError' || errMsg.includes('Permission')) {
+          errMsg = "Microphone access is required to use AirMic. Please tap Allow.";
+        } else if (errMsg.includes('DevicesNotFoundError') || errMsg.includes('NotFoundError')) {
+          errMsg = "No microphone found on this device.";
         }
+        showError(errMsg);
       } finally {
         joinBtn.disabled = false;
         joinBtn.innerText = 'Join Stage';
