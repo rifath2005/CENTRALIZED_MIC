@@ -255,6 +255,17 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
               )}
               <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
+                  style={{ background: '#2e1065', border: '1px solid #7c3aed', color: '#c084fc', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  onClick={() => {
+                    const pub = 'https://airmic-stage-live.loca.lt';
+                    setTempServer(pub);
+                    if (onUpdateTokenServerUrl) { onUpdateTokenServerUrl(pub); onReconnect(); }
+                  }}
+                  type="button"
+                >
+                  🌐 Public Internet (4G/5G Cellular)
+                </button>
+                <button
                   style={{ background: '#1e293b', border: '1px solid #334155', color: '#38bdf8', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
                   onClick={() => {
                     const loc = `http://${window.location.hostname || 'localhost'}:4000`;
@@ -263,7 +274,7 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
                   }}
                   type="button"
                 >
-                  ⚡ Set Localhost (:4000)
+                  ⚡ Localhost (:4000)
                 </button>
                 <button
                   style={{ background: '#1e293b', border: '1px solid #334155', color: '#cbd5e1', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
@@ -274,7 +285,7 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
                   }}
                   type="button"
                 >
-                  ☁️ Set Cloud (Render)
+                  ☁️ Render Cloud
                 </button>
                 {serverSaved && <span style={{ color: '#10b981', fontSize: '11px', fontWeight: 'bold' }}>✓ Saved &amp; Reconnecting...</span>}
               </div>
