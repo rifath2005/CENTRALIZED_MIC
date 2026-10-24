@@ -218,6 +218,57 @@ export const AudioDspConfigView: React.FC<AudioDspConfigViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Third Row: Acoustic Sentry & Feedback Circuit Breaker */}
+      <div style={styles.panelCard}>
+        <div style={styles.cardHeader}>
+          <span style={styles.cardBadge}>AUTOMATED ACOUSTIC SENTRY</span>
+          <h3 style={styles.cardTitle}>Intelligent Feedback Breaker &amp; Transient Sentry</h3>
+        </div>
+        <p style={styles.cardHelp}>
+          Continuously evaluates acoustic energy dynamics to distinguish between harmless transient vocal spikes (sneezes, coughs, mic bumps) and dangerous sustained feedback loops.
+        </p>
+
+        <div style={styles.twoColumnGrid}>
+          {/* Transient Rule */}
+          <div style={styles.specCardBox}>
+            <div style={styles.sentryRuleHeader}>
+              <span style={{ fontSize: '22px' }}>⚡</span>
+              <div>
+                <strong style={{ color: '#38bdf8', fontSize: '13px' }}>Scenario A: Transient Spikes (&lt;450ms)</strong>
+                <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#94a3b8' }}>
+                  Sneezes, coughs, plosives, and handling bumps produce sharp instantaneous dB jumps.
+                </p>
+              </div>
+            </div>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#cbd5e1' }}>
+              <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>Action:</span> 3ms peak limiter absorbs and clamps spike. <strong>Broadcast remains LIVE</strong> (never auto-muted).
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
+              Transient Spikes Handled: <strong style={{ color: '#38bdf8' }}>{audioGraph.getSafetyStats().transientClampedCount} events</strong>
+            </div>
+          </div>
+
+          {/* Feedback Rule */}
+          <div style={styles.specCardBox}>
+            <div style={styles.sentryRuleHeader}>
+              <span style={{ fontSize: '22px' }}>🚨</span>
+              <div>
+                <strong style={{ color: '#ef4444', fontSize: '13px' }}>Scenario B: Sustained Overload (&ge;600ms)</strong>
+                <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#94a3b8' }}>
+                  Acoustic loopback howl and continuous speaker screech sustain high energy over time.
+                </p>
+              </div>
+            </div>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#cbd5e1' }}>
+              <span style={{ color: '#ef4444', fontWeight: 'bold' }}>Action:</span> Master output <strong>instantly auto-muted</strong>. High-visibility resume banner shown on host console.
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>
+              Auto-Mute Circuit Trips: <strong style={{ color: '#ef4444' }}>{audioGraph.getSafetyStats().feedbackAutoMuteCount} trips</strong>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -489,6 +540,19 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     fontSize: '12px',
     color: redTheme.colors.textSecondary,
+  },
+  specCardBox: {
+    backgroundColor: redTheme.colors.bgSurfaceDark,
+    border: `1px solid ${redTheme.colors.borderSubtle}`,
+    borderRadius: '12px',
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  sentryRuleHeader: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px',
   },
 };
 

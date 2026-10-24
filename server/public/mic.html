@@ -332,6 +332,286 @@
       letter-spacing: 0.3px;
     }
 
+    /* ==========================================================================
+       Acoustic Shield & Quality Settings Controls
+       ========================================================================== */
+    .acoustic-settings-card {
+      background-color: var(--bg-surface-elevated);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-top: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .settings-header-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text-primary);
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .settings-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--accent-bright);
+    }
+
+    .settings-chevron {
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    .settings-chevron.expanded {
+      transform: rotate(180deg);
+    }
+
+    .settings-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .settings-body.collapsed {
+      display: none;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .setting-label-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .setting-label-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .setting-label-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* iOS/Android style toggle switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-surface-dark);
+      border: 1px solid var(--border-medium);
+      transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #cbd5e1;
+      transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--red-primary);
+      border-color: var(--red-hover);
+      box-shadow: 0 0 10px rgba(225, 29, 72, 0.45);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #ffffff;
+    }
+
+    /* Quality preset selector */
+    .quality-selector {
+      display: flex;
+      gap: 6px;
+      background-color: var(--bg-surface-dark);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      width: 100%;
+    }
+
+    .quality-opt-btn {
+      flex: 1;
+      padding: 7px 10px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      touch-action: manipulation;
+      text-align: center;
+    }
+
+    .quality-opt-btn.active {
+      background-color: var(--red-primary);
+      color: #ffffff;
+      box-shadow: 0 0 8px rgba(225, 29, 72, 0.4);
+    }
+
+    /* Acoustic Shield Pill on Stage Screen */
+    .acoustic-shield-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-top: 14px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .acoustic-shield-pill:hover,
+    .acoustic-shield-pill:active {
+      border-color: var(--red-hover);
+      background-color: var(--bg-surface-elevated);
+    }
+
+    .shield-pill-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+    }
+
+    .shield-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--status-on-air);
+      box-shadow: 0 0 8px var(--status-on-air);
+    }
+
+    /* Stage Quick Settings Modal Sheet */
+    .settings-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 100;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .settings-modal-backdrop.open {
+      display: flex;
+    }
+
+    .settings-modal-sheet {
+      width: 100%;
+      max-width: 440px;
+      background-color: var(--bg-surface-card);
+      border-top: 2px solid var(--border-strong);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      padding: 22px 20px 30px;
+      box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.85);
+      animation: slideUp 0.2s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .modal-sheet-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .modal-close-btn {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: bold;
+      touch-action: manipulation;
+    }
+
     /* Connecting Pulsar Screen */
     .connecting-box {
       display: flex;
@@ -683,6 +963,71 @@
           />
         </div>
 
+        <!-- Acoustic Protection & Voice Quality Card -->
+        <div class="acoustic-settings-card">
+          <button type="button" id="toggle-settings-btn" class="settings-header-btn" aria-expanded="true">
+            <div class="settings-title-row">
+              <span>🛡️</span>
+              <span>Acoustic Protection &amp; Voice Quality</span>
+            </div>
+            <span id="settings-chevron" class="settings-chevron expanded">▼</span>
+          </button>
+
+          <div id="settings-body" class="settings-body">
+            <!-- 1. Echo Cancellation -->
+            <div class="setting-item">
+              <div class="setting-label-col">
+                <span class="setting-label-title">Acoustic Echo Cancellation (AEC)</span>
+                <span class="setting-label-sub">Prevents speaker feedback &amp; room echo</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="aec-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- 2. Noise Suppression -->
+            <div class="setting-item">
+              <div class="setting-label-col">
+                <span class="setting-label-title">Deep Noise Suppression (DNS)</span>
+                <span class="setting-label-sub">Filters AC rumble, fans &amp; chatter</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="dns-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- 3. Auto Gain Control & Limiter -->
+            <div class="setting-item">
+              <div class="setting-label-col">
+                <span class="setting-label-title">Auto Gain &amp; Leveler (AGC)</span>
+                <span class="setting-label-sub">Smooths voice loudness, prevents clipping</span>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="agc-toggle" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <!-- 4. Quality Selector -->
+            <div class="setting-item" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="setting-label-col">
+                <span class="setting-label-title">Voice Quality Profile</span>
+                <span class="setting-label-sub">WebRTC Opus speech encoding profile</span>
+              </div>
+              <div class="quality-selector" role="radiogroup" aria-label="Audio Quality">
+                <button type="button" id="quality-hd-btn" class="quality-opt-btn active" role="radio" aria-checked="true">
+                  HD Studio (48kHz / 64k)
+                </button>
+                <button type="button" id="quality-std-btn" class="quality-opt-btn" role="radio" aria-checked="false">
+                  Low-Latency (32k)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Join Button -->
         <button id="join-btn" type="submit" class="btn-primary" aria-label="Join Stage and Connect Microphone">
           <span style="font-size: 18px;">🎙️</span>
@@ -759,8 +1104,69 @@
         <button type="button" id="mode-tap-btn" class="mode-btn" role="tab" aria-selected="false">🎙️ Tap to Toggle</button>
       </div>
 
+      <!-- Stage Acoustic Shield Quick Access Pill -->
+      <div id="open-shield-drawer-btn" class="acoustic-shield-pill" role="button" tabindex="0" title="Tune Acoustic Shield &amp; Echo Cancellation">
+        <div class="shield-pill-left">
+          <span class="shield-badge-dot"></span>
+          <span id="shield-pill-text">🛡️ Shield Active: AEC &amp; Noise Filter</span>
+        </div>
+        <span style="font-size: 11px; color: var(--accent-bright); font-weight: 800;">TUNE ⚙️</span>
+      </div>
+
       <footer class="footer-note">48kHz Opus &bull; Hardware Acoustic Echo Cancellation</footer>
     </main>
+
+    <!-- 4. LIVE STAGE ACOUSTIC SETTINGS MODAL -->
+    <div id="settings-modal" class="settings-modal-backdrop" role="dialog" aria-modal="true" aria-label="Live Audio Settings">
+      <div class="settings-modal-sheet">
+        <div class="modal-sheet-header">
+          <div class="modal-sheet-title">
+            <span>🛡️</span>
+            <span>Live Acoustic Protection</span>
+          </div>
+          <button id="close-modal-btn" class="modal-close-btn" aria-label="Close settings">✕</button>
+        </div>
+
+        <div class="settings-body" style="border: none; padding-top: 0;">
+          <div class="setting-item">
+            <div class="setting-label-col">
+              <span class="setting-label-title">Acoustic Echo Cancellation</span>
+              <span class="setting-label-sub">Prevents speaker loopback &amp; room echo</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="live-aec-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label-col">
+              <span class="setting-label-title">Deep Noise Suppression</span>
+              <span class="setting-label-sub">Eliminates background rumble &amp; chatter</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="live-dns-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label-col">
+              <span class="setting-label-title">Auto Gain Control (AGC)</span>
+              <span class="setting-label-sub">Automatic voice leveling &amp; anti-clipping</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="live-agc-toggle" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <p style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px;">
+            Changes apply instantly to live microphone stream.
+          </p>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -803,6 +1209,87 @@
     const pttLabel = document.getElementById('ptt-label');
     const modeHoldBtn = document.getElementById('mode-hold-btn');
     const modeTapBtn = document.getElementById('mode-tap-btn');
+
+    // Acoustic Shield & Audio Options Elements
+    const toggleSettingsBtn = document.getElementById('toggle-settings-btn');
+    const settingsChevron = document.getElementById('settings-chevron');
+    const settingsBody = document.getElementById('settings-body');
+
+    const aecToggle = document.getElementById('aec-toggle');
+    const dnsToggle = document.getElementById('dns-toggle');
+    const agcToggle = document.getElementById('agc-toggle');
+    const qualityHdBtn = document.getElementById('quality-hd-btn');
+    const qualityStdBtn = document.getElementById('quality-std-btn');
+
+    const openShieldDrawerBtn = document.getElementById('open-shield-drawer-btn');
+    const shieldPillText = document.getElementById('shield-pill-text');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const liveAecToggle = document.getElementById('live-aec-toggle');
+    const liveDnsToggle = document.getElementById('live-dns-toggle');
+    const liveAgcToggle = document.getElementById('live-agc-toggle');
+
+    const audioSettings = {
+      echoCancellation: localStorage.getItem('airmic_aec') !== 'false',
+      noiseSuppression: localStorage.getItem('airmic_dns') !== 'false',
+      autoGainControl: localStorage.getItem('airmic_agc') !== 'false',
+      quality: localStorage.getItem('airmic_quality') || 'hd',
+    };
+
+    function syncSettingsUI() {
+      if (aecToggle) aecToggle.checked = audioSettings.echoCancellation;
+      if (liveAecToggle) liveAecToggle.checked = audioSettings.echoCancellation;
+
+      if (dnsToggle) dnsToggle.checked = audioSettings.noiseSuppression;
+      if (liveDnsToggle) liveDnsToggle.checked = audioSettings.noiseSuppression;
+
+      if (agcToggle) agcToggle.checked = audioSettings.autoGainControl;
+      if (liveAgcToggle) liveAgcToggle.checked = audioSettings.autoGainControl;
+
+      if (qualityHdBtn && qualityStdBtn) {
+        if (audioSettings.quality === 'hd') {
+          qualityHdBtn.classList.add('active');
+          qualityHdBtn.setAttribute('aria-checked', 'true');
+          qualityStdBtn.classList.remove('active');
+          qualityStdBtn.setAttribute('aria-checked', 'false');
+        } else {
+          qualityStdBtn.classList.add('active');
+          qualityStdBtn.setAttribute('aria-checked', 'true');
+          qualityHdBtn.classList.remove('active');
+          qualityHdBtn.setAttribute('aria-checked', 'false');
+        }
+      }
+
+      if (shieldPillText) {
+        const parts = [];
+        if (audioSettings.echoCancellation) parts.push('AEC');
+        if (audioSettings.noiseSuppression) parts.push('DNS');
+        if (audioSettings.autoGainControl) parts.push('AGC');
+        shieldPillText.innerText = parts.length > 0
+          ? `🛡️ Shield Active: ${parts.join(' + ')} (${audioSettings.quality === 'hd' ? '48k HD' : '32k'})`
+          : '⚠️ Raw Mic: Filters Off';
+      }
+    }
+
+    async function updateAcousticSetting(key, val) {
+      audioSettings[key] = val;
+      const storageKey = key === 'echoCancellation' ? 'airmic_aec' : key === 'noiseSuppression' ? 'airmic_dns' : 'airmic_agc';
+      localStorage.setItem(storageKey, String(val));
+      syncSettingsUI();
+
+      if (localTrack && localTrack.mediaStreamTrack) {
+        try {
+          await localTrack.mediaStreamTrack.applyConstraints({
+            echoCancellation: audioSettings.echoCancellation,
+            noiseSuppression: audioSettings.noiseSuppression,
+            autoGainControl: audioSettings.autoGainControl,
+          });
+          console.log('[AirMic Web] Live acoustic constraints applied:', audioSettings);
+        } catch (err) {
+          console.warn('[AirMic Web] Error applying live constraints:', err);
+        }
+      }
+    }
 
     // Simple Synthesized Audio Feedback (Chime)
     function playChime(isUnmute) {
@@ -859,6 +1346,70 @@
       if (savedName && savedName.trim()) {
         nameInput.value = savedName.trim();
       }
+
+      // Initial sync of audio settings toggles
+      syncSettingsUI();
+    }
+
+    // Acoustic Settings Event Listeners
+    if (toggleSettingsBtn) {
+      toggleSettingsBtn.addEventListener('click', () => {
+        const isExpanded = !settingsBody.classList.contains('collapsed');
+        if (isExpanded) {
+          settingsBody.classList.add('collapsed');
+          settingsChevron.classList.remove('expanded');
+          toggleSettingsBtn.setAttribute('aria-expanded', 'false');
+        } else {
+          settingsBody.classList.remove('collapsed');
+          settingsChevron.classList.add('expanded');
+          toggleSettingsBtn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    if (openShieldDrawerBtn) {
+      openShieldDrawerBtn.addEventListener('click', () => {
+        settingsModal.classList.add('open');
+      });
+    }
+
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', () => {
+        settingsModal.classList.remove('open');
+      });
+    }
+
+    if (settingsModal) {
+      settingsModal.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+          settingsModal.classList.remove('open');
+        }
+      });
+    }
+
+    if (aecToggle) aecToggle.addEventListener('change', (e) => updateAcousticSetting('echoCancellation', e.target.checked));
+    if (liveAecToggle) liveAecToggle.addEventListener('change', (e) => updateAcousticSetting('echoCancellation', e.target.checked));
+
+    if (dnsToggle) dnsToggle.addEventListener('change', (e) => updateAcousticSetting('noiseSuppression', e.target.checked));
+    if (liveDnsToggle) liveDnsToggle.addEventListener('change', (e) => updateAcousticSetting('noiseSuppression', e.target.checked));
+
+    if (agcToggle) agcToggle.addEventListener('change', (e) => updateAcousticSetting('autoGainControl', e.target.checked));
+    if (liveAgcToggle) liveAgcToggle.addEventListener('change', (e) => updateAcousticSetting('autoGainControl', e.target.checked));
+
+    if (qualityHdBtn) {
+      qualityHdBtn.addEventListener('click', () => {
+        audioSettings.quality = 'hd';
+        localStorage.setItem('airmic_quality', 'hd');
+        syncSettingsUI();
+      });
+    }
+
+    if (qualityStdBtn) {
+      qualityStdBtn.addEventListener('click', () => {
+        audioSettings.quality = 'std';
+        localStorage.setItem('airmic_quality', 'std');
+        syncSettingsUI();
+      });
     }
 
     function showScreen(name) {
@@ -979,9 +1530,11 @@
 
         // 1. Immediately request microphone access while touch gesture is 100% fresh!
         const micPromise = createLocalAudioTrack({
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
+          echoCancellation: audioSettings.echoCancellation,
+          noiseSuppression: audioSettings.noiseSuppression,
+          autoGainControl: audioSettings.autoGainControl,
+          channelCount: 1,
+          sampleRate: 48000,
         });
 
         // 2. Concurrently fetch participant token
@@ -1019,7 +1572,13 @@
         });
 
         await room.connect(url, token);
-        await room.localParticipant.publishTrack(localTrack, { name: 'participant-mic' });
+        await room.localParticipant.publishTrack(localTrack, {
+          name: 'participant-mic',
+          audioPreset: audioSettings.quality === 'hd'
+            ? { maxBitrate: 64000 }
+            : { maxBitrate: 32000 },
+          dtx: false,
+        });
 
         // Set up Web Audio Meter
         setupAudioMeter(localTrack.mediaStreamTrack);

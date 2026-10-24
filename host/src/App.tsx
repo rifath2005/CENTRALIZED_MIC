@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { AudioProcessingGraph, HARD_VOLUME_CEILING } from './audio/AudioProcessingGraph';
+import { AudioProcessingGraph, HARD_VOLUME_CEILING, AutoMuteReason } from './audio/AudioProcessingGraph';
 import { useHostLiveKit } from './hooks/useHostLiveKit';
 import { useHostFloorArbiter } from './hooks/useHostFloorArbiter';
 import { AudioUnlockGate } from './components/AudioUnlockGate';
@@ -65,6 +65,9 @@ export default function App() {
   const [gainTrim, setGainTrim] = useState(0);
   const [limiterThreshold, setLimiterThreshold] = useState(-18);
   const [isEmergencyMuted, setIsEmergencyMuted] = useState(false);
+  const [muteReason, setMuteReason] = useState<AutoMuteReason>('none');
+  const [activeTransientNotice, setActiveTransientNotice] = useState<{ peakLevel: number; durationMs: number; message: string } | null>(null);
+  const [activeFeedbackAlert, setActiveFeedbackAlert] = useState<{ peakLevel: number; durationMs: number; message: string } | null>(null);
   const [selectedBitrate, setSelectedBitrate] = useState('96k');
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [tempRoomInput, setTempRoomInput] = useState('STG-709');
@@ -130,6 +133,40 @@ export default function App() {
       { id: String(Date.now() + Math.random()), timestamp: timeStr, level, message: msg },
     ]);
   };
+
+  // Acoustic Safety Sentry event listener (transients, sneezes, feedback loopbreaker)
+  useEffect(() => {
+    const unsub = audioGraph.onSafetyEvent((evt) => {
+      if (evt.type === 'feedback_auto_mute') {
+        setIsEmergencyMuted(true);
+        setMuteReason('feedback_auto_mute');
+        setActiveFeedbackAlert({
+          peakLevel: evt.peakLevel,
+          durationMs: evt.durationMs,
+          message: evt.message,
+        });
+        addTelemetryLog(`🚨 ACOUSTIC BREAKER: Sustained feedback loop (${evt.durationMs}ms, peak ${Math.round(evt.peakLevel * 100)}%) detected! PA master output auto-muted to protect speakers.`, 'alert');
+      } else if (evt.type === 'transient_clamped') {
+        setActiveTransientNotice({
+          peakLevel: evt.peakLevel,
+          durationMs: evt.durationMs,
+          message: evt.message,
+        });
+        addTelemetryLog(`⚡ ACOUSTIC TRANSIENT: Sneeze/Cough burst (${evt.durationMs}ms) caught & leveled by 3ms peak limiter. Audio kept live.`, 'info');
+        window.setTimeout(() => {
+          setActiveTransientNotice((curr) => curr && curr.durationMs === evt.durationMs ? null : curr);
+        }, 4500);
+      } else if (evt.type === 'noise_floor_warning') {
+        addTelemetryLog(`⚠️ NOISE WARNING: Continuous high ambient noise floor detected on attendee feed.`, 'warn');
+      } else if (evt.type === 'restored') {
+        setIsEmergencyMuted(false);
+        setMuteReason('none');
+        setActiveFeedbackAlert(null);
+        addTelemetryLog(`RESTORE: Live broadcast bus re-latched and active.`, 'success');
+      }
+    });
+    return unsub;
+  }, [audioGraph]);
 
   // Telemetry log for attendee connection lifecycle
   const prevMembersRef = useRef<BoardroomMember[]>([]);
@@ -266,11 +303,7 @@ export default function App() {
   // Guarded Safety Cut Handlers
   const handleToggleSafetyArm = () => {
     if (isEmergencyMuted) {
-      // Restore
-      audioGraph.toggleEmergencyMute();
-      setIsEmergencyMuted(false);
-      setIsSafetyArmed(false);
-      addTelemetryLog('RESTORE: Live broadcast bus re-latched and active.', 'success');
+      handleRestoreBus();
       return;
     }
 
@@ -293,16 +326,25 @@ export default function App() {
     if (!isSafetyArmed && !isEmergencyMuted) return;
     const muted = audioGraph.toggleEmergencyMute();
     setIsEmergencyMuted(muted);
+    setMuteReason(muted ? 'manual_panic' : 'none');
+    if (!muted) {
+      setActiveFeedbackAlert(null);
+    }
     setIsSafetyArmed(false);
     if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
-    addTelemetryLog('CRITICAL ALERT: Emergency broadcast kill fired! Master Dante audio muted.', 'alert');
+    addTelemetryLog(
+      muted ? 'CRITICAL ALERT: Emergency broadcast kill fired! Master Dante audio muted.' : 'RESTORE: Master broadcast bus restored. Gain unmuted.',
+      muted ? 'alert' : 'success'
+    );
   };
 
   const handleRestoreBus = () => {
     if (isEmergencyMuted) {
-      audioGraph.toggleEmergencyMute();
+      audioGraph.restoreBroadcast();
       setIsEmergencyMuted(false);
+      setMuteReason('none');
       setIsSafetyArmed(false);
+      setActiveFeedbackAlert(null);
       addTelemetryLog('RESTORE: Master broadcast bus restored. Gain unmuted.', 'success');
     }
   };
@@ -826,8 +868,45 @@ export default function App() {
                 </div>
               </section>
 
-              {/* SILENCED MASTER BANNER (Visible upon trigger) */}
-              {isEmergencyMuted && (
+              {/* ACOUSTIC FEEDBACK AUTO-MUTE CIRCUIT BREAKER BANNER */}
+              {isEmergencyMuted && muteReason === 'feedback_auto_mute' && (
+                <div className="w-full bg-[#7f1d1d] text-white p-4 rounded-xl shadow-2xl flex flex-col md:flex-row items-center justify-between border-2 border-[#ef4444] animate-pulse gap-4">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-12 h-12 rounded-xl bg-[#ef4444]/30 border border-[#ef4444] flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[28px] text-[#fca5a5]">hearing_disabled</span>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 rounded bg-[#ef4444] text-[9px] font-mono font-black uppercase text-white tracking-wider">
+                          ACOUSTIC SENTRY CIRCUIT BREAKER
+                        </span>
+                        <span className="text-[10px] font-mono text-[#fca5a5]">
+                          CONTINUOUS FEEDBACK OVERLOAD (&gt;600ms) DETECTED
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-white mt-1">
+                        PA AUTOMATICALLY MUTED • AUDIENCE &amp; SPEAKERS PROTECTED
+                      </h4>
+                      <p className="text-xs text-[#fecdd3] mt-0.5">
+                        A continuous feedback loop or screeching howl ({activeFeedbackAlert?.durationMs || 600}ms, peak {Math.round((activeFeedbackAlert?.peakLevel || 0.95) * 100)}%) was detected. The host DSP circuit breaker clamped master PA output to 0 to prevent runaway screech and speaker damage.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={handleRestoreBus}
+                      className="px-5 py-2.5 rounded-lg bg-white text-[#7f1d1d] text-xs font-mono font-bold uppercase hover:bg-slate-100 transition-all shadow-lg flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                      type="button"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">volume_up</span>
+                      <span>RESUME BROADCAST</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* MANUAL OPERATOR SILENCED MASTER BANNER */}
+              {isEmergencyMuted && muteReason !== 'feedback_auto_mute' && (
                 <div className="w-full bg-[#93000a] text-[#ffdad6] p-4 rounded-xl shadow-2xl flex items-center justify-between border-2 border-[#ef4444] animate-pulse">
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-[36px] text-[#ffdad6] font-bold">report</span>
@@ -846,6 +925,32 @@ export default function App() {
                     type="button"
                   >
                     RESTORE LIVE BUS
+                  </button>
+                </div>
+              )}
+
+              {/* TRANSIENT SNEEZE / COUGH SPIKE CLAMPED PILL (Non-intrusive) */}
+              {!isEmergencyMuted && activeTransientNotice && (
+                <div className="w-full bg-[#111c2e] border border-[#38bdf8]/50 text-[#e0f2fe] px-3.5 py-2 rounded-xl flex items-center justify-between shadow-lg transition-all animate-fadeIn">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-lg bg-[#38bdf8]/20 flex items-center justify-center text-[#38bdf8]">
+                      <span className="material-symbols-outlined text-[18px]">bolt</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                      <span className="text-xs font-mono font-bold text-[#38bdf8]">
+                        ⚡ TRANSIENT SPIKE CLAMPED:
+                      </span>
+                      <span className="text-xs font-mono text-slate-300">
+                        Sudden burst ({activeTransientNotice.durationMs}ms, e.g. sneeze/cough) safely clamped by peak limiter. PA protected, mic kept LIVE.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setActiveTransientNotice(null)}
+                    className="text-slate-400 hover:text-white p-1 text-xs"
+                    type="button"
+                  >
+                    ✕
                   </button>
                 </div>
               )}

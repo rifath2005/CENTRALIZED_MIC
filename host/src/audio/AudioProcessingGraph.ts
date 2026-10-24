@@ -11,6 +11,37 @@ export const DEFAULT_LIMITER_SETTINGS: LimiterSettings = {
   release: 0.100, // 100ms release restores natural speech envelope without pumping
 };
 
+export type AcousticSafetyEvent =
+  | {
+      type: 'transient_clamped';
+      peakLevel: number;
+      durationMs: number;
+      gainReductionDb: number;
+      message: string;
+      timestamp: number;
+    }
+  | {
+      type: 'feedback_auto_mute';
+      peakLevel: number;
+      durationMs: number;
+      gainReductionDb: number;
+      message: string;
+      timestamp: number;
+    }
+  | {
+      type: 'noise_floor_warning';
+      level: number;
+      message: string;
+      timestamp: number;
+    }
+  | {
+      type: 'restored';
+      message: string;
+      timestamp: number;
+    };
+
+export type AutoMuteReason = 'none' | 'manual_panic' | 'feedback_auto_mute';
+
 export class AudioProcessingGraph {
   private ctx: AudioContext | null = null;
   private sourceNode: MediaStreamAudioSourceNode | null = null;
@@ -25,6 +56,20 @@ export class AudioProcessingGraph {
   private isUnlocked: boolean = false;
   private isEmergencyMuted: boolean = false;
   private preMuteVolume: number = 0.75;
+
+  // Acoustic Sentry & Feedback Circuit Breaker
+  private safetyCallback: ((event: AcousticSafetyEvent) => void) | null = null;
+  private autoMuteReason: AutoMuteReason = 'none';
+  private sentryIntervalId: number | null = null;
+  private sentryEnabled: boolean = true;
+  private overloadStartTime: number | null = null;
+  private overloadMaxLevel: number = 0;
+  private overloadMaxGr: number = 0;
+  private elevatedNoiseStartTime: number | null = null;
+  private lastNoiseWarningTime: number = 0;
+  private lastTransientNotificationTime: number = 0;
+  private transientClampedCount: number = 0;
+  private feedbackAutoMuteCount: number = 0;
 
   constructor() {
     // AudioContext will be initialized upon user gesture (unlock gate)
@@ -50,6 +95,9 @@ export class AudioProcessingGraph {
     }
 
     this.isUnlocked = this.ctx.state === 'running';
+    if (this.isUnlocked) {
+      this.startSafetySentry();
+    }
     console.log(`[AudioGraph] AudioContext state: ${this.ctx.state}, sampleRate: ${this.ctx.sampleRate}Hz`);
     return this.isUnlocked;
   }
@@ -234,10 +282,11 @@ export class AudioProcessingGraph {
   }
 
   /**
-   * Toggles emergency master mute for instant PA feedback kill
+   * Toggles emergency master mute for instant PA feedback kill (Operator Manual Cut)
    */
   public toggleEmergencyMute(): boolean {
     this.isEmergencyMuted = !this.isEmergencyMuted;
+    this.autoMuteReason = this.isEmergencyMuted ? 'manual_panic' : 'none';
     if (this.audioElement) {
       this.audioElement.muted = this.isEmergencyMuted;
     }
@@ -250,12 +299,218 @@ export class AudioProcessingGraph {
     } else {
       this.masterGainNode.gain.cancelScheduledValues(now);
       this.masterGainNode.gain.setValueAtTime(this.preMuteVolume, now);
+      this.safetyCallback?.({
+        type: 'restored',
+        message: 'Master broadcast bus manually unmuted.',
+        timestamp: Date.now(),
+      });
     }
     return this.isEmergencyMuted;
   }
 
+  /**
+   * Triggered automatically by Acoustic Sentry circuit breaker when continuous overload is detected
+   */
+  public autoEmergencyMute(
+    reason: AutoMuteReason = 'feedback_auto_mute',
+    peakLevel: number = 0.95,
+    durationMs: number = 600,
+    gainReductionDb: number = 14
+  ): void {
+    if (this.isEmergencyMuted) return;
+    this.isEmergencyMuted = true;
+    this.autoMuteReason = reason;
+
+    if (this.audioElement) {
+      this.audioElement.muted = true;
+    }
+    if (this.ctx && this.masterGainNode) {
+      const now = this.ctx.currentTime;
+      this.masterGainNode.gain.cancelScheduledValues(now);
+      this.masterGainNode.gain.setValueAtTime(0, now);
+    }
+
+    console.warn(`[AudioGraph] ACOUSTIC FEEDBACK PREVENTED: Output auto-muted (peak: ${(peakLevel * 100).toFixed(0)}%, duration: ${durationMs}ms)`);
+    this.safetyCallback?.({
+      type: 'feedback_auto_mute',
+      peakLevel,
+      durationMs,
+      gainReductionDb,
+      message: `Acoustic feedback loop detected: Continuous overload sustained for ${durationMs}ms. Output automatically muted.`,
+      timestamp: Date.now(),
+    });
+  }
+
+  /**
+   * Restores master PA audio bus and clears auto-mute condition
+   */
+  public restoreBroadcast(): boolean {
+    if (!this.isEmergencyMuted) return false;
+    this.isEmergencyMuted = false;
+    const prevReason = this.autoMuteReason;
+    this.autoMuteReason = 'none';
+    this.overloadStartTime = null;
+
+    if (this.audioElement) {
+      this.audioElement.muted = false;
+      this.audioElement.volume = this.preMuteVolume;
+    }
+    if (this.ctx && this.masterGainNode) {
+      const now = this.ctx.currentTime;
+      this.masterGainNode.gain.cancelScheduledValues(now);
+      this.masterGainNode.gain.setValueAtTime(this.preMuteVolume, now);
+    }
+
+    console.log(`[AudioGraph] Broadcast restored from ${prevReason}`);
+    this.safetyCallback?.({
+      type: 'restored',
+      message: 'Master broadcast bus restored. Gain unmuted.',
+      timestamp: Date.now(),
+    });
+    return true;
+  }
+
   public getIsEmergencyMuted(): boolean {
     return this.isEmergencyMuted;
+  }
+
+  public getAutoMuteReason(): AutoMuteReason {
+    return this.autoMuteReason;
+  }
+
+  public onSafetyEvent(callback: (event: AcousticSafetyEvent) => void): () => void {
+    this.safetyCallback = callback;
+    return () => {
+      if (this.safetyCallback === callback) {
+        this.safetyCallback = null;
+      }
+    };
+  }
+
+  public setSafetySentryEnabled(enabled: boolean) {
+    this.sentryEnabled = enabled;
+  }
+
+  public getSafetyStats() {
+    return {
+      transientClampedCount: this.transientClampedCount,
+      feedbackAutoMuteCount: this.feedbackAutoMuteCount,
+      sentryActive: this.sentryEnabled && this.isUnlocked,
+      autoMuteReason: this.autoMuteReason,
+    };
+  }
+
+  /**
+   * Starts high-precision acoustic sentry monitoring loop (approx 45ms tick)
+   */
+  public startSafetySentry() {
+    if (this.sentryIntervalId !== null) return;
+    this.sentryIntervalId = window.setInterval(() => {
+      this.runSentryTick();
+    }, 45);
+  }
+
+  public stopSafetySentry() {
+    if (this.sentryIntervalId !== null) {
+      clearInterval(this.sentryIntervalId);
+      this.sentryIntervalId = null;
+    }
+    this.overloadStartTime = null;
+    this.elevatedNoiseStartTime = null;
+  }
+
+  /**
+   * Internal Sentry Tick: Analyzes audio envelope with temporal constraints
+   *
+   * Scenario 1 (Transient Burst, e.g. Sneeze, Cough, Mic Bump):
+   * - Sudden spike (>0.82 level or >12dB reduction) that subsides in < 450ms.
+   * - Peak limiter's fast 3ms attack clamps amplitude without cutting sound.
+   * - DOES NOT MUTE. Fires 'transient_clamped' notification to inform operator.
+   *
+   * Scenario 2 (Sustained Acoustic Feedback Loop / Howl / Loopback):
+   * - Continuous overload persisting >= 600ms.
+   * - Triggers autoEmergencyMute immediately.
+   * - Fires 'feedback_auto_mute' to display prominent banner with 1-click restore.
+   */
+  private runSentryTick() {
+    if (!this.sentryEnabled || !this.ctx || this.ctx.state !== 'running' || this.isEmergencyMuted) {
+      this.overloadStartTime = null;
+      this.elevatedNoiseStartTime = null;
+      return;
+    }
+
+    const metrics = this.getAudioMetrics();
+    const now = performance.now();
+
+    // Overload condition: Level >= 0.82 or Compressor Gain Reduction >= 12 dB
+    const isOverloaded = metrics.level >= 0.82 || metrics.gainReduction >= 12.0;
+
+    if (isOverloaded) {
+      if (this.overloadStartTime === null) {
+        // High spike has just begun
+        this.overloadStartTime = now;
+        this.overloadMaxLevel = metrics.level;
+        this.overloadMaxGr = metrics.gainReduction;
+      } else {
+        this.overloadMaxLevel = Math.max(this.overloadMaxLevel, metrics.level);
+        this.overloadMaxGr = Math.max(this.overloadMaxGr, metrics.gainReduction);
+        const durationMs = Math.round(now - this.overloadStartTime);
+
+        // TIME CONSTRAINT: Only sustained overload (>= 600ms) triggers auto-mute!
+        if (durationMs >= 600) {
+          const peak = this.overloadMaxLevel;
+          const gr = this.overloadMaxGr;
+          this.overloadStartTime = null;
+          this.feedbackAutoMuteCount++;
+          this.autoEmergencyMute('feedback_auto_mute', peak, durationMs, gr);
+          return;
+        }
+      }
+    } else {
+      // Overload has cleared back below threshold
+      if (this.overloadStartTime !== null) {
+        const durationMs = Math.round(now - this.overloadStartTime);
+        const peak = this.overloadMaxLevel;
+        const gr = this.overloadMaxGr;
+        this.overloadStartTime = null;
+
+        // Transient spike (sneeze, cough, desk bump, plosive):
+        // Handled cleanly by limiter, broadcast is NOT muted!
+        if (durationMs >= 60 && durationMs < 550) {
+          this.transientClampedCount++;
+          if (now - this.lastTransientNotificationTime > 1500) {
+            this.lastTransientNotificationTime = now;
+            this.safetyCallback?.({
+              type: 'transient_clamped',
+              peakLevel: peak,
+              durationMs,
+              gainReductionDb: gr,
+              message: `Transient burst (${durationMs}ms, peak ${Math.round(peak * 100)}%) safely clamped by peak limiter. Audio kept live.`,
+              timestamp: Date.now(),
+            });
+          }
+        }
+      }
+    }
+
+    // High continuous noise floor monitoring
+    if (metrics.level >= 0.58 && metrics.level < 0.82) {
+      if (this.elevatedNoiseStartTime === null) {
+        this.elevatedNoiseStartTime = now;
+      } else if (now - this.elevatedNoiseStartTime >= 3500) {
+        if (now - this.lastNoiseWarningTime > 15000) {
+          this.lastNoiseWarningTime = now;
+          this.safetyCallback?.({
+            type: 'noise_floor_warning',
+            level: metrics.level,
+            message: 'Elevated continuous noise floor detected. Recommend enabling Deep Noise Suppression on transmitter.',
+            timestamp: Date.now(),
+          });
+        }
+      }
+    } else {
+      this.elevatedNoiseStartTime = null;
+    }
   }
 
   /**
@@ -333,6 +588,7 @@ export class AudioProcessingGraph {
   }
 
   public close() {
+    this.stopSafetySentry();
     this.detachTrack();
     if (this.ctx) {
       this.ctx.close();
