@@ -8,12 +8,19 @@ interface TransmitterPreviewViewProps {
 export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
   roomCode,
 }) => {
-  const [screen, setScreen] = useState<'join' | 'stage'>('stage');
+  const [screen, setScreen] = useState<'join' | 'stage'>('join');
   const [attendeeState, setAttendeeState] = useState<'standby' | 'queued' | 'onair'>('standby');
   const [isHolding, setIsHolding] = useState(false);
   const [isLatchMode, setIsLatchMode] = useState(false);
   const [showError, setShowError] = useState(false);
   const [meterLevel, setMeterLevel] = useState(0);
+  const [inputRoom, setInputRoom] = useState(roomCode);
+  const [inputName, setInputName] = useState('Alex');
+  const [nameError, setNameError] = useState(false);
+
+  useEffect(() => {
+    setInputRoom(roomCode);
+  }, [roomCode]);
 
   // Meter simulation while on-air or holding
   useEffect(() => {
@@ -123,9 +130,10 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
                     </label>
                     <input
                       type="text"
-                      readOnly
-                      value={roomCode}
-                      className="w-full bg-[#141923] border border-[#222834] rounded-xl px-3 py-2 text-sm font-mono font-bold text-[#f59e0b]"
+                      value={inputRoom}
+                      onChange={(e) => setInputRoom(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10))}
+                      placeholder="e.g. STG-709"
+                      className="w-full bg-[#141923] border border-[#222834] rounded-xl px-3 py-2 text-sm font-mono font-bold text-[#f59e0b] focus:outline-none focus:border-[#ef4444]"
                     />
                   </div>
                   <div>
@@ -134,17 +142,39 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. John Doe"
-                      className="w-full bg-[#141923] border border-[#222834] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ef4444]"
+                      value={inputName}
+                      onChange={(e) => {
+                        setInputName(e.target.value);
+                        setNameError(false);
+                      }}
+                      placeholder="e.g. Alex"
+                      className={`w-full bg-[#141923] border ${nameError ? 'border-[#ef4444] bg-[#221015]' : 'border-[#222834]'} rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ef4444]`}
                     />
+                    {nameError && (
+                      <span className="text-[10px] text-[#ef4444] font-medium mt-1 block">Please enter your name to join</span>
+                    )}
                   </div>
                   <button
-                    onClick={() => setScreen('stage')}
+                    onClick={() => {
+                      if (!inputName.trim()) {
+                        setNameError(true);
+                        return;
+                      }
+                      setScreen('stage');
+                    }}
                     className="w-full py-3 bg-[#ef4444] hover:bg-[#dc2626] text-white font-bold text-sm rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 mt-2"
                   >
                     <span>Join Stage</span>
                     <span>→</span>
                   </button>
+                  <a
+                    href={`/mic?room=${encodeURIComponent(inputRoom || roomCode)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2.5 bg-[#181d28] hover:bg-[#222834] text-[#38bdf8] font-bold text-xs rounded-xl transition-all border border-[#273244] flex items-center justify-center gap-1.5 text-center block"
+                  >
+                    <span>🎙️ Open Live Mic in Full Screen Tab</span>
+                  </a>
                 </div>
               </div>
             ) : (
