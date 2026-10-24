@@ -274,6 +274,19 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 POINT PHONE CAMERA TO SCAN &amp; JOIN
               </span>
             </div>
+
+            {/* Direct Zero-Prompt URL text */}
+            <div className="mt-3 flex items-center gap-2 max-w-full px-3 py-1.5 rounded-lg bg-[#080a0e] text-[#94a3b8] border border-[#222834] text-[11px] font-mono">
+              <span className="text-[#10b981] font-bold">● 4G/5G CLOUDFLARE</span>
+              <span className="truncate max-w-[260px] text-[#cbd5e1]">{webTransmitterUrl}</span>
+              <button
+                onClick={handleCopyLink}
+                className="text-[#38bdf8] hover:text-white font-bold ml-1 uppercase"
+                title="Copy URL"
+              >
+                {copiedLink ? '✓ COPIED' : 'COPY'}
+              </button>
+            </div>
           </div>
         </div>
 
