@@ -39,14 +39,6 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-// Default meeting attendees to ensure names are always visible
-const DEFAULT_ATTENDEES: BoardroomMember[] = [
-  { identity: 'phone-mayalin-8921', name: 'Maya Lin (Lead Vocals)', joinedAt: Date.now() - 360000 },
-  { identity: 'phone-alexchen-4210', name: 'Alex Chen (Keynote Floor)', joinedAt: Date.now() - 280000 },
-  { identity: 'phone-aristhorne-9034', name: 'Dr. Aris Thorne (AV Director)', joinedAt: Date.now() - 190000 },
-  { identity: 'phone-elenavance-1145', name: 'Elena Vance (Panelist)', joinedAt: Date.now() - 95000 },
-];
-
 export default function App() {
   const [tokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
   const [roomName, setRoomName] = useState('STG-709');
@@ -66,16 +58,18 @@ export default function App() {
   const [isSafetyArmed, setIsSafetyArmed] = useState(false);
   const safetyTimerRef = useRef<number | null>(null);
 
-  // Real-time broadcast stopwatch
-  const [broadcastSeconds, setBroadcastSeconds] = useState(6138); // Starts at ~01:42:18 for realism
+  // Real-time broadcast stopwatch (starts at 00:00:00)
+  const [broadcastSeconds, setBroadcastSeconds] = useState(0);
   const [speakerTimerSeconds, setSpeakerTimerSeconds] = useState(0);
 
   // Diagnostic Event Log Console
-  const [telemetryLogs, setTelemetryLogs] = useState<TelemetryLogEntry[]>([
-    { id: '1', timestamp: '19:20:10.04', level: 'info', message: 'CONSOLE 4.2: Session started. System clock initialized.' },
-    { id: '2', timestamp: '19:20:12.18', level: 'success', message: 'DANTE RX: PTP Clock locked at 48kHz / 24-bit.' },
-    { id: '3', timestamp: '19:20:15.42', level: 'info', message: 'ROOM TARGET: Attached to LiveKit SFU channel STG-709.' },
-  ]);
+  const [telemetryLogs, setTelemetryLogs] = useState<TelemetryLogEntry[]>(() => {
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(Math.floor(now.getMilliseconds() / 10)).padStart(2, '0')}`;
+    return [
+      { id: '1', timestamp: timeStr, level: 'info', message: 'Host console initialized. Ready for connections.' },
+    ];
+  });
 
   const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -98,8 +92,8 @@ export default function App() {
     audioGraph,
   });
 
-  // Use live connected members if present, otherwise default boardroom attendees
-  const activeAttendees: BoardroomMember[] = liveMembers.length > 0 ? liveMembers : DEFAULT_ATTENDEES;
+  // Real-time connected attendees from LiveKit room (no mock data)
+  const activeAttendees: BoardroomMember[] = liveMembers;
   const memberCount = activeAttendees.length;
 
   // Authoritative Floor Arbiter
@@ -121,6 +115,21 @@ export default function App() {
     ]);
   };
 
+  // Telemetry log for attendee connection lifecycle
+  const prevMembersRef = useRef<BoardroomMember[]>([]);
+  useEffect(() => {
+    const prev = prevMembersRef.current;
+    if (prev.length !== liveMembers.length) {
+      const joined = liveMembers.filter((m) => !prev.some((p) => p.identity === m.identity));
+      joined.forEach((m) => addTelemetryLog(`ATTENDEE CONNECTED: ${m.name} (${m.identity})`, 'info'));
+
+      const left = prev.filter((p) => !liveMembers.some((m) => m.identity === p.identity));
+      left.forEach((m) => addTelemetryLog(`ATTENDEE DISCONNECTED: ${m.name}`, 'warn'));
+
+      prevMembersRef.current = liveMembers;
+    }
+  }, [liveMembers]);
+
   // Scroll log console to bottom
   useEffect(() => {
     if (logContainerRef.current) {
@@ -128,13 +137,17 @@ export default function App() {
     }
   }, [telemetryLogs]);
 
-  // Broadcast timer ticking
+  // Broadcast timer ticking when connected
   useEffect(() => {
+    if (!isConnected) {
+      setBroadcastSeconds(0);
+      return;
+    }
     const timer = setInterval(() => {
       setBroadcastSeconds((s) => s + 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isConnected]);
 
   // Speaker elapsed timer
   useEffect(() => {
@@ -979,71 +992,79 @@ export default function App() {
                       </div>
 
                       <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pr-1">
-                        {activeAttendees.map((att) => {
-                          const isSpeaking = currentSpeaker?.id === att.identity || currentSpeaker?.name === att.name;
-                          const queueIdx = queue.findIndex((q) => q.id === att.identity || q.name === att.name);
-                          const isQueued = queueIdx !== -1;
+                        {activeAttendees.length === 0 ? (
+                          <div className="py-6 px-4 text-center rounded-lg border border-dashed border-[#222834] bg-[#080a0e]/40 flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined text-[#64748b] text-2xl mb-1">person_off</span>
+                            <p className="text-xs text-[#94a3b8] font-medium">No attendees connected yet</p>
+                            <p className="text-[10px] text-[#64748b] mt-0.5">Participants who scan the QR or open the room link will appear here</p>
+                          </div>
+                        ) : (
+                          activeAttendees.map((att) => {
+                            const isSpeaking = currentSpeaker?.id === att.identity || currentSpeaker?.name === att.name;
+                            const queueIdx = queue.findIndex((q) => q.id === att.identity || q.name === att.name);
+                            const isQueued = queueIdx !== -1;
 
-                          return (
-                            <div
-                              key={att.identity}
-                              className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
-                                isSpeaking
-                                  ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_8px_rgba(239,68,68,0.2)]'
-                                  : isQueued
-                                  ? 'bg-[#181610] border-[#f59e0b]'
-                                  : 'bg-[#141923] border-[#222834] hover:bg-[#181e2b]'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div
-                                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-inner flex-shrink-0"
-                                  style={{ backgroundColor: getAvatarColor(att.name) }}
-                                >
-                                  {getInitials(att.name)}
-                                </div>
-                                <div className="flex flex-col min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-xs font-bold text-[#f1f5f9] truncate">{att.name}</span>
-                                    {isSpeaking && (
-                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#ef4444] text-white uppercase animate-pulse">
-                                        ON AIR
-                                      </span>
-                                    )}
-                                    {isQueued && (
-                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#f59e0b] text-[#1a1000] uppercase">
-                                        QUEUED #{queueIdx + 1}
-                                      </span>
-                                    )}
+                            return (
+                              <div
+                                key={att.identity}
+                                className={`flex items-center justify-between p-2 rounded-lg border transition-all ${
+                                  isSpeaking
+                                    ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_8px_rgba(239,68,68,0.2)]'
+                                    : isQueued
+                                    ? 'bg-[#181610] border-[#f59e0b]'
+                                    : 'bg-[#141923] border-[#222834] hover:bg-[#181e2b]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div
+                                    className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-inner flex-shrink-0"
+                                    style={{ backgroundColor: getAvatarColor(att.name) }}
+                                  >
+                                    {getInitials(att.name)}
                                   </div>
-                                  <span className="text-[10px] font-mono text-[#94a3b8] truncate">
-                                    {att.identity.slice(0, 20)} • Connected
-                                  </span>
+                                  <div className="flex flex-col min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-xs font-bold text-[#f1f5f9] truncate">{att.name}</span>
+                                      {isSpeaking && (
+                                        <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#ef4444] text-white uppercase animate-pulse">
+                                          ON AIR
+                                        </span>
+                                      )}
+                                      {isQueued && (
+                                        <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#f59e0b] text-[#1a1000] uppercase">
+                                          QUEUED #{queueIdx + 1}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] font-mono text-[#94a3b8] truncate">
+                                      {att.identity.slice(0, 20)} • Connected
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                  {isSpeaking ? (
+                                    <button
+                                      onClick={handleRevokeSpeaker}
+                                      className="px-2 py-0.5 rounded bg-[#dc2626] hover:bg-[#ef4444] text-white text-[9px] font-mono uppercase font-bold transition-all"
+                                      type="button"
+                                    >
+                                      MUTE
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => handleGrantSpeaker(att.identity, att.name)}
+                                      className="px-2 py-0.5 rounded bg-[#181d28] hover:bg-[#10b981] text-[#cbd5e1] hover:text-white text-[9px] font-mono uppercase font-bold transition-all border border-[#273244]"
+                                      type="button"
+                                    >
+                                      GRANT MIC
+                                    </button>
+                                  )}
                                 </div>
                               </div>
-
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
-                                {isSpeaking ? (
-                                  <button
-                                    onClick={handleRevokeSpeaker}
-                                    className="px-2 py-0.5 rounded bg-[#dc2626] hover:bg-[#ef4444] text-white text-[9px] font-mono uppercase font-bold transition-all"
-                                    type="button"
-                                  >
-                                    MUTE
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={() => handleGrantSpeaker(att.identity, att.name)}
-                                    className="px-2 py-0.5 rounded bg-[#181d28] hover:bg-[#10b981] text-[#cbd5e1] hover:text-white text-[9px] font-mono uppercase font-bold transition-all border border-[#273244]"
-                                    type="button"
-                                  >
-                                    GRANT MIC
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })
+                        )}
                       </div>
                     </section>
                   </div>

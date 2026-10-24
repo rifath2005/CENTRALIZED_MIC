@@ -134,8 +134,7 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Alex"
-                      defaultValue="Alex Chen"
+                      placeholder="e.g. John Doe"
                       className="w-full bg-[#141923] border border-[#222834] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ef4444]"
                     />
                   </div>

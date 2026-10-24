@@ -31,14 +31,6 @@ function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase();
 }
 
-// Default meeting attendees to ensure names are always visible
-const DEFAULT_ATTENDEES: BoardroomMember[] = [
-  { identity: 'phone-mayalin-8921', name: 'Maya Lin (Lead Vocals)', joinedAt: Date.now() - 360000 },
-  { identity: 'phone-alexchen-4210', name: 'Alex Chen (Keynote Floor)', joinedAt: Date.now() - 280000 },
-  { identity: 'phone-aristhorne-9034', name: 'Dr. Aris Thorne (AV Director)', joinedAt: Date.now() - 190000 },
-  { identity: 'phone-elenavance-1145', name: 'Elena Vance (Panelist)', joinedAt: Date.now() - 95000 },
-];
-
 export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
   isOpen,
   onClose,
@@ -57,9 +49,9 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
   const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
 
-  // Determine attendees to display (live connected members if any, else default attendee roster)
-  const displayMembers: BoardroomMember[] = members.length > 0 ? members : DEFAULT_ATTENDEES;
-  const totalAttendeeCount = Math.max(memberCount, displayMembers.length);
+  // Display only real, connected attendees in the room (no mock data)
+  const displayMembers: BoardroomMember[] = members;
+  const totalAttendeeCount = memberCount ?? displayMembers.length;
 
   // Dynamically calculate massive QR code dimensions based on laptop screen height & width
   useEffect(() => {
@@ -407,72 +399,88 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
             {/* List of Attendees with Names, Avatars, and Live States */}
             <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
-              {displayMembers.map((member) => {
-                const isSpeaker =
-                  currentSpeaker?.id === member.identity || currentSpeaker?.name === member.name;
-                const queueIdx = queue.findIndex(
-                  (q) => q.id === member.identity || q.name === member.name
-                );
-                const isQueued = queueIdx !== -1;
+              {displayMembers.length === 0 ? (
+                <div
+                  className={`py-8 px-4 text-center rounded-xl border border-dashed flex flex-col items-center justify-center ${
+                    isBrightMode ? 'border-slate-300 bg-slate-50' : 'border-[#222834] bg-[#0c1017]'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[#64748b] text-2xl mb-1">person_off</span>
+                  <p className={`text-xs font-semibold ${isBrightMode ? 'text-slate-700' : 'text-[#94a3b8]'}`}>
+                    No attendees connected yet
+                  </p>
+                  <p className="text-[10px] text-[#64748b] mt-0.5">
+                    Participants who join room {roomCode} will appear here with live mic status
+                  </p>
+                </div>
+              ) : (
+                displayMembers.map((member) => {
+                  const isSpeaker =
+                    currentSpeaker?.id === member.identity || currentSpeaker?.name === member.name;
+                  const queueIdx = queue.findIndex(
+                    (q) => q.id === member.identity || q.name === member.name
+                  );
+                  const isQueued = queueIdx !== -1;
 
-                return (
-                  <div
-                    key={member.identity}
-                    className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
-                      isSpeaker
-                        ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_12px_rgba(239,68,68,0.25)]'
-                        : isQueued
-                        ? 'bg-[#1a1710] border-[#f59e0b]'
-                        : isBrightMode
-                        ? 'bg-slate-50 border-slate-200 hover:bg-slate-100'
-                        : 'bg-[#141923] border-[#222834] hover:bg-[#181f2c]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      {/* Avatar with Initials */}
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner flex-shrink-0"
-                        style={{ backgroundColor: getAvatarColor(member.name) }}
-                      >
-                        {getInitials(member.name)}
-                      </div>
-
-                      {/* Attendee Name & Identity */}
-                      <div className="flex flex-col min-w-0">
-                        <span
-                          className={`text-xs sm:text-sm font-bold truncate ${
-                            isBrightMode ? 'text-slate-900' : 'text-[#f1f5f9]'
-                          }`}
+                  return (
+                    <div
+                      key={member.identity}
+                      className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                        isSpeaker
+                          ? 'bg-[#1c0f14] border-[#ef4444] shadow-[0_0_12px_rgba(239,68,68,0.25)]'
+                          : isQueued
+                          ? 'bg-[#1a1710] border-[#f59e0b]'
+                          : isBrightMode
+                          ? 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                          : 'bg-[#141923] border-[#222834] hover:bg-[#181f2c]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {/* Avatar with Initials */}
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-inner flex-shrink-0"
+                          style={{ backgroundColor: getAvatarColor(member.name) }}
                         >
-                          {member.name}
-                        </span>
-                        <span className="text-[10px] font-mono text-[#94a3b8] truncate">
-                          {member.identity.slice(0, 18)} • Connected
-                        </span>
+                          {getInitials(member.name)}
+                        </div>
+
+                        {/* Attendee Name & Identity */}
+                        <div className="flex flex-col min-w-0">
+                          <span
+                            className={`text-xs sm:text-sm font-bold truncate ${
+                              isBrightMode ? 'text-slate-900' : 'text-[#f1f5f9]'
+                            }`}
+                          >
+                            {member.name}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#94a3b8] truncate">
+                            {member.identity.slice(0, 18)} • Connected
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Status Pill */}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {isSpeaker ? (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#ef4444] text-white font-bold flex items-center gap-1 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                            ON AIR
+                          </span>
+                        ) : isQueued ? (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#1a1000] font-bold">
+                            QUEUE #{queueIdx + 1}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] font-semibold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+                            CONNECTED
+                          </span>
+                        )}
                       </div>
                     </div>
-
-                    {/* Status Pill */}
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      {isSpeaker ? (
-                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#ef4444] text-white font-bold flex items-center gap-1 animate-pulse">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                          ON AIR
-                        </span>
-                      ) : isQueued ? (
-                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#f59e0b] text-[#1a1000] font-bold">
-                          QUEUE #{queueIdx + 1}
-                        </span>
-                      ) : (
-                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#10b981]/20 text-[#10b981] font-semibold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
-                          CONNECTED
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
