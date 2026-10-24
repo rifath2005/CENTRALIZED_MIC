@@ -41,15 +41,15 @@ function getInitials(name?: string): string {
   return name.trim().slice(0, 2).toUpperCase() || '??';
 }
 
-export const DEFAULT_PUBLIC_TUNNEL_URL = 'https://citizenship-treasures-cardiovascular-attacked.trycloudflare.com';
+export const DEFAULT_PUBLIC_TUNNEL_URL = 'https://centralized-mic-token-server.onrender.com';
 
 function getInitialTokenServerUrl(): string {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem('centralized_mic_token_server');
-    if (saved && !saved.includes('loca.lt') && !saved.includes('localhost') && !saved.includes('127.0.0.1')) {
+    if (saved && !saved.includes('trycloudflare.com') && !saved.includes('loca.lt') && !saved.includes('localhost') && !saved.includes('127.0.0.1')) {
       return saved.trim();
     }
-    // Automatically purge old localtunnel or unroutable localhost addresses
+    // Automatically bind with Render production endpoint
     localStorage.setItem('centralized_mic_token_server', DEFAULT_PUBLIC_TUNNEL_URL);
   }
   return DEFAULT_PUBLIC_TUNNEL_URL;
@@ -231,7 +231,7 @@ export default function App() {
   }, [tokenServerUrl]);
 
   useEffect(() => {
-    if (tokenServerUrl.includes('loca.lt') || tokenServerUrl.includes('localhost') || tokenServerUrl.includes('127.0.0.1')) {
+    if (tokenServerUrl.includes('trycloudflare.com') || tokenServerUrl.includes('loca.lt') || tokenServerUrl.includes('localhost') || tokenServerUrl.includes('127.0.0.1')) {
       setTokenServerUrl(DEFAULT_PUBLIC_TUNNEL_URL);
       localStorage.setItem('centralized_mic_token_server', DEFAULT_PUBLIC_TUNNEL_URL);
     }

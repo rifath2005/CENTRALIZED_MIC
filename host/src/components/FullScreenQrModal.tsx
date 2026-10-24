@@ -277,7 +277,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
             {/* Direct Zero-Prompt URL text */}
             <div className="mt-3 flex items-center gap-2 max-w-full px-3 py-1.5 rounded-lg bg-[#080a0e] text-[#94a3b8] border border-[#222834] text-[11px] font-mono">
-              <span className="text-[#10b981] font-bold">● 4G/5G CLOUDFLARE</span>
+              <span className="text-[#10b981] font-bold">● 4G/5G CLOUD (RENDER)</span>
               <span className="truncate max-w-[260px] text-[#cbd5e1]">{webTransmitterUrl}</span>
               <button
                 onClick={handleCopyLink}
