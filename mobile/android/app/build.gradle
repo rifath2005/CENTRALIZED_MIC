@@ -2,7 +2,7 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
@@ -26,13 +26,28 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (project.hasProperty('AIRMIC_UPLOAD_STORE_FILE')) {
+                storeFile file(AIRMIC_UPLOAD_STORE_FILE)
+                storePassword AIRMIC_UPLOAD_STORE_PASSWORD
+                keyAlias AIRMIC_UPLOAD_KEY_ALIAS
+                keyPassword AIRMIC_UPLOAD_KEY_PASSWORD
+            } else if (System.getenv("STORE_FILE")) {
+                storeFile file(System.getenv("STORE_FILE"))
+                storePassword System.getenv("STORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                signingConfig signingConfigs.debug
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

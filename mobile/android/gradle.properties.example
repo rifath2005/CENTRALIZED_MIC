@@ -1,0 +1,8 @@
+# Production Release Keystore Template
+# Copy this file to ~/.gradle/gradle.properties or set these variables in your CI/CD pipeline (e.g., GitHub Actions Secrets)
+# DO NOT commit real passwords or keystore files to source control!
+
+# AIRMIC_UPLOAD_STORE_FILE=/path/to/my-upload-key.keystore
+# AIRMIC_UPLOAD_KEY_ALIAS=my-key-alias
+# AIRMIC_UPLOAD_STORE_PASSWORD=my-store-password
+# AIRMIC_UPLOAD_KEY_PASSWORD=my-key-password

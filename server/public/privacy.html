@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - AirMic</title>
+  <style>
+    :root {
+      --bg: #0a0d14;
+      --card: #121620;
+      --border: #222834;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --primary: #ef4444;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+    h1 {
+      color: var(--text);
+      font-size: 28px;
+      margin-top: 0;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h2 {
+      color: #ffffff;
+      font-size: 18px;
+      margin-top: 24px;
+    }
+    p, li {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .highlight-box {
+      background-color: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px 0;
+      color: #10b981;
+      font-size: 14px;
+    }
+    footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">Legal &amp; Privacy Compliance</span>
+    <h1>AirMic Privacy Policy</h1>
+    <p><em>Last updated: October 2026</em></p>
+
+    <div class="highlight-box">
+      <strong>Core Privacy Guarantee:</strong> AirMic does NOT record, store, transcribe, or sell your voice or microphone audio. All audio transmission is 100% ephemeral and streamed exclusively in real time to the host receiver in your designated meeting room.
+    </div>
+
+    <h2>1. Introduction</h2>
+    <p>
+      AirMic ("we", "our", or "the app") provides an ultra-low-latency wireless microphone system for live event spaces, auditoriums, and conference rooms. This Privacy Policy discloses our data practices in full compliance with the Google Play Store and Apple App Store privacy mandates.
+    </p>
+
+    <h2>2. Information We Access &amp; Process</h2>
+    <ul>
+      <li>
+        <strong>Microphone Audio (Ephemeral Streaming):</strong> When you hold or tap the Push-to-Talk button, the app accesses your device microphone to capture live speech. This audio is packetized via the Opus audio codec and transmitted directly to the host receiver in your room via encrypted WebRTC (SRTP/UDP). It is <strong>never saved to disk or persistent storage</strong>.
+      </li>
+      <li>
+        <strong>Room Code &amp; Attendee Label:</strong> You may provide an event room code and an optional display handle. These values are used exclusively to route your microphone feed to the correct sound system channel and are discarded when you disconnect.
+      </li>
+      <li>
+        <strong>Network &amp; Connection Telemetry:</strong> Standard WebRTC network connectivity parameters (packet loss, jitter, latency) are processed in volatile memory to provide visual signal quality indicators.
+      </li>
+    </ul>
+
+    <h2>3. Information We DO NOT Collect</h2>
+    <ul>
+      <li>No account credentials, passwords, or personal email addresses.</li>
+      <li>No device location (GPS), contacts, or photos.</li>
+      <li>No advertising identifiers (IDFA / AAID) or cross-app tracking cookies.</li>
+      <li>No third-party behavioral analytics or telemetry SDKs.</li>
+    </ul>
+
+    <h2>4. Third-Party Infrastructure</h2>
+    <p>
+      AirMic utilizes <strong>LiveKit Cloud</strong> as its WebRTC Selective Forwarding Unit (SFU) network to transmit real-time media packets between your phone and the host receiver. All media transit is encrypted via DTLS/SRTP.
+    </p>
+
+    <h2>5. Permissions Explained</h2>
+    <ul>
+      <li><strong>RECORD_AUDIO / Microphone:</strong> Required strictly to stream your speech to the room sound system when you push to talk.</li>
+      <li><strong>FOREGROUND_SERVICE_MICROPHONE:</strong> Used on Android to maintain continuous, uninterrupted audio capture when your screen dims or locks during a speaking turn. A persistent notification is displayed whenever this service is active.</li>
+    </ul>
+
+    <h2>6. Data Retention &amp; Deletion</h2>
+    <p>
+      Because we do not store, archive, or associate personal data with accounts, there is no retained data to delete. Disconnecting from the room immediately terminates the audio pipeline and purges session state from memory.
+    </p>
+
+    <h2>7. Contact &amp; Support</h2>
+    <p>
+      If you have questions about this Privacy Policy or AirMic's audio architecture, please contact our support team at:
+      <br>
+      <strong>Email:</strong> support@centralized-mic.internal
+    </p>
+
+    <footer>
+      &copy; 2026 AirMic. All rights reserved.
+    </footer>
+  </div>
+</body>
+</html>

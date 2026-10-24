@@ -33,7 +33,7 @@ const MAX_NAME_LENGTH = 28;
 export default function App() {
   // Demo room code: STG-709 (compact 7 characters, strictly under 10)
   const [roomCode, setRoomCode] = useState('STG-709');
-  const [userName, setUserName] = useState('Maya Lin (Lead Vocals)');
+  const [userName, setUserName] = useState('');
   const [interactionMode, setInteractionMode] = useState<MicInteractionMode>('hold');
   const [audioInputDevice, setAudioInputDevice] = useState<'builtin' | 'interface' | 'bluetooth'>('builtin');
   const [agcLimiter, setAgcLimiter] = useState(true);
@@ -43,10 +43,11 @@ export default function App() {
 
   // Participant unique ID
   const participantId = useMemo(
-    () => `phone-${userName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8)}-${Date.now().toString().slice(-4)}`,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () => `phone-${Date.now().toString().slice(-4)}-${Math.floor(1000 + Math.random() * 9000)}`,
     []
   );
+
+  const effectiveName = userName.trim() || `Attendee ${participantId.slice(-4)}`;
 
   // LiveKit WebRTC Transmitter hook
   const {
@@ -62,7 +63,7 @@ export default function App() {
   } = useLiveKitTransmitter({
     tokenServerUrl: TOKEN_SERVER_URL,
     roomName: roomCode.trim().toUpperCase(),
-    participantName: userName.trim(),
+    participantName: effectiveName,
     participantIdentity: participantId,
   });
 
@@ -79,7 +80,7 @@ export default function App() {
   } = useFloorControl({
     room,
     participantId,
-    participantName: userName.trim(),
+    participantName: effectiveName,
     onFloorGranted: () => {
       unmuteMicrophone();
     },
@@ -102,7 +103,7 @@ export default function App() {
     if (transmitterError) {
       const lower = transmitterError.toLowerCase();
       if (lower.includes('room') || lower.includes('not found') || lower.includes('exist') || lower.includes('404')) {
-        setFriendlyError(`Room ${roomCode} is closed or rejected handshake. Check console.`);
+        setFriendlyError(`Room ${roomCode} is closed or unreachable. Please verify code with the host.`);
       } else if (lower.includes('mic') || lower.includes('permission')) {
         setFriendlyError('Microphone permission is required to talk.');
       } else {
@@ -496,7 +497,7 @@ export default function App() {
                   <View style={styles.performerDetails}>
                     <View style={styles.performerNameRow}>
                       <Text style={styles.performerName} numberOfLines={1}>
-                        {userName}
+                        {userName.trim() || effectiveName}
                       </Text>
                       <Text style={styles.verifiedIcon}>✓</Text>
                     </View>
