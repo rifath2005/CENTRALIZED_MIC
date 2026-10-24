@@ -118,20 +118,39 @@ export function useHostLiveKit({
         }
       );
 
+      const resolveParticipantName = (p: RemoteParticipant | Participant): string => {
+        const raw = p.name?.trim();
+        if (raw) return raw;
+        const id = p.identity || '';
+        const short = id.replace(/^(phone|host|mic|guest)-/i, '').slice(-4);
+        return `Attendee ${short ? `(${short})` : ''}`.trim();
+      };
+
       // Real-time Boardroom Member Tracking
       livekitRoom.on(RoomEvent.ParticipantConnected, (participant: RemoteParticipant) => {
-        console.log(`[HostLiveKit] Boardroom member connected: ${participant.identity}`);
+        console.log(`[HostLiveKit] Boardroom member connected: ${participant.identity} (${participant.name})`);
         setMembers((prev) => {
           if (prev.some((m) => m.identity === participant.identity)) return prev;
           return [
             ...prev,
             {
               identity: participant.identity,
-              name: participant.name || participant.identity,
+              name: resolveParticipantName(participant),
               joinedAt: Date.now(),
             },
           ];
         });
+      });
+
+      livekitRoom.on(RoomEvent.ParticipantNameChanged, (name: string, participant: Participant) => {
+        console.log(`[HostLiveKit] Participant name updated: ${participant.identity} -> ${name}`);
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.identity === participant.identity
+              ? { ...m, name: name?.trim() || m.name }
+              : m
+          )
+        );
       });
 
       livekitRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
@@ -144,7 +163,7 @@ export function useHostLiveKit({
         setIsConnecting(false);
         const initialMembers: BoardroomMember[] = Array.from(livekitRoom.remoteParticipants.values()).map((p) => ({
           identity: p.identity,
-          name: p.name || p.identity,
+          name: resolveParticipantName(p),
           joinedAt: Date.now(),
         }));
         setMembers(initialMembers);

@@ -8,6 +8,7 @@ interface SettingsNetworkViewProps {
   isConnecting: boolean;
   memberCount: number;
   onUpdateRoomCode: (newCode: string) => void;
+  onUpdateTokenServerUrl?: (newUrl: string) => void;
   onReconnect: () => void;
 }
 
@@ -18,10 +19,14 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
   isConnecting,
   memberCount,
   onUpdateRoomCode,
+  onUpdateTokenServerUrl,
   onReconnect,
 }) => {
   const [tempCode, setTempCode] = useState(roomCode);
   const [isEditingCode, setIsEditingCode] = useState(false);
+  const [isEditingServer, setIsEditingServer] = useState(false);
+  const [tempServer, setTempServer] = useState(tokenServerUrl);
+  const [serverSaved, setServerSaved] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedPayload, setCopiedPayload] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -201,9 +206,78 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
             </div>
 
             <div style={styles.endpointItem}>
-              <span style={styles.endpointLabel}>Token Server (JWT Broker)</span>
-              <code style={styles.endpointCode}>{tokenServerUrl}</code>
-              <span style={styles.endpointStatus}>Hosted on Render (Auto-Scaling)</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={styles.endpointLabel}>Token Server (JWT Broker)</span>
+                {!isEditingServer && (
+                  <button
+                    style={{ background: 'transparent', border: '1px solid #334155', color: '#94a3b8', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}
+                    onClick={() => { setTempServer(tokenServerUrl); setIsEditingServer(true); }}
+                    type="button"
+                  >
+                    ✏️ Edit URL
+                  </button>
+                )}
+              </div>
+              {isEditingServer ? (
+                <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  <input
+                    type="text"
+                    value={tempServer}
+                    onChange={(e) => setTempServer(e.target.value)}
+                    style={{ flex: 1, minWidth: '220px', backgroundColor: '#080a0e', border: '1px solid #e11d48', borderRadius: '8px', padding: '6px 10px', color: '#ffffff', fontFamily: 'monospace', fontSize: '12px' }}
+                  />
+                  <button
+                    style={{ backgroundColor: '#e11d48', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                    onClick={() => {
+                      const sanitized = tempServer.trim();
+                      if (sanitized && onUpdateTokenServerUrl) {
+                        onUpdateTokenServerUrl(sanitized);
+                        setIsEditingServer(false);
+                        setServerSaved(true);
+                        setTimeout(() => setServerSaved(false), 2500);
+                        onReconnect();
+                      }
+                    }}
+                    type="button"
+                  >
+                    Save &amp; Reconnect
+                  </button>
+                  <button
+                    style={{ backgroundColor: '#1e293b', color: '#94a3b8', border: 'none', borderRadius: '8px', padding: '6px 10px', fontSize: '12px', cursor: 'pointer' }}
+                    onClick={() => { setTempServer(tokenServerUrl); setIsEditingServer(false); }}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <code style={styles.endpointCode}>{tokenServerUrl}</code>
+              )}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#38bdf8', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                  onClick={() => {
+                    const loc = `http://${window.location.hostname || 'localhost'}:4000`;
+                    setTempServer(loc);
+                    if (onUpdateTokenServerUrl) { onUpdateTokenServerUrl(loc); onReconnect(); }
+                  }}
+                  type="button"
+                >
+                  ⚡ Set Localhost (:4000)
+                </button>
+                <button
+                  style={{ background: '#1e293b', border: '1px solid #334155', color: '#cbd5e1', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                  onClick={() => {
+                    const cloud = 'https://centralized-mic-token-server.onrender.com';
+                    setTempServer(cloud);
+                    if (onUpdateTokenServerUrl) { onUpdateTokenServerUrl(cloud); onReconnect(); }
+                  }}
+                  type="button"
+                >
+                  ☁️ Set Cloud (Render)
+                </button>
+                {serverSaved && <span style={{ color: '#10b981', fontSize: '11px', fontWeight: 'bold' }}>✓ Saved &amp; Reconnecting...</span>}
+              </div>
             </div>
 
             <div style={styles.endpointItem}>

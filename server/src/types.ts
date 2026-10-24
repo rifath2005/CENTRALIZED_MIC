@@ -2,16 +2,16 @@ import { z } from 'zod';
 
 export const HostTokenRequestSchema = z.object({
   roomName: z.string().min(3).max(64).regex(/^[a-zA-Z0-9_-]+$/, 'Room name must be alphanumeric with underscores or hyphens'),
-  hostIdentity: z.string().min(1).max(64).optional(),
-  hostName: z.string().min(1).max(64).optional(),
+  hostIdentity: z.string().max(64).nullish().transform((v) => (v && v.trim() ? v.trim() : undefined)),
+  hostName: z.string().max(64).nullish().transform((v) => (v && v.trim() ? v.trim() : undefined)),
 });
 
 export type HostTokenRequest = z.infer<typeof HostTokenRequestSchema>;
 
 export const ParticipantTokenRequestSchema = z.object({
   roomName: z.string().min(3).max(64).regex(/^[a-zA-Z0-9_-]+$/, 'Room name must be alphanumeric with underscores or hyphens'),
-  participantIdentity: z.string().min(1).max(64).optional(),
-  participantName: z.string().min(1).max(64).optional(),
+  participantIdentity: z.string().max(64).nullish().transform((v) => (v && v.trim() ? v.trim() : undefined)),
+  participantName: z.string().max(64).nullish().transform((v) => (v && v.trim() ? v.trim() : undefined)),
 });
 
 export type ParticipantTokenRequest = z.infer<typeof ParticipantTokenRequestSchema>;

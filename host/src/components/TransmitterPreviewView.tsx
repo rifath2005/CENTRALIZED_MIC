@@ -130,7 +130,7 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
                   </div>
                   <div>
                     <label className="block text-[11px] font-mono font-bold text-[#94a3b8] uppercase mb-1">
-                      Your Name (Optional)
+                      Your Name
                     </label>
                     <input
                       type="text"

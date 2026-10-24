@@ -22,7 +22,8 @@ interface TelemetryLogEntry {
 }
 
 // Consistent, vibrant avatar color palette
-function getAvatarColor(name: string): string {
+function getAvatarColor(name?: string): string {
+  if (!name || !name.trim()) return '#e11d48';
   const colors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#e11d48'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -31,16 +32,30 @@ function getAvatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function getInitials(name: string): string {
+function getInitials(name?: string): string {
+  if (!name || !name.trim()) return '??';
   const parts = name.trim().split(/[\s-_]+/);
-  if (parts.length >= 2) {
+  if (parts.length >= 2 && parts[0] && parts[1]) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-  return name.slice(0, 2).toUpperCase();
+  return name.trim().slice(0, 2).toUpperCase() || '??';
+}
+
+function getInitialTokenServerUrl(): string {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('centralized_mic_token_server');
+    if (saved && saved.trim()) return saved.trim();
+
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('10.')) {
+      return `http://${host}:4000`;
+    }
+  }
+  return 'https://centralized-mic-token-server.onrender.com';
 }
 
 export default function App() {
-  const [tokenServerUrl] = useState('https://centralized-mic-token-server.onrender.com');
+  const [tokenServerUrl, setTokenServerUrl] = useState<string>(getInitialTokenServerUrl);
   const [roomName, setRoomName] = useState('STG-709');
   const [activeView, setActiveView] = useState<HostViewMode>('console');
   const [isFullScreenQrOpen, setIsFullScreenQrOpen] = useState(false);
@@ -185,11 +200,19 @@ export default function App() {
     addTelemetryLog(`ROOM SWITCH: Re-targeting conference bridge to ${sanitized}.`, 'info');
   };
 
+  const handleUpdateTokenServerUrl = (newUrl: string) => {
+    const sanitized = newUrl.trim().replace(/\/$/, '');
+    if (!sanitized) return;
+    setTokenServerUrl(sanitized);
+    localStorage.setItem('centralized_mic_token_server', sanitized);
+    addTelemetryLog(`CONFIG: Token server endpoint set to ${sanitized}`, 'info');
+  };
+
   useEffect(() => {
     if (isAudioUnlocked && !isConnected && !isConnecting) {
       connectHost();
     }
-  }, [roomName, isAudioUnlocked, isConnected, isConnecting, connectHost]);
+  }, [roomName, tokenServerUrl, isAudioUnlocked, isConnected, isConnecting, connectHost]);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVol = parseFloat(e.target.value);
@@ -668,6 +691,7 @@ export default function App() {
                 isConnecting={isConnecting}
                 memberCount={memberCount}
                 onUpdateRoomCode={handleUpdateRoomCode}
+                onUpdateTokenServerUrl={handleUpdateTokenServerUrl}
                 onReconnect={connectHost}
               />
             </div>
@@ -1000,8 +1024,8 @@ export default function App() {
                           </div>
                         ) : (
                           activeAttendees.map((att) => {
-                            const isSpeaking = currentSpeaker?.id === att.identity || currentSpeaker?.name === att.name;
-                            const queueIdx = queue.findIndex((q) => q.id === att.identity || q.name === att.name);
+                            const isSpeaking = currentSpeaker?.id === att.identity;
+                            const queueIdx = queue.findIndex((q) => q.id === att.identity);
                             const isQueued = queueIdx !== -1;
 
                             return (

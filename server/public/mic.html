@@ -686,14 +686,16 @@
 
         <!-- WEB-TR-02: WebNameInput -->
         <div class="field-group">
-          <label class="field-label" for="name-input">Your Name (Optional)</label>
+          <label class="field-label" for="name-input">Your Name</label>
           <input 
             type="text" 
             id="name-input" 
             class="text-input" 
             placeholder="e.g. Alex" 
-            maxlength="20" 
+            maxlength="24" 
             autocomplete="name"
+            required
+            aria-required="true"
           />
         </div>
 
@@ -861,6 +863,11 @@
       roomInput.value = roomInput.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10);
     });
 
+    nameInput.addEventListener('input', () => {
+      clearError();
+      nameInput.classList.remove('input-error');
+    });
+
     toggleModeCheckbox.addEventListener('change', (e) => {
       isToggleMode = e.target.checked;
       toggleModeCheckbox.setAttribute('aria-checked', String(isToggleMode));
@@ -885,7 +892,14 @@
         return;
       }
 
-      const participantName = nameInput.value.trim() || `Guest-${Math.floor(100 + Math.random() * 900)}`;
+      const participantName = nameInput.value.trim();
+      if (!participantName) {
+        errorText.innerText = "Please enter your name to join the room.";
+        errorBanner.classList.add('visible');
+        nameInput.classList.add('input-error');
+        nameInput.focus();
+        return;
+      }
       localStorage.setItem('airmic_name', participantName);
       currentParticipantName = participantName;
 

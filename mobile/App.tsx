@@ -203,6 +203,11 @@ export default function App() {
       setFriendlyError('Room code is too short.');
       return;
     }
+    const enteredName = userName.trim();
+    if (!enteredName) {
+      setFriendlyError('Please enter your name / label to join the stage.');
+      return;
+    }
     connect();
   };
 

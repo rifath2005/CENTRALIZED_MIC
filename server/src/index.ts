@@ -224,7 +224,7 @@ app.post('/api/token/participant', async (req: Request, res: Response<TokenRespo
     }
 
     const identity = participantIdentity || `phone-${crypto.randomBytes(4).toString('hex')}`;
-    const displayName = participantName || `Mic-${identity.slice(-4)}`;
+    const displayName = (participantName && participantName.trim()) || `Attendee ${identity.slice(-4)}`;
 
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity,

@@ -14,7 +14,8 @@ interface FullScreenQrModalProps {
 }
 
 // Consistent, vibrant avatar color palette
-function getAvatarColor(name: string): string {
+function getAvatarColor(name?: string): string {
+  if (!name || !name.trim()) return '#e11d48';
   const colors = ['#2563eb', '#059669', '#7c3aed', '#d97706', '#db2777', '#0891b2', '#e11d48'];
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
@@ -23,12 +24,13 @@ function getAvatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length];
 }
 
-function getInitials(name: string): string {
+function getInitials(name?: string): string {
+  if (!name || !name.trim()) return '??';
   const parts = name.trim().split(/[\s-_]+/);
-  if (parts.length >= 2) {
+  if (parts.length >= 2 && parts[0] && parts[1]) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
-  return name.slice(0, 2).toUpperCase();
+  return name.trim().slice(0, 2).toUpperCase() || '??';
 }
 
 export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
@@ -415,11 +417,8 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 </div>
               ) : (
                 displayMembers.map((member) => {
-                  const isSpeaker =
-                    currentSpeaker?.id === member.identity || currentSpeaker?.name === member.name;
-                  const queueIdx = queue.findIndex(
-                    (q) => q.id === member.identity || q.name === member.name
-                  );
+                  const isSpeaker = currentSpeaker?.id === member.identity;
+                  const queueIdx = queue.findIndex((q) => q.id === member.identity);
                   const isQueued = queueIdx !== -1;
 
                   return (
