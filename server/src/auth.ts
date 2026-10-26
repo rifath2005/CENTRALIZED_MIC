@@ -246,6 +246,20 @@ router.post('/config', (req: Request, res: Response) => {
   const { googleClientId } = req.body;
   if (typeof googleClientId === 'string') {
     currentGoogleClientId = googleClientId.trim();
+    try {
+      const envPath = path.resolve(__dirname, '../.env');
+      if (fs.existsSync(envPath)) {
+        let envContent = fs.readFileSync(envPath, 'utf8');
+        if (envContent.includes('GOOGLE_CLIENT_ID=')) {
+          envContent = envContent.replace(/GOOGLE_CLIENT_ID=.*/g, `GOOGLE_CLIENT_ID=${currentGoogleClientId}`);
+        } else {
+          envContent = envContent.trim() + `\nGOOGLE_CLIENT_ID=${currentGoogleClientId}\n`;
+        }
+        fs.writeFileSync(envPath, envContent, 'utf8');
+      }
+    } catch (e) {
+      console.warn('[Config] Failed to persist GOOGLE_CLIENT_ID to .env:', e);
+    }
     return res.status(200).json({ success: true, googleClientId: currentGoogleClientId });
   }
   return res.status(400).json({ error: 'Invalid client ID' });

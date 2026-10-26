@@ -3,7 +3,6 @@ import { LoginForm } from './components/LoginForm';
 import { SignupForm } from './components/SignupForm';
 import { ForgotPasswordModal } from './components/ForgotPasswordModal';
 import { TermsModal } from './components/TermsModal';
-import { GoogleAuthModal } from './components/GoogleAuthModal';
 import { ToastContainer } from './components/Toast';
 import { AuthTab, AuthUser, ToastMessage } from './types';
 
@@ -17,7 +16,7 @@ interface AuthPageProps {
 export const AuthPage: React.FC<AuthPageProps> = ({
   onAuthSuccess,
   onClose,
-  tokenServerUrl = 'https://centralized-mic-token-server.onrender.com',
+  tokenServerUrl = 'http://localhost:4000',
   initialTab = 'login',
 }) => {
   const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
@@ -32,7 +31,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [termsModalState, setTermsModalState] = useState<{
     isOpen: boolean;
@@ -242,7 +240,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   }}
                   onSwitchTab={() => setActiveTab('signup')}
                   onOpenForgotPassword={handleOpenForgotPassword}
-                  onOpenGoogleModal={() => setIsGoogleModalOpen(true)}
                   tokenServerUrl={tokenServerUrl}
                   addToast={addToast}
                 />
@@ -253,7 +250,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   }}
                   onSwitchTab={() => setActiveTab('login')}
                   onOpenTerms={handleOpenTerms}
-                  onOpenGoogleModal={() => setIsGoogleModalOpen(true)}
                   tokenServerUrl={tokenServerUrl}
                   addToast={addToast}
                 />
@@ -274,15 +270,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         isOpen={termsModalState.isOpen}
         defaultTab={termsModalState.tab}
         onClose={() => setTermsModalState({ isOpen: false, tab: 'terms' })}
-      />
-
-      <GoogleAuthModal
-        isOpen={isGoogleModalOpen}
-        onClose={() => setIsGoogleModalOpen(false)}
-        onSuccess={(user) => {
-          if (onAuthSuccess) onAuthSuccess(user);
-        }}
-        tokenServerUrl={tokenServerUrl}
       />
 
       {/* Accessible Toast Alerts */}

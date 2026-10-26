@@ -8,7 +8,6 @@ interface LoginFormProps {
   onSuccess: (user: AuthUser) => void;
   onSwitchTab: () => void;
   onOpenForgotPassword: (email?: string) => void;
-  onOpenGoogleModal?: () => void;
   tokenServerUrl?: string;
   addToast: (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => void;
 }
@@ -17,7 +16,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSuccess,
   onSwitchTab,
   onOpenForgotPassword,
-  onOpenGoogleModal,
   tokenServerUrl = 'http://localhost:4000',
   addToast,
 }) => {
@@ -151,56 +149,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
-      if (cfgRes.ok) {
-        const cfgData = await cfgRes.json();
-        const googleObj = (window as any).google;
-        if (cfgData.googleClientId && googleObj?.accounts?.oauth2) {
-          setIsLoading(true);
-          const client = googleObj.accounts.oauth2.initTokenClient({
-            client_id: cfgData.googleClientId,
-            scope: 'email profile openid',
-            callback: async (tokenResponse: any) => {
-              setIsLoading(false);
-              if (tokenResponse?.access_token) {
-                try {
-                  const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-                  }).then((r) => r.json());
-
-                  const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      email: userInfo.email,
-                      name: userInfo.name,
-                      picture: userInfo.picture,
-                    }),
-                  });
-                  const resData = await apiRes.json();
-                  if (apiRes.ok && resData.user) {
-                    addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Sign-In');
-                    onSuccess(resData.user);
-                    return;
-                  }
-                } catch (e: any) {
-                  setBannerError(e.message || 'Google verification failed');
-                }
-              }
-            },
-          });
-          client.requestAccessToken();
-          return;
-        }
-      }
-    } catch (_) {}
-
-    if (onOpenGoogleModal) {
-      onOpenGoogleModal();
-    }
-  };
 
   return (
     <div className="w-full flex flex-col text-left">
@@ -315,11 +263,17 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </span>
       </div>
 
-      {/* Google-Only Sign-In Button */}
+      {/* Native Google Sign-In with Real GIS */}
       <SocialButtons
-        isLoading={isLoading}
-        onGoogleClick={handleGoogleLogin}
-        buttonText="Sign in with Google"
+        tokenServerUrl={tokenServerUrl}
+        onSuccess={(user) => {
+          addToast('success', `Welcome back, ${user.fullName}!`, 'Google Sign-In');
+          onSuccess(user);
+        }}
+        onError={(err) => {
+          setBannerError(err);
+          addToast('error', err, 'Google Sign-In');
+        }}
       />
 
       {/* Footer */}
