@@ -14,6 +14,7 @@ import {
   TokenResponse,
   ApiErrorResponse,
 } from './types';
+import authRouter from './auth';
 
 dotenv.config();
 
@@ -73,6 +74,7 @@ const limiter = rateLimit({
   message: { error: 'Too many token requests from this IP, please try again later.' },
 });
 app.use('/api/', limiter);
+app.use('/api/auth', authRouter);
 
 // Configuration & credentials
 const LIVEKIT_URL = process.env.LIVEKIT_URL;

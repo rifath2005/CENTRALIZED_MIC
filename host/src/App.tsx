@@ -11,8 +11,10 @@ import { AudioDspConfigView } from './components/AudioDspConfigView';
 import { SettingsNetworkView } from './components/SettingsNetworkView';
 import { FullScreenQrModal } from './components/FullScreenQrModal';
 import { BoardroomMember } from './types';
+import { AuthPage } from './auth/AuthPage';
+import { AuthUser } from './auth/types';
 
-export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings';
+export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings' | 'auth';
 
 interface TelemetryLogEntry {
   id: string;
@@ -59,6 +61,17 @@ export default function App() {
   const [tokenServerUrl, setTokenServerUrl] = useState<string>(getInitialTokenServerUrl);
   const [roomName, setRoomName] = useState('STG-709');
   const [activeView, setActiveView] = useState<HostViewMode>('console');
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('centralized_mic_current_user');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (_) {}
+      }
+    }
+    return null;
+  });
   const [isFullScreenQrOpen, setIsFullScreenQrOpen] = useState(false);
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [volume, setVolume] = useState(0.75);
@@ -413,8 +426,21 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0b0e13] text-[#f1f5f9] font-sans antialiased selection:bg-[#ef4444] selection:text-white">
-      {/* Audio Unlock Autoplay Gate */}
-      <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
+      {activeView === 'auth' ? (
+        <AuthPage
+          tokenServerUrl={tokenServerUrl}
+          onAuthSuccess={(user) => {
+            setCurrentUser(user);
+            localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
+            addTelemetryLog(`AUTH: Operator ${user.fullName} logged in (${user.role}).`, 'success');
+            setActiveView('console');
+          }}
+          onClose={() => setActiveView('console')}
+        />
+      ) : (
+        <>
+          {/* Audio Unlock Autoplay Gate */}
+          <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
@@ -568,17 +594,55 @@ export default function App() {
               </div>
             </div>
 
-            {/* Operator Avatar Indicator */}
-            <div className="flex items-center gap-1 pl-1">
-              <div className="relative flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-[#181d28] border border-slate-700 flex items-center justify-center shadow">
-                  <span className="material-symbols-outlined text-slate-300 text-[18px]">person</span>
-                </div>
-                <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-[#080a0e] ${
-                  isConnected ? 'bg-[#10b981] shadow-[0_0_6px_#10b981]' : 'bg-[#64748b]'
-                }`} />
+            {/* Operator Avatar & Portal Trigger */}
+            {currentUser ? (
+              <div className="flex items-center gap-2 pl-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('auth')}
+                  title={`Logged in as ${currentUser.fullName} (${currentUser.email}). Click to open Portal.`}
+                  className="flex items-center gap-2 bg-[#10141c] hover:bg-[#181d28] border border-[#222834] hover:border-slate-600 px-2.5 py-1 rounded-lg transition-all text-left"
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0"
+                    style={{ backgroundColor: getAvatarColor(currentUser.fullName) }}
+                  >
+                    {getInitials(currentUser.fullName)}
+                  </div>
+                  <div className="hidden lg:flex flex-col">
+                    <span className="text-[11px] font-semibold text-white leading-tight truncate max-w-[100px]">
+                      {currentUser.fullName}
+                    </span>
+                    <span className="text-[8px] font-mono text-[#10b981] uppercase font-bold tracking-widest">
+                      {currentUser.role}
+                    </span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentUser(null);
+                    localStorage.removeItem('centralized_mic_current_user');
+                    addTelemetryLog('AUTH: Operator signed out.', 'info');
+                  }}
+                  title="Sign Out"
+                  className="w-8 h-8 rounded-lg bg-[#10141c] hover:bg-[#1f1517] border border-[#222834] hover:border-red-500/50 text-slate-400 hover:text-red-400 flex items-center justify-center transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">logout</span>
+                </button>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-1.5 pl-1">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('auth')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 border border-red-500/40 hover:border-red-500 text-red-400 hover:text-red-300 text-xs font-semibold transition-all shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[16px]">lock</span>
+                  <span>Sign In</span>
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
@@ -678,6 +742,26 @@ export default function App() {
                 <span className="material-symbols-outlined text-[18px]">vital_signs</span>
                 <span>Telemetry &amp; Network</span>
               </div>
+            </button>
+
+            {/* 6. Operator Portal & Auth */}
+            <button
+              onClick={() => setActiveView('auth')}
+              className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
+                (activeView as string) === 'auth'
+                  ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                  : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                <span>Operator Portal</span>
+              </div>
+              <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded ${
+                currentUser ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-[#ef4444]/20 text-[#ef4444]'
+              }`}>
+                {currentUser ? 'AUTH' : 'LOGIN'}
+              </span>
             </button>
           </nav>
         </div>
@@ -1369,6 +1453,8 @@ export default function App() {
         members={activeAttendees}
         queue={queue}
       />
+        </>
+      )}
     </div>
   );
 }
