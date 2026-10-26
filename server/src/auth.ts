@@ -8,7 +8,7 @@ import { z } from 'zod';
 const router = Router();
 
 const JWT_SECRET = process.env.AUTH_SECRET || process.env.LIVEKIT_API_SECRET || 'centralized-mic-super-secret-key-2026';
-let currentGoogleClientId = process.env.GOOGLE_CLIENT_ID || '';
+let currentGoogleClientId = process.env.GOOGLE_CLIENT_ID || '523129607801-ot70ums883plmfi2ie3b7bhhag4lb6ti.apps.googleusercontent.com';
 
 // ─── File-Based Persistent Storage Paths ──────────────────────────────────
 const DATA_DIR = path.resolve(__dirname, '../data');
