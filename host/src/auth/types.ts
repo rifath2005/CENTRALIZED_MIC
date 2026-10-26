@@ -49,5 +49,30 @@ export interface AuthUser {
   fullName: string;
   email: string;
   role: 'operator' | 'admin' | 'presenter';
+  authProvider?: 'password' | 'google';
+  picture?: string;
   token: string;
+  createdAt?: string;
+  lastLoginAt?: string;
+}
+
+export interface AdminUserSummary {
+  id: string;
+  fullName: string;
+  email: string;
+  role: 'operator' | 'admin';
+  authProvider: 'password' | 'google';
+  picture?: string;
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  action: string;
+  email: string;
+  ip?: string;
+  status: 'success' | 'failure';
+  details?: string;
 }

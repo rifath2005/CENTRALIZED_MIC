@@ -1,0 +1,20 @@
+[
+  {
+    "id": "log-1793012889409-5sdc",
+    "timestamp": "2026-10-26T11:08:09.409Z",
+    "action": "SIGNUP",
+    "email": "director@company.com",
+    "ip": "::1",
+    "status": "success",
+    "details": "Registered via Google (admin)"
+  },
+  {
+    "id": "log-1793012869022-1udv",
+    "timestamp": "2026-10-26T11:07:49.022Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "admin@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as admin"
+  }
+]

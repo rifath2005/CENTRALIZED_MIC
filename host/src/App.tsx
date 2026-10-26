@@ -13,8 +13,9 @@ import { FullScreenQrModal } from './components/FullScreenQrModal';
 import { BoardroomMember } from './types';
 import { AuthPage } from './auth/AuthPage';
 import { AuthUser } from './auth/types';
+import { AdminUsersView } from './components/AdminUsersView';
 
-export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings' | 'auth';
+export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings' | 'auth' | 'admin';
 
 interface TelemetryLogEntry {
   id: string;
@@ -424,23 +425,42 @@ export default function App() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  // ─── HARD AUTHENTICATION GATE ───────────────────────────────────────────
+  // Without login, nobody can access the main page or PA controls
+  if (!currentUser) {
+    return (
+      <AuthPage
+        tokenServerUrl={tokenServerUrl}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
+          addTelemetryLog(`AUTH: ${user.fullName} authenticated (${user.role}).`, 'success');
+          setActiveView('console');
+        }}
+      />
+    );
+  }
+
+  // Explicit Auth Profile navigation for logged in user
+  if (activeView === 'auth') {
+    return (
+      <AuthPage
+        tokenServerUrl={tokenServerUrl}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
+          addTelemetryLog(`AUTH: ${user.fullName} profile updated (${user.role}).`, 'success');
+          setActiveView('console');
+        }}
+        onClose={() => setActiveView('console')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0b0e13] text-[#f1f5f9] font-sans antialiased selection:bg-[#ef4444] selection:text-white">
-      {activeView === 'auth' ? (
-        <AuthPage
-          tokenServerUrl={tokenServerUrl}
-          onAuthSuccess={(user) => {
-            setCurrentUser(user);
-            localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
-            addTelemetryLog(`AUTH: Operator ${user.fullName} logged in (${user.role}).`, 'success');
-            setActiveView('console');
-          }}
-          onClose={() => setActiveView('console')}
-        />
-      ) : (
-        <>
-          {/* Audio Unlock Autoplay Gate */}
-          <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
+      {/* Audio Unlock Autoplay Gate */}
+      <AudioUnlockGate isUnlocked={isAudioUnlocked} onUnlock={handleUnlockAudio} />
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
@@ -595,25 +615,34 @@ export default function App() {
             </div>
 
             {/* Operator Avatar & Portal Trigger */}
-            {currentUser ? (
-              <div className="flex items-center gap-2 pl-1">
+            <div className="flex items-center gap-2 pl-1">
                 <button
                   type="button"
-                  onClick={() => setActiveView('auth')}
-                  title={`Logged in as ${currentUser.fullName} (${currentUser.email}). Click to open Portal.`}
+                  onClick={() => setActiveView(currentUser.role === 'admin' ? 'admin' : 'auth')}
+                  title={`Logged in as ${currentUser.fullName} (${currentUser.email}) • Role: ${currentUser.role}`}
                   className="flex items-center gap-2 bg-[#10141c] hover:bg-[#181d28] border border-[#222834] hover:border-slate-600 px-2.5 py-1 rounded-lg transition-all text-left"
                 >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0"
-                    style={{ backgroundColor: getAvatarColor(currentUser.fullName) }}
-                  >
-                    {getInitials(currentUser.fullName)}
-                  </div>
+                  {currentUser.picture ? (
+                    <img
+                      src={currentUser.picture}
+                      alt={currentUser.fullName}
+                      className="w-7 h-7 rounded-full object-cover border border-slate-700 flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0"
+                      style={{ backgroundColor: getAvatarColor(currentUser.fullName) }}
+                    >
+                      {getInitials(currentUser.fullName)}
+                    </div>
+                  )}
                   <div className="hidden lg:flex flex-col">
                     <span className="text-[11px] font-semibold text-white leading-tight truncate max-w-[100px]">
                       {currentUser.fullName}
                     </span>
-                    <span className="text-[8px] font-mono text-[#10b981] uppercase font-bold tracking-widest">
+                    <span className={`text-[8px] font-mono uppercase font-bold tracking-widest ${
+                      currentUser.role === 'admin' ? 'text-red-400' : 'text-[#10b981]'
+                    }`}>
                       {currentUser.role}
                     </span>
                   </div>
@@ -631,18 +660,6 @@ export default function App() {
                   <span className="material-symbols-outlined text-[16px]">logout</span>
                 </button>
               </div>
-            ) : (
-              <div className="flex items-center gap-1.5 pl-1">
-                <button
-                  type="button"
-                  onClick={() => setActiveView('auth')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/20 border border-red-500/40 hover:border-red-500 text-red-400 hover:text-red-300 text-xs font-semibold transition-all shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-[16px]">lock</span>
-                  <span>Sign In</span>
-                </button>
-              </div>
-            )}
           </div>
         </header>
 
@@ -744,7 +761,27 @@ export default function App() {
               </div>
             </button>
 
-            {/* 6. Operator Portal & Auth */}
+            {/* 6. Admin Control Center (Only for Administrators) */}
+            {currentUser.role === 'admin' && (
+              <button
+                onClick={() => setActiveView('admin')}
+                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
+                  activeView === 'admin'
+                    ? 'bg-[#161c26] text-white border-l-2 border-[#ef4444] shadow-sm font-bold'
+                    : 'text-[#94a3b8] hover:bg-[#121620] hover:text-[#f1f5f9]'
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[18px] text-amber-400">admin_panel_settings</span>
+                  <span className="text-amber-200">Admin Control</span>
+                </div>
+                <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30">
+                  USERS
+                </span>
+              </button>
+            )}
+
+            {/* 7. Operator Profile */}
             <button
               onClick={() => setActiveView('auth')}
               className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all text-left ${
@@ -755,7 +792,7 @@ export default function App() {
             >
               <div className="flex items-center gap-2.5">
                 <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                <span>Operator Portal</span>
+                <span>Operator Profile</span>
               </div>
               <span className={`text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded ${
                 currentUser ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-[#ef4444]/20 text-[#ef4444]'
@@ -815,7 +852,12 @@ export default function App() {
               </button>
             </div>
           )}
-          {activeView === 'transmitter' ? (
+          {activeView === 'admin' ? (
+            /* ADMINISTRATOR SYSTEM & STORAGE CONTROL PANEL */
+            <div className="p-4 md:p-6">
+              <AdminUsersView currentUser={currentUser} tokenServerUrl={tokenServerUrl} />
+            </div>
+          ) : activeView === 'transmitter' ? (
             /* ATTENDEE TRANSMITTER PREVIEW DOCK */
             <div className="p-4 md:p-6">
               <TransmitterPreviewView roomCode={roomName} tokenServerUrl={tokenServerUrl} />
@@ -1453,8 +1495,6 @@ export default function App() {
         members={activeAttendees}
         queue={queue}
       />
-        </>
-      )}
     </div>
   );
 }

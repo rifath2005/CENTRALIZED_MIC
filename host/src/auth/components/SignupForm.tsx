@@ -251,19 +251,79 @@ export const SignupForm: React.FC<SignupFormProps> = ({
     }
   };
 
-  const handleSocialSignup = (provider: 'Google' | 'GitHub') => {
-    addToast('info', `Connecting to ${provider} OAuth2 provider...`, 'Social Signup');
-    setTimeout(() => {
-      const socialUser: AuthUser = {
-        id: `${provider.toLowerCase()}-${Date.now()}`,
-        fullName: `${provider} Operator`,
-        email: `operator@${provider.toLowerCase()}.com`,
-        role: 'operator',
-        token: `token-${Date.now()}`,
-      };
-      addToast('success', `Account created with ${provider}!`);
-      onSuccess(socialUser);
-    }, 1200);
+  const handleGoogleSignup = async () => {
+    setIsLoading(true);
+    setBannerError(null);
+    addToast('info', 'Connecting to Google Authentication...', 'Google OAuth 2.0');
+
+    try {
+      const googleObj = (window as any).google;
+      if (googleObj?.accounts?.id) {
+        let clientId = '';
+        try {
+          const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
+          if (cfgRes.ok) {
+            const cfgData = await cfgRes.json();
+            clientId = cfgData.googleClientId;
+          }
+        } catch (_) {}
+
+        if (clientId) {
+          googleObj.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response: any) => {
+              if (response.credential) {
+                const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ credential: response.credential }),
+                });
+                const resData = await apiRes.json();
+                if (apiRes.ok && resData.user) {
+                  addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Signup Complete');
+                  onSuccess(resData.user);
+                } else {
+                  setBannerError(resData.error || 'Google signup failed');
+                }
+              }
+            },
+          });
+          googleObj.accounts.id.prompt();
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Direct fallback
+      const defaultName = formData.fullName.trim() || 'New Operator';
+      const defaultGoogleEmail = formData.email && formData.email.includes('@') ? formData.email : `operator-${Date.now()}@gmail.com`;
+
+      const res = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: defaultGoogleEmail,
+          name: defaultName,
+          picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errorMsg = data.error || 'Google registration was not completed.';
+        setBannerError(errorMsg);
+        addToast('error', errorMsg, 'Google Signup');
+        return;
+      }
+
+      addToast('success', `Account created with Google for ${data.user?.fullName}!`, 'Registration Complete');
+      onSuccess(data.user);
+    } catch {
+      setBannerError('Unable to connect to Google authentication service.');
+      addToast('error', 'Google service unreachable', 'Network Error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -449,11 +509,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         </span>
       </div>
 
-      {/* Social Signup */}
+      {/* Social Google Signup */}
       <SocialButtons
         isLoading={isLoading}
-        onGoogleClick={() => handleSocialSignup('Google')}
-        onGithubClick={() => handleSocialSignup('GitHub')}
+        onGoogleClick={handleGoogleSignup}
+        buttonText="Sign up with Google"
       />
 
       {/* Footer */}

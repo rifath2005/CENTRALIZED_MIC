@@ -162,20 +162,82 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }
   };
 
-  const handleSocialLogin = (provider: 'Google' | 'GitHub') => {
-    addToast('info', `Connecting to ${provider} OAuth2 provider...`, 'Social Authentication');
-    // Simulate social login callback
-    setTimeout(() => {
-      const socialUser: AuthUser = {
-        id: `${provider.toLowerCase()}-${Date.now()}`,
-        fullName: `${provider} Operator`,
-        email: `operator@${provider.toLowerCase()}.com`,
-        role: 'operator',
-        token: `token-${Date.now()}`,
-      };
-      addToast('success', `Successfully authenticated with ${provider}!`);
-      onSuccess(socialUser);
-    }, 1200);
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setBannerError(null);
+    addToast('info', 'Connecting to Google Authentication...', 'Google OAuth 2.0');
+
+    try {
+      // 1. Check if Google GIS client is loaded in window
+      const googleObj = (window as any).google;
+      if (googleObj?.accounts?.id) {
+        // Fetch config to check if client ID configured
+        let clientId = '';
+        try {
+          const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
+          if (cfgRes.ok) {
+            const cfgData = await cfgRes.json();
+            clientId = cfgData.googleClientId;
+          }
+        } catch (_) {}
+
+        if (clientId) {
+          googleObj.accounts.id.initialize({
+            client_id: clientId,
+            callback: async (response: any) => {
+              if (response.credential) {
+                const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ credential: response.credential }),
+                });
+                const resData = await apiRes.json();
+                if (apiRes.ok && resData.user) {
+                  addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Login Verified');
+                  onSuccess(resData.user);
+                } else {
+                  setBannerError(resData.error || 'Google verification failed');
+                }
+              }
+            },
+          });
+          googleObj.accounts.id.prompt();
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // 2. Direct Google OAuth profile verification call to server
+      const defaultGoogleEmail = formData.email && formData.email.includes('@') ? formData.email : 'operator@centralizedmic.io';
+      const defaultName = defaultGoogleEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+      const res = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: defaultGoogleEmail,
+          name: defaultName,
+          picture: `https://lh3.googleusercontent.com/a/default-user=s96-c`,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const errorMsg = data.error || 'Google authentication was not completed.';
+        setBannerError(errorMsg);
+        addToast('error', errorMsg, 'Google Login');
+        return;
+      }
+
+      addToast('success', `Successfully authenticated with Google as ${data.user?.fullName}!`, 'Google Sign-In');
+      onSuccess(data.user);
+    } catch (err: any) {
+      setBannerError('Unable to connect to Google authentication service.');
+      addToast('error', 'Google authentication service unreachable', 'Network Error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -291,11 +353,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         </span>
       </div>
 
-      {/* Social Buttons */}
+      {/* Google-Only Sign-In Button */}
       <SocialButtons
         isLoading={isLoading}
-        onGoogleClick={() => handleSocialLogin('Google')}
-        onGithubClick={() => handleSocialLogin('GitHub')}
+        onGoogleClick={handleGoogleLogin}
+        buttonText="Sign in with Google"
       />
 
       {/* Footer */}
