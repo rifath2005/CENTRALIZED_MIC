@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { redTheme } from '../tokens/redTheme';
 
 interface AudioUnlockGateProps {
   isUnlocked: boolean;
@@ -8,9 +7,10 @@ interface AudioUnlockGateProps {
 
 export const AudioUnlockGate: React.FC<AudioUnlockGateProps> = ({ isUnlocked, onUnlock }) => {
   const [isActivating, setIsActivating] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(false);
 
-  // When unlocked, return null so it doesn't pollute the layout or projector view
-  if (isUnlocked) {
+  // When unlocked or dismissed, do not render
+  if (isUnlocked || isDismissed) {
     return null;
   }
 
@@ -25,141 +25,40 @@ export const AudioUnlockGate: React.FC<AudioUnlockGateProps> = ({ isUnlocked, on
 
   return (
     <div
-      style={styles.modalOverlay}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="audio-gate-title"
-      aria-describedby="audio-gate-desc"
+      role="alert"
+      className="fixed bottom-5 right-5 z-50 max-w-sm w-full bg-[#141923] border border-amber-500/50 rounded-2xl p-4 shadow-[0_12px_36px_rgba(0,0,0,0.8)] backdrop-blur-xl animate-fadeIn select-none text-left"
     >
-      <div style={styles.modalContent}>
-        <div style={styles.iconWrapper} aria-hidden="true">🔊</div>
-        <div style={styles.badge}>AUTOPLAY PROTECTION REQUIRED</div>
-        <h2 id="audio-gate-title" style={styles.modalTitle}>Activate PA Audio Pipeline</h2>
-        <p id="audio-gate-desc" style={styles.modalDescription}>
-          Web browsers require an explicit user gesture before routing incoming WebRTC microphone streams
-          to your meeting room PA system or external soundcard.
-        </p>
-
-        <div style={styles.checklist}>
-          <div style={styles.checkItem}>
-            <span style={styles.checkIcon} aria-hidden="true">✓</span>
-            <span>Initializes 48kHz interactive low-latency audio buffer</span>
-          </div>
-          <div style={styles.checkItem}>
-            <span style={styles.checkIcon} aria-hidden="true">✓</span>
-            <span>Arms 80Hz rumble highpass filter &amp; 3ms peak limiter</span>
-          </div>
-          <div style={styles.checkItem}>
-            <span style={styles.checkIcon} aria-hidden="true">✓</span>
-            <span>Connects directly to LiveKit SFU receiver</span>
-          </div>
+      <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#222834]">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-amber-400 text-[20px]">volume_up</span>
+          <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+            PA Audio Standby
+          </span>
         </div>
-
         <button
-          style={{
-            ...styles.unlockButton,
-            opacity: isActivating ? 0.7 : 1,
-            cursor: isActivating ? 'wait' : 'pointer',
-          }}
-          onClick={handleStart}
-          disabled={isActivating}
-          autoFocus
+          type="button"
+          onClick={() => setIsDismissed(true)}
+          className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
+          title="Dismiss notification"
+          aria-label="Dismiss"
         >
-          {isActivating ? 'STARTING AUDIO PIPELINE...' : 'START SESSION & UNMUTE SPEAKERS'}
+          <span className="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
+
+      <p className="text-[11px] text-slate-300 leading-relaxed mb-3">
+        Browser autoplay policy requires an activation tap to unmute 48kHz audio to room speakers.
+      </p>
+
+      <button
+        type="button"
+        onClick={handleStart}
+        disabled={isActivating}
+        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs uppercase tracking-wider font-mono transition-all shadow-lg flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+      >
+        <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+        <span>{isActivating ? 'Activating Audio...' : 'Activate PA Speakers'}</span>
+      </button>
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  modalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: redTheme.colors.bgSurfaceOverlay,
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 9999,
-    padding: '20px',
-  },
-  modalContent: {
-    backgroundColor: redTheme.colors.bgSurfaceCard,
-    border: `1px solid ${redTheme.colors.borderMedium}`,
-    borderRadius: '24px',
-    padding: '44px 36px',
-    maxWidth: '520px',
-    width: '100%',
-    textAlign: 'center',
-    boxShadow: `0 25px 60px rgba(0, 0, 0, 0.9), ${redTheme.shadows.glowPrimary}`,
-  },
-  iconWrapper: {
-    fontSize: '52px',
-    marginBottom: '16px',
-    filter: 'drop-shadow(0 0 18px rgba(225, 29, 72, 0.5))',
-  },
-  badge: {
-    display: 'inline-block',
-    fontSize: '11px',
-    fontWeight: 800,
-    letterSpacing: '1.2px',
-    color: redTheme.colors.accentBright,
-    backgroundColor: 'rgba(225, 29, 72, 0.15)',
-    border: `1px solid ${redTheme.colors.borderStrong}`,
-    padding: '5px 14px',
-    borderRadius: '14px',
-    marginBottom: '16px',
-  },
-  modalTitle: {
-    fontSize: '24px',
-    fontWeight: 900,
-    color: redTheme.colors.textPrimary,
-    letterSpacing: '-0.5px',
-    marginBottom: '12px',
-  },
-  modalDescription: {
-    fontSize: '14px',
-    color: redTheme.colors.textSecondary,
-    lineHeight: '1.6',
-    marginBottom: '26px',
-  },
-  checklist: {
-    backgroundColor: redTheme.colors.bgSurfaceDark,
-    border: `1px solid ${redTheme.colors.borderSubtle}`,
-    borderRadius: '16px',
-    padding: '18px',
-    marginBottom: '30px',
-    textAlign: 'left',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  checkItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '12.5px',
-    color: redTheme.colors.textSecondary,
-    fontWeight: 500,
-  },
-  checkIcon: {
-    color: redTheme.colors.primaryHover,
-    fontWeight: 900,
-    fontSize: '14px',
-  },
-  unlockButton: {
-    width: '100%',
-    backgroundColor: redTheme.colors.primary,
-    color: redTheme.colors.textOnPrimary,
-    border: 'none',
-    borderRadius: '14px',
-    padding: '16px 24px',
-    fontSize: '14px',
-    fontWeight: 900,
-    letterSpacing: '0.9px',
-    boxShadow: redTheme.shadows.glowPrimary,
-    transition: 'all 0.18s ease',
-  },
 };

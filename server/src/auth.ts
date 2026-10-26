@@ -8,7 +8,7 @@ import { z } from 'zod';
 const router = Router();
 
 const JWT_SECRET = process.env.AUTH_SECRET || process.env.LIVEKIT_API_SECRET || 'centralized-mic-super-secret-key-2026';
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
+let currentGoogleClientId = process.env.GOOGLE_CLIENT_ID || '';
 
 // ─── File-Based Persistent Storage Paths ──────────────────────────────────
 const DATA_DIR = path.resolve(__dirname, '../data');
@@ -237,9 +237,18 @@ const authLimiter = rateLimit({
  */
 router.get('/config', (_req: Request, res: Response) => {
   return res.status(200).json({
-    googleClientId: GOOGLE_CLIENT_ID,
+    googleClientId: currentGoogleClientId,
     storageLocation: USERS_FILE,
   });
+});
+
+router.post('/config', (req: Request, res: Response) => {
+  const { googleClientId } = req.body;
+  if (typeof googleClientId === 'string') {
+    currentGoogleClientId = googleClientId.trim();
+    return res.status(200).json({ success: true, googleClientId: currentGoogleClientId });
+  }
+  return res.status(400).json({ error: 'Invalid client ID' });
 });
 
 /**

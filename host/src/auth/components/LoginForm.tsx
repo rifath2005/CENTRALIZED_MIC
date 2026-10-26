@@ -8,6 +8,7 @@ interface LoginFormProps {
   onSuccess: (user: AuthUser) => void;
   onSwitchTab: () => void;
   onOpenForgotPassword: (email?: string) => void;
+  onOpenGoogleModal?: () => void;
   tokenServerUrl?: string;
   addToast: (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => void;
 }
@@ -16,7 +17,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSuccess,
   onSwitchTab,
   onOpenForgotPassword,
-  tokenServerUrl = 'https://centralized-mic-token-server.onrender.com',
+  onOpenGoogleModal,
+  tokenServerUrl = 'http://localhost:4000',
   addToast,
 }) => {
   const [formData, setFormData] = useState<LoginFormData>(() => {
@@ -141,102 +143,62 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       addToast('success', `Welcome back, ${data.user?.fullName || 'Operator'}!`, 'Login Successful');
       onSuccess(data.user);
     } catch {
-      // Network failure or offline
-      // Fallback local verification for demonstration or offline development
-      if (formData.email.includes('@') && formData.password.length >= 8) {
-        const dummyUser: AuthUser = {
-          id: 'op-' + Math.random().toString(36).substring(2, 9),
-          fullName: formData.email.split('@')[0].replace(/[._]/g, ' '),
-          email: formData.email,
-          role: 'operator',
-          token: 'demo-session-token-' + Date.now(),
-        };
-        addToast('success', `Welcome back, ${dummyUser.fullName}!`, 'Authenticated (Local Mode)');
-        onSuccess(dummyUser);
-      } else {
-        setBannerError('Invalid email or password');
-        addToast('error', 'Invalid email or password', 'Authentication Failed');
-      }
+      const errMsg = `Cannot reach authentication service at ${tokenServerUrl}. Please ensure server is running on port 4000.`;
+      setBannerError(errMsg);
+      addToast('error', errMsg, 'Connection Error');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    setBannerError(null);
-    addToast('info', 'Connecting to Google Authentication...', 'Google OAuth 2.0');
-
     try {
-      // 1. Check if Google GIS client is loaded in window
-      const googleObj = (window as any).google;
-      if (googleObj?.accounts?.id) {
-        // Fetch config to check if client ID configured
-        let clientId = '';
-        try {
-          const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
-          if (cfgRes.ok) {
-            const cfgData = await cfgRes.json();
-            clientId = cfgData.googleClientId;
-          }
-        } catch (_) {}
+      const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
+      if (cfgRes.ok) {
+        const cfgData = await cfgRes.json();
+        const googleObj = (window as any).google;
+        if (cfgData.googleClientId && googleObj?.accounts?.oauth2) {
+          setIsLoading(true);
+          const client = googleObj.accounts.oauth2.initTokenClient({
+            client_id: cfgData.googleClientId,
+            scope: 'email profile openid',
+            callback: async (tokenResponse: any) => {
+              setIsLoading(false);
+              if (tokenResponse?.access_token) {
+                try {
+                  const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                  }).then((r) => r.json());
 
-        if (clientId) {
-          googleObj.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (response: any) => {
-              if (response.credential) {
-                const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ credential: response.credential }),
-                });
-                const resData = await apiRes.json();
-                if (apiRes.ok && resData.user) {
-                  addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Login Verified');
-                  onSuccess(resData.user);
-                } else {
-                  setBannerError(resData.error || 'Google verification failed');
+                  const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: userInfo.email,
+                      name: userInfo.name,
+                      picture: userInfo.picture,
+                    }),
+                  });
+                  const resData = await apiRes.json();
+                  if (apiRes.ok && resData.user) {
+                    addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Sign-In');
+                    onSuccess(resData.user);
+                    return;
+                  }
+                } catch (e: any) {
+                  setBannerError(e.message || 'Google verification failed');
                 }
               }
             },
           });
-          googleObj.accounts.id.prompt();
-          setIsLoading(false);
+          client.requestAccessToken();
           return;
         }
       }
+    } catch (_) {}
 
-      // 2. Direct Google OAuth profile verification call to server
-      const defaultGoogleEmail = formData.email && formData.email.includes('@') ? formData.email : 'operator@centralizedmic.io';
-      const defaultName = defaultGoogleEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-      const res = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: defaultGoogleEmail,
-          name: defaultName,
-          picture: `https://lh3.googleusercontent.com/a/default-user=s96-c`,
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        const errorMsg = data.error || 'Google authentication was not completed.';
-        setBannerError(errorMsg);
-        addToast('error', errorMsg, 'Google Login');
-        return;
-      }
-
-      addToast('success', `Successfully authenticated with Google as ${data.user?.fullName}!`, 'Google Sign-In');
-      onSuccess(data.user);
-    } catch (err: any) {
-      setBannerError('Unable to connect to Google authentication service.');
-      addToast('error', 'Google authentication service unreachable', 'Network Error');
-    } finally {
-      setIsLoading(false);
+    if (onOpenGoogleModal) {
+      onOpenGoogleModal();
     }
   };
 

@@ -8,7 +8,7 @@
     "role": "admin",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.268Z",
-    "lastLoginAt": "2026-10-26T11:07:49.021Z"
+    "lastLoginAt": "2026-10-26T11:44:26.691Z"
   },
   {
     "id": "op-default-01",
@@ -30,5 +30,24 @@
     "picture": "https://lh3.googleusercontent.com/a/default-user=s96-c",
     "createdAt": "2026-10-26T11:08:09.408Z",
     "lastLoginAt": "2026-10-26T11:08:09.408Z"
+  },
+  {
+    "id": "usr-g-5a094667fba0",
+    "fullName": "Test Pilot",
+    "email": "test.pilot@gmail.com",
+    "role": "operator",
+    "authProvider": "google",
+    "picture": "https://lh3.googleusercontent.com/test.png",
+    "createdAt": "2026-10-26T11:34:47.035Z",
+    "lastLoginAt": "2026-10-26T11:34:47.035Z"
+  },
+  {
+    "id": "usr-g-17d2d185f1b5",
+    "fullName": "Director Tech",
+    "email": "director.tech@gmail.com",
+    "role": "operator",
+    "authProvider": "google",
+    "createdAt": "2026-10-26T11:44:17.281Z",
+    "lastLoginAt": "2026-10-26T11:44:17.282Z"
   }
 ]

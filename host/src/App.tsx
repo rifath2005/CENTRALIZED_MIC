@@ -48,12 +48,23 @@ export const DEFAULT_PUBLIC_TUNNEL_URL = 'https://centralized-mic-token-server.o
 
 function getInitialTokenServerUrl(): string {
   if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    // Always bind directly to local port 4000 when running in dev or LAN
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+      return 'http://localhost:4000';
+    }
+    if (/^192\.168\.\d+\.\d+$/.test(host) || /^10\.\d+\.\d+\.\d+$/.test(host) || host.endsWith('.local')) {
+      return `http://${host}:4000`;
+    }
+
     const saved = localStorage.getItem('centralized_mic_token_server');
-    if (saved && !saved.includes('trycloudflare.com') && !saved.includes('loca.lt') && !saved.includes('localhost') && !saved.includes('127.0.0.1')) {
+    if (saved && saved.trim() && !saved.includes('trycloudflare.com') && !saved.includes('loca.lt')) {
       return saved.trim();
     }
-    // Automatically bind with Render production endpoint
-    localStorage.setItem('centralized_mic_token_server', DEFAULT_PUBLIC_TUNNEL_URL);
+
+    if (window.location.port === '4000') {
+      return window.location.origin;
+    }
   }
   return DEFAULT_PUBLIC_TUNNEL_URL;
 }
@@ -281,12 +292,6 @@ export default function App() {
     }
   }, [tokenServerUrl]);
 
-  useEffect(() => {
-    if (tokenServerUrl.includes('trycloudflare.com') || tokenServerUrl.includes('loca.lt') || tokenServerUrl.includes('localhost') || tokenServerUrl.includes('127.0.0.1')) {
-      setTokenServerUrl(DEFAULT_PUBLIC_TUNNEL_URL);
-      localStorage.setItem('centralized_mic_token_server', DEFAULT_PUBLIC_TUNNEL_URL);
-    }
-  }, [tokenServerUrl]);
 
   useEffect(() => {
     if (isAudioUnlocked && !isConnected && !isConnecting) {
@@ -431,7 +436,12 @@ export default function App() {
     return (
       <AuthPage
         tokenServerUrl={tokenServerUrl}
-        onAuthSuccess={(user) => {
+        onAuthSuccess={async (user) => {
+          try {
+            await handleUnlockAudio();
+          } catch (e) {
+            console.warn('[Audio] Auto unlock error:', e);
+          }
           setCurrentUser(user);
           localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
           addTelemetryLog(`AUTH: ${user.fullName} authenticated (${user.role}).`, 'success');
@@ -446,7 +456,12 @@ export default function App() {
     return (
       <AuthPage
         tokenServerUrl={tokenServerUrl}
-        onAuthSuccess={(user) => {
+        onAuthSuccess={async (user) => {
+          try {
+            await handleUnlockAudio();
+          } catch (e) {
+            console.warn('[Audio] Auto unlock error:', e);
+          }
           setCurrentUser(user);
           localStorage.setItem('centralized_mic_current_user', JSON.stringify(user));
           addTelemetryLog(`AUTH: ${user.fullName} profile updated (${user.role}).`, 'success');

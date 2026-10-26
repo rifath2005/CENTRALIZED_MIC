@@ -16,6 +16,7 @@ interface SignupFormProps {
   onSuccess: (user: AuthUser) => void;
   onSwitchTab: () => void;
   onOpenTerms: (tab: 'terms' | 'privacy') => void;
+  onOpenGoogleModal?: () => void;
   tokenServerUrl?: string;
   addToast: (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => void;
 }
@@ -24,7 +25,8 @@ export const SignupForm: React.FC<SignupFormProps> = ({
   onSuccess,
   onSwitchTab,
   onOpenTerms,
-  tokenServerUrl = 'https://centralized-mic-token-server.onrender.com',
+  onOpenGoogleModal,
+  tokenServerUrl = 'http://localhost:4000',
   addToast,
 }) => {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -236,93 +238,62 @@ export const SignupForm: React.FC<SignupFormProps> = ({
       addToast('success', 'Your account has been created successfully!', 'Welcome to Centralized Mic');
       onSuccess(data.user);
     } catch {
-      // Local fallback for offline mode
-      const dummyUser: AuthUser = {
-        id: 'op-' + Math.random().toString(36).substring(2, 9),
-        fullName: sanitizeInput(formData.fullName),
-        email: formData.email,
-        role: 'operator',
-        token: 'demo-session-token-' + Date.now(),
-      };
-      addToast('success', 'Account created (Local Mode)!', 'Success');
-      onSuccess(dummyUser);
+      const errMsg = `Cannot reach registration service at ${tokenServerUrl}. Please verify server is running on port 4000.`;
+      setBannerError(errMsg);
+      addToast('error', errMsg, 'Connection Error');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignup = async () => {
-    setIsLoading(true);
-    setBannerError(null);
-    addToast('info', 'Connecting to Google Authentication...', 'Google OAuth 2.0');
-
     try {
-      const googleObj = (window as any).google;
-      if (googleObj?.accounts?.id) {
-        let clientId = '';
-        try {
-          const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
-          if (cfgRes.ok) {
-            const cfgData = await cfgRes.json();
-            clientId = cfgData.googleClientId;
-          }
-        } catch (_) {}
+      const cfgRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/config`);
+      if (cfgRes.ok) {
+        const cfgData = await cfgRes.json();
+        const googleObj = (window as any).google;
+        if (cfgData.googleClientId && googleObj?.accounts?.oauth2) {
+          setIsLoading(true);
+          const client = googleObj.accounts.oauth2.initTokenClient({
+            client_id: cfgData.googleClientId,
+            scope: 'email profile openid',
+            callback: async (tokenResponse: any) => {
+              setIsLoading(false);
+              if (tokenResponse?.access_token) {
+                try {
+                  const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                  }).then((r) => r.json());
 
-        if (clientId) {
-          googleObj.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (response: any) => {
-              if (response.credential) {
-                const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ credential: response.credential }),
-                });
-                const resData = await apiRes.json();
-                if (apiRes.ok && resData.user) {
-                  addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Signup Complete');
-                  onSuccess(resData.user);
-                } else {
-                  setBannerError(resData.error || 'Google signup failed');
+                  const apiRes = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      email: userInfo.email,
+                      name: userInfo.name,
+                      picture: userInfo.picture,
+                    }),
+                  });
+                  const resData = await apiRes.json();
+                  if (apiRes.ok && resData.user) {
+                    addToast('success', `Welcome, ${resData.user.fullName}!`, 'Google Signup Complete');
+                    onSuccess(resData.user);
+                    return;
+                  }
+                } catch (e: any) {
+                  setBannerError(e.message || 'Google signup failed');
                 }
               }
             },
           });
-          googleObj.accounts.id.prompt();
-          setIsLoading(false);
+          client.requestAccessToken();
           return;
         }
       }
+    } catch (_) {}
 
-      // Direct fallback
-      const defaultName = formData.fullName.trim() || 'New Operator';
-      const defaultGoogleEmail = formData.email && formData.email.includes('@') ? formData.email : `operator-${Date.now()}@gmail.com`;
-
-      const res = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: defaultGoogleEmail,
-          name: defaultName,
-          picture: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-        }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const errorMsg = data.error || 'Google registration was not completed.';
-        setBannerError(errorMsg);
-        addToast('error', errorMsg, 'Google Signup');
-        return;
-      }
-
-      addToast('success', `Account created with Google for ${data.user?.fullName}!`, 'Registration Complete');
-      onSuccess(data.user);
-    } catch {
-      setBannerError('Unable to connect to Google authentication service.');
-      addToast('error', 'Google service unreachable', 'Network Error');
-    } finally {
-      setIsLoading(false);
+    if (onOpenGoogleModal) {
+      onOpenGoogleModal();
     }
   };
 
