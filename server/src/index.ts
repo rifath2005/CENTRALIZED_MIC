@@ -55,6 +55,15 @@ app.get('/mic', (_req: Request, res: Response) => {
   res.sendFile(path.join(publicDir, 'mic.html'));
 });
 
+app.get('/download/apk', (_req: Request, res: Response) => {
+  const apkPath = path.join(publicDir, 'AirMic.apk');
+  if (fs.existsSync(apkPath)) {
+    res.download(apkPath, 'AirMic.apk');
+  } else {
+    res.status(404).send('APK not found');
+  }
+});
+
 // Rate limiter: 100 requests per 15 minutes per IP
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,

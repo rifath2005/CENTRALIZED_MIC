@@ -20,6 +20,9 @@ build/
 out/
 .turbo/
 .cache/
+*.apk
+release_apks/
+server/public/*.apk
 
 # Keystores, certificates, and keys
 *.keystore
