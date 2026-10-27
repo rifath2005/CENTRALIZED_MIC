@@ -72,7 +72,7 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 text-[11px] font-mono text-[#10b981] bg-[#0c1017] px-2 py-0.5 rounded border border-[#222834]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping" />
-            WEBRTC OPUS 48kHz
+            HD AUDIO ACTIVE
           </span>
           <span className="text-[11px] font-mono text-[#64748b]">REV 4.2.1-PROD</span>
         </div>
@@ -90,7 +90,7 @@ export const TransmitterPreviewView: React.FC<TransmitterPreviewViewProps> = ({
 
             {/* Status Bar Telemetry */}
             <div className="flex items-center justify-between px-2 pb-2 text-[10px] font-mono text-[#64748b] border-b border-[#181d28]">
-              <span>STAGEPULSE PWA // WEBRTC</span>
+              <span>AIRMIC TRANSMITTER</span>
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[13px]">wifi</span>
                 <span className="font-bold text-[#f1f5f9]">98%</span>

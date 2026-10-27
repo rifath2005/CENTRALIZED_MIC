@@ -190,7 +190,7 @@ export const HoldToTalkButton: React.FC<HoldToTalkButtonProps> = ({
           bg: '#4c1d95',
           border: '#c084fc',
           title: 'REQUESTING...',
-          subtitle: 'Acquiring microphone token',
+          subtitle: 'Connecting microphone...',
           textColor: '#ffffff',
           ringColor: 'rgba(192, 132, 252, 0.4)',
         };

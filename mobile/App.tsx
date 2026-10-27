@@ -263,11 +263,11 @@ export default function App() {
                 <View style={styles.headerPillsRow}>
                   <View style={styles.pulseBadge}>
                     <View style={styles.pulseDot} />
-                    <Text style={styles.pulseBadgeText}>AIRMIC WIRELESS TX</Text>
+                    <Text style={styles.pulseBadgeText}>AIRMIC WIRELESS</Text>
                   </View>
                   <View style={styles.telemetryBadge}>
                     <Text style={styles.telemetryIcon}>📶</Text>
-                    <Text style={styles.telemetryText}>48kHz / 2.1ms</Text>
+                    <Text style={styles.telemetryText}>HD Audio Ready</Text>
                   </View>
                 </View>
 
@@ -285,16 +285,16 @@ export default function App() {
                   </View>
                   <View>
                     <View style={styles.anchorTitleRow}>
-                      <Text style={styles.anchorTitle}>STAGE GATEWAY v3.4</Text>
+                      <Text style={styles.anchorTitle}>AIRMIC STAGE AUDIO</Text>
                       <View style={styles.emeraldDot} />
                     </View>
-                    <Text style={styles.anchorSub}>DSP Broadcast Node Online</Text>
+                    <Text style={styles.anchorSub}>Sound System Connected</Text>
                   </View>
                 </View>
 
-                {/* Hardware LED Signal Meter (TX SYNC) */}
+                {/* Hardware LED Signal Meter */}
                 <View style={styles.anchorRight}>
-                  <Text style={styles.syncLabel}>TX SYNC</Text>
+                  <Text style={styles.syncLabel}>SIGNAL</Text>
                   <View style={styles.signalMeter}>
                     <View style={[styles.signalBar, { height: 6, backgroundColor: acousticTheme.colors.secondary }]} />
                     <View style={[styles.signalBar, { height: 10, backgroundColor: acousticTheme.colors.secondary }]} />
@@ -340,7 +340,7 @@ export default function App() {
 
                 {/* Format Validation Footer */}
                 <View style={styles.codeValidationRow}>
-                  <Text style={styles.codeKeyFormat}>6-DIGIT AES-128 CHANNEL KEY</Text>
+                  <Text style={styles.codeKeyFormat}>STAGE ROOM CODE FORMAT</Text>
                   <View style={styles.validFormatBadge}>
                     <View style={styles.validDot} />
                     <Text style={styles.validFormatText}>Valid Format</Text>
@@ -382,7 +382,7 @@ export default function App() {
                   <View style={styles.fieldLabelRow}>
                     <Text style={styles.fieldIcon}>🎤</Text>
                     <Text style={styles.fieldLabel}>AUDIO INPUT HARDWARE</Text>
-                    <Text style={styles.audioFormatBadge}>24-bit PCM</Text>
+                    <Text style={styles.audioFormatBadge}>HD Audio</Text>
                   </View>
                   <View style={styles.deviceOptionRow}>
                     {[
@@ -454,20 +454,20 @@ export default function App() {
                 </TouchableOpacity>
 
                 <View style={styles.securityRow}>
-                  <Text style={styles.securityItem}>🔒 Secure WebRTC Opus Link</Text>
+                  <Text style={styles.securityItem}>🔒 Secure Live Audio</Text>
                   <Text style={styles.securityDot}>•</Text>
-                  <Text style={styles.securityItem}>⚡ Priority QoS Active</Text>
+                  <Text style={styles.securityItem}>⚡ Real-Time Stream</Text>
                 </View>
               </View>
 
-              {/* Front of House Node Callout Card */}
+              {/* Stage Sound System Callout Card */}
               <View style={styles.fohCallout}>
                 <View style={styles.fohIconBox}>
                   <Text style={styles.fohIcon}>🎛️</Text>
                 </View>
                 <View style={styles.fohContent}>
-                  <Text style={styles.fohTitle}>Front of House (FOH) Node</Text>
-                  <Text style={styles.fohSub}>Master Desk ready to receive live mix stream</Text>
+                  <Text style={styles.fohTitle}>Stage Sound System</Text>
+                  <Text style={styles.fohSub}>Ready to project your voice to the room</Text>
                 </View>
               </View>
             </View>
@@ -506,15 +506,15 @@ export default function App() {
                       </Text>
                       <Text style={styles.verifiedIcon}>✓</Text>
                     </View>
-                    <Text style={styles.performerRole}>Vocal Lead • Main FOH Send</Text>
+                    <Text style={styles.performerRole}>Stage Microphone</Text>
                   </View>
                 </View>
 
                 <View style={styles.performerRight}>
                   <View style={styles.fohMonBadge}>
-                    <Text style={styles.fohMonText}>FOH MON</Text>
+                    <Text style={styles.fohMonText}>AIRMIC</Text>
                   </View>
-                  <Text style={styles.busTag}>BUS A</Text>
+                  <Text style={styles.busTag}>LIVE</Text>
                 </View>
               </View>
 
@@ -528,10 +528,10 @@ export default function App() {
                     <View style={[styles.miniBar, { height: 10 }]} />
                   </View>
                   <Text style={styles.networkTelemetryText}>
-                    11ms Ping • 0.0% Loss • 1.2ms Jitter
+                    Signal Quality: Excellent
                   </Text>
                 </View>
-                <Text style={styles.networkQualityLabel}>ULTRA-LOW LATENCY</Text>
+                <Text style={styles.networkQualityLabel}>LIVE STREAMING</Text>
               </View>
 
               {/* MOB-ST-03: Studio-Grade LED Peak-Hold Audio Level Meter */}
@@ -592,10 +592,10 @@ export default function App() {
               <View style={styles.encoderBadge}>
                 <View style={styles.encoderLeft}>
                   <Text style={styles.encoderIcon}>🎚️</Text>
-                  <Text style={styles.encoderLabel}>ENCODER PROFILE</Text>
+                  <Text style={styles.encoderLabel}>AUDIO STREAM</Text>
                 </View>
                 <View style={styles.encoderPill}>
-                  <Text style={styles.encoderPillText}>Opus 48kHz Stereo 128kbps</Text>
+                  <Text style={styles.encoderPillText}>High Definition Audio</Text>
                 </View>
               </View>
             </View>

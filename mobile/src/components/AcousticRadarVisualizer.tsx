@@ -123,7 +123,7 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
             <Text style={styles.connectingText}>CONNECTING STAGE</Text>
           </View>
           <Text style={styles.connectingDesc}>
-            Negotiating low-latency audio stream with host console
+            Connecting your microphone to the stage sound system...
           </Text>
         </View>
       </View>
@@ -154,17 +154,17 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
           ))}
         </View>
         <View style={styles.preLevelFooter}>
-          <Text style={styles.preLevelFooterText}>-48 dB</Text>
-          <Text style={styles.preLevelFooterText}>MIC PRE-GAIN OK (48kHz FLAC/OPUS)</Text>
-          <Text style={[styles.preLevelFooterText, { color: acousticTheme.colors.error }]}>0 dB CLIP</Text>
+          <Text style={styles.preLevelFooterText}>Min</Text>
+          <Text style={styles.preLevelFooterText}>Microphone Ready</Text>
+          <Text style={[styles.preLevelFooterText, { color: acousticTheme.colors.error }]}>Peak</Text>
         </View>
       </View>
 
-      {/* Audio Pipeline Handshake Steps */}
+      {/* Audio Setup Steps */}
       <View style={styles.pipelineCard}>
         <View style={styles.pipelineHeader}>
-          <Text style={styles.pipelineTitle}>AUDIO PIPELINE HANDSHAKE</Text>
-          <Text style={styles.pipelineSub}>ICE GATHERING</Text>
+          <Text style={styles.pipelineTitle}>AUDIO SETUP</Text>
+          <Text style={styles.pipelineSub}>CONNECTING</Text>
         </View>
 
         {/* Step 1 */}
@@ -174,10 +174,10 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
           </View>
           <View style={styles.stepContent}>
             <View style={styles.stepRow}>
-              <Text style={styles.stepName}>Verifying Room Token...</Text>
+              <Text style={styles.stepName}>Verifying Room Code...</Text>
               <Text style={styles.stepOk}>OK</Text>
             </View>
-            <Text style={styles.stepSub}>Auth: RSA-4096 Signer verified</Text>
+            <Text style={styles.stepSub}>Room verified</Text>
           </View>
         </View>
 
@@ -188,10 +188,10 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
           </View>
           <View style={styles.stepContent}>
             <View style={styles.stepRow}>
-              <Text style={styles.stepNameActive}>Establishing Opus Pipeline...</Text>
-              <Text style={styles.stepBitrate}>48 kbps/ch</Text>
+              <Text style={styles.stepNameActive}>Connecting Audio Channel...</Text>
+              <Text style={styles.stepBitrate}>ACTIVE</Text>
             </View>
-            <Text style={styles.stepSub}>SDP Answer generated · STUN host matched</Text>
+            <Text style={styles.stepSub}>Secure channel initialized</Text>
           </View>
         </View>
 
@@ -202,23 +202,23 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
           </View>
           <View style={styles.stepContent}>
             <View style={styles.stepRow}>
-              <Text style={styles.stepName}>Calibrating Buffer & Latency (&lt;12ms)...</Text>
-              <Text style={styles.stepQueuedLabel}>QUEUED</Text>
+              <Text style={styles.stepName}>Optimizing Audio Stream...</Text>
+              <Text style={styles.stepQueuedLabel}>READY</Text>
             </View>
-            <Text style={styles.stepSub}>Target Jitter: 2.4ms · Ring buffer 64f</Text>
+            <Text style={styles.stepSub}>Synchronizing with stage system</Text>
           </View>
         </View>
       </View>
 
-      {/* Raw WebRTC Telemetry Log Box */}
+      {/* Stage Status Card */}
       <View style={styles.telemetryBox}>
         <View style={styles.telemetryHeader}>
-          <Text style={styles.telemetryTitle}>&gt; ICE NEGOTIATION LOG</Text>
-          <Text style={styles.telemetryRtt}>RTT: ~9.8ms</Text>
+          <Text style={styles.telemetryTitle}>STAGE CONNECTION</Text>
+          <Text style={styles.telemetryRtt}>ACTIVE</Text>
         </View>
-        <Text style={styles.telemetryLine}>&gt; ICE candidate srflx accepted</Text>
-        <Text style={styles.telemetryLine}>&gt; DTLS cipher suite: TLS_ECDHE_ECDSA</Text>
-        <Text style={[styles.telemetryLine, { color: acousticTheme.colors.primary }]}>&gt; WebRTC DataChannel [audio-control-v1] open</Text>
+        <Text style={styles.telemetryLine}>• Stage connection in progress</Text>
+        <Text style={styles.telemetryLine}>• Real-time wireless audio</Text>
+        <Text style={[styles.telemetryLine, { color: acousticTheme.colors.primary }]}>• Speak clearly when granted floor</Text>
       </View>
 
       {/* Cancel Action Button */}
@@ -227,7 +227,7 @@ export const AcousticRadarVisualizer: React.FC<AcousticRadarVisualizerProps> = (
         onPress={onCancel}
         activeOpacity={0.8}
       >
-        <Text style={styles.cancelBtnText}>✕ Cancel Stage Handshake</Text>
+        <Text style={styles.cancelBtnText}>✕ Cancel Connection</Text>
       </TouchableOpacity>
     </View>
   );

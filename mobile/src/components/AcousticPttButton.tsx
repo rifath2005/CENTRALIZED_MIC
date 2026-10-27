@@ -188,8 +188,8 @@ export const AcousticPttButton: React.FC<AcousticPttButtonProps> = ({
     labelColor = acousticTheme.colors.primary;
     glowColor = acousticTheme.colors.primaryContainer;
   } else if (isRequesting) {
-    mainLabel = 'ACQUIRING MIC...';
-    subLabel = 'REQUESTING TOKEN FROM FOH';
+    mainLabel = 'CONNECTING...';
+    subLabel = 'CONNECTING TO STAGE';
     iconGlyph = '⚡';
     wellBg = '#303541';
     wellBorder = acousticTheme.colors.primary;

@@ -21,7 +21,7 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
           dot: '#22c55e',
           border: '#15803d',
           label: roomName ? `ROOM: ${roomName}` : 'LIVE CONNECTED',
-          qualityText: quality === 'excellent' ? '48kHz HD' : 'CONNECTED',
+          qualityText: quality === 'excellent' ? 'HD AUDIO' : 'CONNECTED',
         };
       case 'connecting':
         return {
@@ -29,7 +29,7 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
           dot: '#c084fc',
           border: '#7e22ce',
           label: 'CONNECTING...',
-          qualityText: 'BRIDGING SFU',
+          qualityText: 'CONNECTING...',
         };
       case 'reconnecting':
         return {
@@ -37,7 +37,7 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
           dot: '#d8b4fe',
           border: '#a855f7',
           label: 'RECONNECTING',
-          qualityText: 'HANDOFF',
+          qualityText: 'RECONNECTING...',
         };
       case 'offline':
       default:

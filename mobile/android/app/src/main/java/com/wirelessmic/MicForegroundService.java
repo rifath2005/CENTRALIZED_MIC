@@ -58,7 +58,7 @@ public class MicForegroundService extends Service {
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Wireless Microphone Active")
-                .setContentText("Connected to " + roomName + " (Low Latency PA)")
+                .setContentText("Connected to " + roomName + " (Stage Audio)")
                 .setSmallIcon(android.R.drawable.ic_btn_speak_now)
                 .setOngoing(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -91,7 +91,7 @@ public class MicForegroundService extends Service {
                     "Wireless Microphone Session",
                     NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("Maintains continuous audio capture pipeline when phone is locked");
+            channel.setDescription("Keeps microphone active while on stage");
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);

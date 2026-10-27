@@ -49,5 +49,25 @@
     "authProvider": "google",
     "createdAt": "2026-10-26T11:44:17.281Z",
     "lastLoginAt": "2026-10-26T11:44:17.282Z"
+  },
+  {
+    "id": "usr-g-bd208bcfdc5d",
+    "fullName": "SHORTFUNDLY PRODUCT",
+    "email": "babsword3@gmail.com",
+    "role": "operator",
+    "authProvider": "google",
+    "picture": "https://lh3.googleusercontent.com/a/ACg8ocLCHqyB0eMOugoTBZ4HuQuu-IZ3-d7XAHNhhgZHIaBs0-Y4GQ=s96-c",
+    "createdAt": "2026-10-26T12:21:36.584Z",
+    "lastLoginAt": "2026-10-27T09:34:31.868Z"
+  },
+  {
+    "id": "usr-g-985aa7982a58",
+    "fullName": "RIFATH",
+    "email": "rifath142005@gmail.com",
+    "role": "operator",
+    "authProvider": "google",
+    "picture": "https://lh3.googleusercontent.com/a/ACg8ocLB6Md8XTNAdf_GP-bTM3xsAdNhLj-S9zd8F1-QtNUkpcWoPg=s96-c",
+    "createdAt": "2026-10-27T04:30:17.469Z",
+    "lastLoginAt": "2026-10-27T04:30:17.469Z"
   }
 ]

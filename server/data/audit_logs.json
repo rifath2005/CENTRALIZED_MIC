@@ -1,5 +1,41 @@
 [
   {
+    "id": "log-1793093671868-jbv6",
+    "timestamp": "2026-10-27T09:34:31.869Z",
+    "action": "GOOGLE_LOGIN",
+    "email": "babsword3@gmail.com",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Logged in via Google (operator)"
+  },
+  {
+    "id": "log-1793093632111-uv24",
+    "timestamp": "2026-10-27T09:33:52.111Z",
+    "action": "GOOGLE_LOGIN",
+    "email": "babsword3@gmail.com",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Logged in via Google (operator)"
+  },
+  {
+    "id": "log-1793075417471-f8ks",
+    "timestamp": "2026-10-27T04:30:17.471Z",
+    "action": "SIGNUP",
+    "email": "rifath142005@gmail.com",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Registered via Google (operator)"
+  },
+  {
+    "id": "log-1793017296584-cmnp",
+    "timestamp": "2026-10-26T12:21:36.584Z",
+    "action": "SIGNUP",
+    "email": "babsword3@gmail.com",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Registered via Google (operator)"
+  },
+  {
     "id": "log-1793015066692-0sny",
     "timestamp": "2026-10-26T11:44:26.692Z",
     "action": "LOGIN_SUCCESS",

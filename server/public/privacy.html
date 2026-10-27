@@ -96,13 +96,13 @@
     <h2>2. Information We Access &amp; Process</h2>
     <ul>
       <li>
-        <strong>Microphone Audio (Ephemeral Streaming):</strong> When you hold or tap the Push-to-Talk button, the app accesses your device microphone to capture live speech. This audio is packetized via the Opus audio codec and transmitted directly to the host receiver in your room via encrypted WebRTC (SRTP/UDP). It is <strong>never saved to disk or persistent storage</strong>.
+        <strong>Microphone Audio (Ephemeral Streaming):</strong> When you hold or tap the Push-to-Talk button, the app accesses your device microphone to capture live speech. This audio is encrypted and transmitted directly to the host receiver in your room in real time. It is <strong>never saved to disk or persistent storage</strong>.
       </li>
       <li>
         <strong>Room Code &amp; Attendee Label:</strong> You may provide an event room code and an optional display handle. These values are used exclusively to route your microphone feed to the correct sound system channel and are discarded when you disconnect.
       </li>
       <li>
-        <strong>Network &amp; Connection Telemetry:</strong> Standard WebRTC network connectivity parameters (packet loss, jitter, latency) are processed in volatile memory to provide visual signal quality indicators.
+        <strong>Network &amp; Connection Status:</strong> Standard network connectivity parameters are processed in volatile memory to provide visual signal quality indicators.
       </li>
     </ul>
 
