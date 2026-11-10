@@ -255,14 +255,15 @@ app.post('/api/token/participant', async (req: Request, res: Response<TokenRespo
 
     // Participant permissions:
     // - Can publish single audio track
-    // - Can NOT subscribe to audio/video (cuts mobile decode pipeline and radio duty cycle)
+    // - canSubscribe: true enables receiving data channel messages (floor queue status, triage, grants)
+    //   (audio downlink is disabled on client via autoSubscribe: false to prevent feedback)
     // - Can publish data (for floor request & release messages)
     // - roomCreate: false explicitly blocks participant from creating empty ghost rooms!
     at.addGrant({
       roomJoin: true,
       room: sanitizedRoom,
       canPublish: true,
-      canSubscribe: false,
+      canSubscribe: true,
       canPublishData: true,
       roomAdmin: false,
       roomCreate: false,

@@ -8,7 +8,7 @@
     "role": "admin",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.268Z",
-    "lastLoginAt": "2026-10-26T11:44:26.691Z"
+    "lastLoginAt": "2026-10-31T04:48:59.468Z"
   },
   {
     "id": "op-default-01",
@@ -19,7 +19,7 @@
     "role": "operator",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.388Z",
-    "lastLoginAt": "2026-10-26T11:07:33.388Z"
+    "lastLoginAt": "2026-11-10T05:52:04.526Z"
   },
   {
     "id": "usr-g-7b970d04b9a5",

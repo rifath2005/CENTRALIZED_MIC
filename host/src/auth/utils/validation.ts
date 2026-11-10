@@ -11,21 +11,73 @@ export function sanitizeInput(value: string): string {
 }
 
 /**
- * Standard RFC 5322 compliant email regex check
+ * Normalizes email by converting all uppercase characters to lowercase and stripping all whitespace.
+ */
+export function normalizeEmail(email: string): string {
+  if (!email) return '';
+  return email.toLowerCase().replace(/\s+/g, '');
+}
+
+/**
+ * Strict RFC-compliant lowercase email validation.
+ * Constraints:
+ * 1. Uppercase characters are disallowed (auto-converted to lowercase in UI).
+ * 2. Spaces and whitespace are disallowed.
+ * 3. Format must be [local]@[domain].[tld] with TLD length >= 2.
+ * 4. No consecutive dots, and dots/hyphens cannot lead or trail local part or domain.
+ * 5. Max length: 254 characters.
  */
 export function validateEmail(email: string): string | null {
-  const sanitized = email.trim();
-  if (!sanitized) {
+  if (!email || !email.trim()) {
     return 'Email address is required';
   }
-  
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  if (!emailRegex.test(sanitized)) {
-    return 'Please enter a valid email address (e.g. name@domain.com)';
+
+  const raw = email.trim();
+
+  if (/\s/.test(raw)) {
+    return 'Email address cannot contain spaces';
   }
 
-  if (sanitized.length > 254) {
-    return 'Email address is too long';
+  if (/[A-Z]/.test(raw)) {
+    return 'Uppercase letters are not allowed. Email must be in lowercase';
+  }
+
+  if (raw.length > 254) {
+    return 'Email address is too long (maximum 254 characters)';
+  }
+
+  const parts = raw.split('@');
+  if (parts.length !== 2) {
+    return 'Please enter a valid email address with a single "@" (e.g. name@domain.com)';
+  }
+
+  const [localPart, domain] = parts;
+
+  if (!localPart) {
+    return 'Please enter the username before "@"';
+  }
+
+  if (localPart.startsWith('.') || localPart.endsWith('.') || localPart.includes('..')) {
+    return 'Email username cannot start, end, or contain consecutive dots';
+  }
+
+  if (!domain || !domain.includes('.')) {
+    return 'Please enter a valid email domain with an extension (e.g. @domain.com)';
+  }
+
+  if (domain.startsWith('.') || domain.endsWith('.') || domain.includes('..') || domain.startsWith('-') || domain.endsWith('-')) {
+    return 'Email domain contains invalid dot or hyphen placement';
+  }
+
+  const domainParts = domain.split('.');
+  const tld = domainParts[domainParts.length - 1];
+  if (!tld || tld.length < 2) {
+    return 'Email domain extension must be at least 2 letters (e.g. .com, .org)';
+  }
+
+  const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+  if (!emailRegex.test(raw)) {
+    return 'Please enter a valid lowercase email address (e.g. name@domain.com)';
   }
 
   return null;

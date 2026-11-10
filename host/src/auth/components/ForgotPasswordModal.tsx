@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FormInput } from './FormInput';
-import { validateEmail } from '../utils/validation';
+import { validateEmail, normalizeEmail } from '../utils/validation';
 
 interface ForgotPasswordModalProps {
   isOpen: boolean;
@@ -115,8 +115,9 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               error={error}
               touched={touched}
               onChange={(e) => {
-                setEmail(e.target.value);
-                if (touched) setError(validateEmail(e.target.value) || undefined);
+                const lower = normalizeEmail(e.target.value);
+                setEmail(lower);
+                if (touched) setError(validateEmail(lower) || undefined);
               }}
               onBlur={handleBlur}
               required

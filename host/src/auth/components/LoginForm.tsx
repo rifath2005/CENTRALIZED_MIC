@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { FormInput } from './FormInput';
 import { SocialButtons } from './SocialButtons';
 import { LoginFormData, ValidationErrors, AuthUser } from '../types';
-import { validateEmail, sanitizeInput } from '../utils/validation';
+import { validateEmail, normalizeEmail } from '../utils/validation';
 
 interface LoginFormProps {
   onSuccess: (user: AuthUser) => void;
@@ -21,12 +21,16 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<LoginFormData>(() => {
     const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('saved_operator_email') || '' : '';
+    const normalized = normalizeEmail(savedEmail);
     return {
-      email: savedEmail,
+      email: normalized,
       password: '',
       rememberMe: Boolean(savedEmail),
     };
   });
+
+  // Strict email-first flow state: Password field stays hidden until email is validated as a correctly formatted address
+  const [isPasswordUnlocked, setIsPasswordUnlocked] = useState<boolean>(false);
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -35,6 +39,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
   const errorSummaryRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   // Validate fields for submit or blur
   const validateField = (field: keyof LoginFormData, val: string): string | undefined => {
@@ -48,7 +53,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     return undefined;
   };
 
-  // Real-time error clearing when correcting
+  // Real-time email input handling with automatic uppercase-to-lowercase conversion
+  const handleEmailChange = (rawVal: string) => {
+    // Automatically convert any uppercase letter to lowercase and strip all spaces
+    const lowerVal = normalizeEmail(rawVal);
+    setFormData((prev) => ({ ...prev, email: lowerVal }));
+    setBannerError(null);
+
+    const emailErr = validateEmail(lowerVal);
+
+    // If password was previously unlocked, but email was edited to an invalid format, lock and hide password immediately!
+    if (emailErr) {
+      setIsPasswordUnlocked(false);
+    }
+
+    if (touched.email) {
+      setErrors((prev) => ({
+        ...prev,
+        email: emailErr || undefined,
+      }));
+    }
+  };
+
+  // General field change handler
   const handleChange = (field: keyof LoginFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setBannerError(null);
@@ -72,8 +99,49 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }));
   };
 
-  // Check if form is valid without showing un-touched errors
+  // Email format verification check
+  const emailFormatError = validateEmail(formData.email);
+  const isEmailValid = Boolean(formData.email) && !emailFormatError;
+
+  // Advance from email-first step to password step only if email is strictly valid
+  const handleContinue = (e?: React.FormEvent | React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setTouched((prev) => ({ ...prev, email: true }));
+
+    const emailErr = validateEmail(formData.email);
+    if (emailErr) {
+      setErrors((prev) => ({ ...prev, email: emailErr }));
+      setIsPasswordUnlocked(false);
+      if (emailInputRef.current) {
+        emailInputRef.current.focus();
+      }
+      return;
+    }
+
+    setErrors((prev) => ({ ...prev, email: undefined }));
+    setIsPasswordUnlocked(true);
+
+    // Auto-focus the revealed password field
+    setTimeout(() => {
+      passwordInputRef.current?.focus();
+    }, 60);
+  };
+
+  // Switch back to edit email (re-hides password field)
+  const handleChangeEmail = () => {
+    setIsPasswordUnlocked(false);
+    setFormData((prev) => ({ ...prev, password: '' }));
+    setErrors((prev) => ({ ...prev, password: undefined }));
+    setTouched((prev) => ({ ...prev, password: false }));
+    setBannerError(null);
+    setTimeout(() => {
+      emailInputRef.current?.focus();
+    }, 60);
+  };
+
+  // Check if form is valid for final submission
   const isFormValid =
+    isPasswordUnlocked &&
     Boolean(formData.email) &&
     !validateEmail(formData.email) &&
     formData.password.length > 0;
@@ -82,7 +150,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     e.preventDefault();
     setBannerError(null);
 
-    // Mark all touched
+    // If password is still locked, user pressed Enter on email input -> advance through continue
+    if (!isPasswordUnlocked) {
+      handleContinue(e);
+      return;
+    }
+
+    // Mark all fields touched
     setTouched({ email: true, password: true });
 
     const emailErr = validateField('email', formData.email);
@@ -90,6 +164,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     if (emailErr || passErr) {
       setErrors({ email: emailErr, password: passErr });
+      if (emailErr) {
+        setIsPasswordUnlocked(false);
+        emailInputRef.current?.focus();
+      } else if (passwordInputRef.current) {
+        passwordInputRef.current.focus();
+      }
       if (errorSummaryRef.current) {
         errorSummaryRef.current.focus();
       }
@@ -99,7 +179,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setIsLoading(true);
 
     try {
-      const sanitizedEmail = sanitizeInput(formData.email).toLowerCase();
+      const sanitizedEmail = normalizeEmail(formData.email);
       const endpoint = `${tokenServerUrl.replace(/\/$/, '')}/api/auth/login`;
 
       const response = await fetch(endpoint, {
@@ -119,7 +199,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           setBannerError(retryMessage);
           addToast('error', retryMessage, 'Rate Limit Exceeded');
         } else {
-          // Industry standard: Generic error message to prevent enumeration
+          // Generic error message to prevent account enumeration
           const genericMsg = 'Invalid email or password';
           setBannerError(genericMsg);
           addToast('error', genericMsg, 'Authentication Failed');
@@ -149,16 +229,26 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     }
   };
 
-
   return (
     <div className="w-full flex flex-col text-left">
-      {/* Header */}
+      {/* Header with Step Indicator */}
       <div className="mb-6">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[11px] font-bold tracking-wider uppercase text-red-600 dark:text-red-400 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-600 dark:bg-red-400 inline-block animate-pulse" />
+            {isPasswordUnlocked ? 'Step 2: Password' : 'Step 1: Email Verification'}
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+            {isPasswordUnlocked ? 'Secure Credentials' : 'Email-First Flow'}
+          </span>
+        </div>
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
           Welcome back
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Log in to continue to Centralized Mic Console
+          {isPasswordUnlocked
+            ? 'Enter your operator password to access Centralized Mic Console'
+            : 'Enter your lowercase email address to continue'}
         </p>
       </div>
 
@@ -180,79 +270,155 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
-        {/* Email Field */}
-        <FormInput
-          ref={emailInputRef}
-          id="login-email"
-          label="Email address"
-          type="email"
-          placeholder="operator@centralizedmic.io"
-          leftIcon="mail"
-          autoComplete="email"
-          inputMode="email"
-          value={formData.email}
-          touched={touched.email}
-          error={errors.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          onBlur={() => handleBlur('email')}
-          required
-        />
-
-        {/* Password Field */}
-        <FormInput
-          id="login-password"
-          label="Password"
-          isPassword
-          placeholder="••••••••••••"
-          leftIcon="lock"
-          autoComplete="current-password"
-          value={formData.password}
-          touched={touched.password}
-          error={errors.password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          onBlur={() => handleBlur('password')}
-          required
-        />
-
-        {/* Row: Remember me & Forgot Password */}
-        <div className="flex items-center justify-between text-xs pt-1">
-          <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 dark:text-slate-300">
-            <input
-              type="checkbox"
-              id="login-remember-me"
-              checked={formData.rememberMe}
-              onChange={(e) => handleChange('rememberMe', e.target.checked)}
-              className="w-4 h-4 rounded text-red-600 focus:ring-red-500/40 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer"
+        {/* Step 1: Email Input (Shown when password is not yet unlocked) */}
+        {!isPasswordUnlocked ? (
+          <div className="space-y-3">
+            <FormInput
+              ref={emailInputRef}
+              id="login-email"
+              label="Email address"
+              type="email"
+              placeholder="operator@centralizedmic.io"
+              leftIcon="mail"
+              autoComplete="email"
+              inputMode="email"
+              value={formData.email}
+              touched={touched.email}
+              error={errors.email}
+              onChange={(e) => handleEmailChange(e.target.value)}
+              onBlur={() => handleBlur('email')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleContinue();
+                }
+              }}
+              rightAction={
+                isEmailValid ? (
+                  <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-500/20 shadow-sm animate-fadeIn">
+                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    Valid
+                  </span>
+                ) : touched.email && formData.email ? (
+                  <span className="flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 px-2 py-0.5 rounded-md border border-red-500/20 animate-fadeIn">
+                    <span className="material-symbols-outlined text-[14px]">cancel</span>
+                    Invalid
+                  </span>
+                ) : null
+              }
+              required
             />
-            <span className="hover:text-slate-900 dark:hover:text-white transition-colors">
-              Remember me
-            </span>
-          </label>
 
-          <button
-            type="button"
-            onClick={() => onOpenForgotPassword(formData.email)}
-            className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 focus:outline-none focus:underline transition-colors"
-          >
-            Forgot password?
-          </button>
-        </div>
+            {/* Email constraints helper notice */}
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 px-1">
+              <span className="material-symbols-outlined text-[14px] text-slate-400">info</span>
+              <span>Uppercase characters are automatically converted to lowercase.</span>
+            </div>
 
-        {/* Log In Button */}
-        <button
-          type="submit"
-          disabled={!isFormValid || isLoading}
-          className="w-full min-h-[44px] h-11 md:h-12 mt-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white text-sm font-semibold shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
-        >
-          {isLoading ? (
-            <>
-              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Logging in...</span>
-            </>
-          ) : (
-            <span>Log In</span>
-          )}
-        </button>
+            {/* Email-First Continue Button */}
+            <button
+              type="button"
+              onClick={handleContinue}
+              disabled={!isEmailValid}
+              className="w-full min-h-[44px] h-11 md:h-12 mt-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white text-sm font-semibold shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              <span>Continue</span>
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
+        ) : (
+          /* Step 2: Verified Email Card & Password Input (Revealed only after email validation) */
+          <div className="space-y-4 animate-fadeIn">
+            {/* Verified Email Summary Card with Change Button */}
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+                      Verified Email
+                    </span>
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                      LOWERCASE
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate font-mono">
+                    {formData.email}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleChangeEmail}
+                className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 px-2.5 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors flex items-center gap-1 flex-shrink-0"
+                title="Change email address"
+              >
+                <span className="material-symbols-outlined text-[14px]">edit</span>
+                <span>Change</span>
+              </button>
+            </div>
+
+            {/* Password Field */}
+            <FormInput
+              ref={passwordInputRef}
+              id="login-password"
+              label="Password"
+              isPassword
+              autoFocus
+              placeholder="••••••••••••"
+              leftIcon="lock"
+              autoComplete="current-password"
+              value={formData.password}
+              touched={touched.password}
+              error={errors.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              onBlur={() => handleBlur('password')}
+              required
+            />
+
+            {/* Row: Remember me & Forgot Password */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  id="login-remember-me"
+                  checked={formData.rememberMe}
+                  onChange={(e) => handleChange('rememberMe', e.target.checked)}
+                  className="w-4 h-4 rounded text-red-600 focus:ring-red-500/40 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer"
+                />
+                <span className="hover:text-slate-900 dark:hover:text-white transition-colors">
+                  Remember me
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => onOpenForgotPassword(formData.email)}
+                className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 focus:outline-none focus:underline transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Log In Button */}
+            <button
+              type="submit"
+              disabled={!isFormValid || isLoading}
+              className="w-full min-h-[44px] h-11 md:h-12 mt-2 px-4 rounded-xl bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white text-sm font-semibold shadow-md shadow-red-600/20 transition-all flex items-center justify-center gap-2.5 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
+            >
+              {isLoading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                <span>Log In</span>
+              )}
+            </button>
+          </div>
+        )}
       </form>
 
       {/* Divider */}

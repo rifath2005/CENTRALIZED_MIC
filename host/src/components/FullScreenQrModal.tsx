@@ -7,6 +7,7 @@ interface FullScreenQrModalProps {
   onClose: () => void;
   roomCode: string;
   tokenServerUrl: string;
+  publicOnlineUrl?: string;
   memberCount: number;
   currentSpeaker?: SpeakerInfo | null;
   members?: BoardroomMember[];
@@ -38,6 +39,7 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
   onClose,
   roomCode,
   tokenServerUrl,
+  publicOnlineUrl = 'https://centralized-mic-token-server.onrender.com',
   memberCount,
   currentSpeaker,
   members = [],
@@ -48,8 +50,13 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [qrSize, setQrSize] = useState(480);
+  const [linkMode, setLinkMode] = useState<'online' | 'local'>('online');
 
-  const webTransmitterUrl = `${tokenServerUrl.replace(/\/$/, '')}/mic?room=${encodeURIComponent(roomCode)}`;
+  const resolvedBaseUrl = linkMode === 'online'
+    ? (publicOnlineUrl || 'https://centralized-mic-token-server.onrender.com').replace(/\/$/, '')
+    : tokenServerUrl.replace(/\/$/, '');
+
+  const webTransmitterUrl = `${resolvedBaseUrl}/mic?room=${encodeURIComponent(roomCode)}`;
 
   // Display only real, connected attendees in the room (no mock data)
   const displayMembers: BoardroomMember[] = members;
@@ -253,6 +260,35 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
                 : 'bg-white border-[#273244] shadow-[0_0_80px_rgba(239,68,68,0.22)]'
             }`}
           >
+            {/* Mode Switcher Pill: Online (Cloud HTTPS) vs Local (LAN) */}
+            <div className="mb-4 flex items-center gap-2 p-1 rounded-xl bg-[#080a0e] border border-[#222834]">
+              <button
+                type="button"
+                onClick={() => setLinkMode('online')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all ${
+                  linkMode === 'online'
+                    ? 'bg-[#064e3b] text-[#34d399] shadow-sm'
+                    : 'text-[#64748b] hover:text-[#94a3b8]'
+                }`}
+                title="Online HTTPS mode: Works globally over 4G/5G & Wi-Fi with instant mic permissions"
+              >
+                <span>🌐 Online Cloud (HTTPS)</span>
+                {linkMode === 'online' && <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkMode('local')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 transition-all ${
+                  linkMode === 'local'
+                    ? 'bg-[#78350f] text-[#fbbf24] shadow-sm'
+                    : 'text-[#64748b] hover:text-[#94a3b8]'
+                }`}
+                title="Local LAN mode: Connects over local subnet (Note: Mobile browsers may block mic on insecure HTTP)"
+              >
+                <span>🏠 Local Wi-Fi (LAN)</span>
+              </button>
+            </div>
+
             {/* The Giant QR Code (Sharp black on white for maximum optical contrast & long distance scanning) */}
             <div className="flex items-center justify-center bg-white rounded-2xl overflow-hidden p-2">
               <QRCodeSVG
@@ -277,7 +313,11 @@ export const FullScreenQrModal: React.FC<FullScreenQrModalProps> = ({
 
             {/* Direct Zero-Prompt URL text */}
             <div className="mt-3 flex items-center gap-2 max-w-full px-3 py-1.5 rounded-lg bg-[#080a0e] text-[#94a3b8] border border-[#222834] text-[11px] font-mono">
-              <span className="text-[#10b981] font-bold">● CLOUD CONNECTED</span>
+              {linkMode === 'online' ? (
+                <span className="text-[#10b981] font-bold">● ONLINE (HTTPS)</span>
+              ) : (
+                <span className="text-[#fbbf24] font-bold">⚠️ LOCAL (HTTP)</span>
+              )}
               <span className="truncate max-w-[260px] text-[#cbd5e1]">{webTransmitterUrl}</span>
               <button
                 onClick={handleCopyLink}

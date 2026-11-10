@@ -5,6 +5,7 @@ import { SocialButtons } from './SocialButtons';
 import { SignupFormData, ValidationErrors, AuthUser } from '../types';
 import {
   validateEmail,
+  normalizeEmail,
   validateFullName,
   validatePassword,
   calculatePasswordStrength,
@@ -117,6 +118,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({
   };
 
   const handleChange = (field: keyof SignupFormData, value: string | boolean) => {
+    // If typing email, auto-convert uppercase to lowercase and strip spaces
+    if (field === 'email' && typeof value === 'string') {
+      value = normalizeEmail(value);
+    }
+
     setFormData((prev) => ({ ...prev, [field]: value }));
     setBannerError(null);
 

@@ -42,12 +42,20 @@ export interface FloorRevokeMessage {
   reason?: string;
 }
 
+export interface FloorGetStatusMessage {
+  type: 'GET_FLOOR_STATUS';
+  participantId?: string;
+  participantName?: string;
+  timestamp?: number;
+}
+
 export type FloorMessage =
   | FloorRequestMessage
   | FloorReleaseMessage
   | FloorStatusMessage
   | FloorHeartbeatMessage
-  | FloorRevokeMessage;
+  | FloorRevokeMessage
+  | FloorGetStatusMessage;
 
 export interface LimiterSettings {
   threshold: number; // dB, e.g. -18

@@ -1,5 +1,122 @@
 [
   {
+    "id": "log-1794289924527-ahzh",
+    "timestamp": "2026-11-10T05:52:04.527Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::ffff:10.31.232.101",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1793966930842-tw0u",
+    "timestamp": "2026-11-06T12:08:50.842Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1793966873328-23tn",
+    "timestamp": "2026-11-06T12:07:53.328Z",
+    "action": "LOGIN_FAILED",
+    "email": "babsword6@gmail.com",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1793966865169-vrqf",
+    "timestamp": "2026-11-06T12:07:45.169Z",
+    "action": "LOGIN_FAILED",
+    "email": "babsword6@gmail.com",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1793966695521-l8et",
+    "timestamp": "2026-11-06T12:04:55.521Z",
+    "action": "LOGIN_FAILED",
+    "email": "babsword6@gmail.com",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1793966687771-bv7k",
+    "timestamp": "2026-11-06T12:04:47.771Z",
+    "action": "LOGIN_FAILED",
+    "email": "babsword6@gmail.com",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1793966675593-w58p",
+    "timestamp": "2026-11-06T12:04:35.593Z",
+    "action": "LOGIN_FAILED",
+    "email": "babsword3@gmail.com",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1793422226218-4wwm",
+    "timestamp": "2026-10-31T04:50:26.218Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1793422139468-npl3",
+    "timestamp": "2026-10-31T04:48:59.468Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "admin@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as admin"
+  },
+  {
+    "id": "log-1793422066222-la33",
+    "timestamp": "2026-10-31T04:47:46.222Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1793421988060-ekij",
+    "timestamp": "2026-10-31T04:46:28.060Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "admin@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as admin"
+  },
+  {
+    "id": "log-1793421644495-8gsu",
+    "timestamp": "2026-10-31T04:40:44.495Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1793421640241-6pmx",
+    "timestamp": "2026-10-31T04:40:40.241Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "admin@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as admin"
+  },
+  {
     "id": "log-1793093671868-jbv6",
     "timestamp": "2026-10-27T09:34:31.869Z",
     "action": "GOOGLE_LOGIN",

@@ -104,7 +104,7 @@
 
     .container {
       width: 100%;
-      max-width: 440px;
+      max-width: min(500px, 94vw);
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -806,8 +806,8 @@
     }
 
     .ptt-btn {
-      width: 210px;
-      height: 210px;
+      width: clamp(155px, 46vw, 215px);
+      height: clamp(155px, 46vw, 215px);
       border-radius: 50%;
       background: radial-gradient(circle at 35% 35%, var(--bg-surface-elevated) 0%, var(--bg-deepest) 100%);
       border: 4px solid var(--border-strong);
@@ -816,7 +816,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
       cursor: pointer;
       outline: none;
       touch-action: none;
@@ -844,8 +844,8 @@
     }
 
     .ptt-icon {
-      width: 62px;
-      height: 62px;
+      width: clamp(44px, 12vw, 62px);
+      height: clamp(44px, 12vw, 62px);
       fill: var(--accent-bright);
       transition: fill 0.2s ease, transform 0.2s ease;
     }
@@ -856,7 +856,7 @@
     }
 
     .ptt-label {
-      font-size: 13px;
+      font-size: clamp(11px, 3.2vw, 13px);
       font-weight: 900;
       letter-spacing: 1.2px;
       text-transform: uppercase;
@@ -867,6 +867,33 @@
 
     .ptt-btn.on-air .ptt-label {
       color: #6ee7b7;
+    }
+
+    /* Queued State Styles */
+    .speaker-status-card.queued {
+      border-color: #f59e0b;
+      background: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.15) 0%, rgba(20, 25, 35, 0.9) 100%);
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+    .speaker-status-card.queued .status-title {
+      color: #f59e0b;
+    }
+
+    .ptt-btn.queued {
+      border-color: #f59e0b;
+      background: radial-gradient(circle at 35% 35%, #451a03 0%, #1c0a00 100%);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.5), inset 0 0 20px rgba(245, 158, 11, 0.25);
+      animation: queuedPulse 1.8s infinite ease-in-out;
+    }
+    @keyframes queuedPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+      50% { box-shadow: 0 0 50px rgba(245, 158, 11, 0.85); }
+    }
+    .ptt-btn.queued .ptt-icon {
+      fill: #fcd34d;
+    }
+    .ptt-btn.queued .ptt-label {
+      color: #fef08a;
     }
 
     /* Talk Mode Switcher (Pill Style) */
@@ -899,6 +926,379 @@
       background: var(--red-primary);
       color: #ffffff;
       box-shadow: 0 0 12px rgba(225, 29, 72, 0.5);
+    }
+
+    /* Native App Feature Parity Styles */
+    .performer-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+    .performer-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .performer-avatar {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-surface-elevated);
+      border: 1.5px solid var(--border-strong);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .performer-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--status-on-air);
+      border: 2px solid var(--bg-surface-card);
+    }
+    .performer-info {
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+    }
+    .performer-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .performer-role {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .performer-badge-col {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .performer-badge {
+      font-size: 9px;
+      font-weight: 800;
+      font-family: monospace;
+      background: rgba(225, 29, 72, 0.2);
+      color: var(--accent-bright);
+      border: 1px solid var(--border-strong);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .network-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 8px 12px;
+      margin-bottom: 14px;
+      font-family: monospace;
+      font-size: 10px;
+    }
+    .signal-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+    .signal-bar {
+      width: 3px;
+      background: var(--status-on-air);
+      border-radius: 1px;
+    }
+
+    .gain-card {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-top: 14px;
+      margin-bottom: 12px;
+    }
+    .gain-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .gain-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gain-pill {
+      font-size: 10px;
+      font-weight: 800;
+      font-family: monospace;
+      background: rgba(225, 29, 72, 0.2);
+      color: var(--accent-bright);
+      border: 1px solid var(--border-medium);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .gain-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+    .gain-btn {
+      background: var(--bg-surface-dark);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .gain-btn.active {
+      background: var(--red-primary);
+      border-color: var(--red-hover);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(225, 29, 72, 0.4);
+    }
+
+    .hw-selector-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .hw-btn {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      padding: 8px 6px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .hw-btn.active {
+      background: var(--red-primary);
+      border-color: var(--red-hover);
+      color: #ffffff;
+    }
+
+    .exit-modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .exit-modal-backdrop.open {
+      display: flex;
+    }
+    .exit-modal-box {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 24px;
+      padding: 22px;
+      max-width: 300px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+    }
+
+    .stream-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-family: monospace;
+      font-size: 10px;
+      margin-top: 10px;
+    }
+
+    /* ==========================================================================
+       Responsive Breakpoints: Ultra-Compact Mobile (<=360px), Landscape Mobile,
+       and Large Tablet / Desktop Displays
+       ========================================================================== */
+    @media (max-width: 360px) {
+      body {
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-left: max(10px, env(safe-area-inset-left));
+        padding-right: max(10px, env(safe-area-inset-right));
+      }
+      .brand-header {
+        margin-top: 4px;
+        margin-bottom: 12px;
+      }
+      .logo-badge {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 6px;
+      }
+      .logo-badge svg {
+        width: 24px;
+        height: 24px;
+      }
+      .app-title {
+        font-size: 22px;
+      }
+      .app-subtitle {
+        font-size: 11px;
+      }
+      .form-card {
+        padding: 16px 12px;
+        border-radius: 16px;
+      }
+      .field-group {
+        margin-bottom: 14px;
+      }
+      .text-input {
+        min-height: 46px;
+        padding: 10px 12px;
+        font-size: 15px;
+      }
+      .btn-primary {
+        min-height: 50px;
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+      .gain-btn {
+        padding: 6px 2px;
+        font-size: 10px;
+      }
+      .hw-btn {
+        padding: 6px 3px;
+        font-size: 10px;
+      }
+      .mode-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+      }
+      .performer-card {
+        padding: 10px 10px;
+      }
+      .speaker-status-card {
+        padding: 12px 12px;
+        margin-bottom: 12px;
+      }
+      .status-title {
+        font-size: 15px;
+      }
+      .ptt-container {
+        margin-bottom: 16px;
+      }
+    }
+
+    @media (max-height: 680px) and (orientation: landscape) {
+      body {
+        padding-top: max(8px, env(safe-area-inset-top));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+      }
+      .brand-header {
+        margin-top: 2px;
+        margin-bottom: 8px;
+      }
+      .logo-badge {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 4px;
+      }
+      .logo-badge svg {
+        width: 20px;
+        height: 20px;
+      }
+      .app-title {
+        font-size: 18px;
+      }
+      .app-subtitle {
+        font-size: 10px;
+      }
+      .form-card {
+        padding: 14px 16px;
+      }
+      .field-group {
+        margin-bottom: 10px;
+      }
+      .text-input {
+        min-height: 42px;
+        padding: 8px 12px;
+      }
+      .ptt-btn {
+        width: 125px;
+        height: 125px;
+        gap: 6px;
+      }
+      .ptt-icon {
+        width: 34px;
+        height: 34px;
+      }
+      .ptt-container {
+        margin-bottom: 10px;
+      }
+      .speaker-status-card {
+        padding: 10px 12px;
+        margin-bottom: 10px;
+      }
+      .status-title {
+        font-size: 14px;
+      }
+      .status-desc {
+        font-size: 11px;
+      }
+      .vu-meter-card {
+        padding: 8px 12px;
+        margin-bottom: 12px;
+      }
+      .gain-card {
+        margin-top: 8px;
+        margin-bottom: 8px;
+        padding: 8px 10px;
+      }
+      .mode-bar {
+        margin-bottom: 8px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        background: radial-gradient(circle at 50% 15%, var(--bg-surface-dark) 0%, var(--bg-deepest) 75%);
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 480px;
+        padding: 24px;
+        border-radius: 28px;
+        background: rgba(18, 4, 8, 0.4);
+        border: 1px solid var(--border-subtle);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      }
     }
   </style>
 </head>
@@ -961,6 +1361,19 @@
             required
             aria-required="true"
           />
+        </div>
+
+        <!-- Audio Input Hardware Selector (App Feature Parity) -->
+        <div class="field-group">
+          <div class="field-label-row">
+            <label class="field-label">Audio Input Hardware</label>
+            <span class="required-pill" style="color: var(--status-on-air); border-color: rgba(16,185,129,0.3);">HD READY</span>
+          </div>
+          <div class="hw-selector-row">
+            <button type="button" class="hw-btn active" data-hw="builtin">Built-in Omni</button>
+            <button type="button" class="hw-btn" data-hw="interface">USB/Type-C</button>
+            <button type="button" class="hw-btn" data-hw="bluetooth">IEM / BT</button>
+          </div>
         </div>
 
         <!-- Acoustic Protection & Voice Quality Card -->
@@ -1070,6 +1483,38 @@
         <button id="disconnect-btn" class="btn-exit" aria-label="Leave stage room">✕ Exit Stage</button>
       </div>
 
+      <!-- MOB-ST-01: Performer Status Card -->
+      <div class="performer-card">
+        <div class="performer-left">
+          <div class="performer-avatar">
+            <span>👤</span>
+            <span class="performer-dot"></span>
+          </div>
+          <div class="performer-info">
+            <span id="performer-name-display" class="performer-name">Attendee</span>
+            <span class="performer-role">Stage Microphone</span>
+          </div>
+        </div>
+        <div class="performer-badge-col">
+          <span class="performer-badge">AIRMIC</span>
+          <span style="font-size: 9px; font-weight: 800; color: var(--status-on-air); font-family: monospace;">LIVE ON STAGE</span>
+        </div>
+      </div>
+
+      <!-- MOB-ST-02: Connection Quality Telemetry Badge -->
+      <div class="network-badge">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <div class="signal-bars">
+            <div class="signal-bar" style="height: 4px;"></div>
+            <div class="signal-bar" style="height: 7px;"></div>
+            <div class="signal-bar" style="height: 10px;"></div>
+            <div class="signal-bar" style="height: 12px;"></div>
+          </div>
+          <span style="color: var(--text-secondary);">Signal Quality: Excellent</span>
+        </div>
+        <span style="color: var(--status-on-air); font-weight: bold;">LIVE STREAMING</span>
+      </div>
+
       <!-- Speaker Status Card -->
       <div id="status-card" class="speaker-status-card" aria-live="assertive">
         <div id="status-title" class="status-title">MUTED (STANDBY)</div>
@@ -1094,14 +1539,37 @@
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>
-          <span id="ptt-label" class="ptt-label">HOLD TO TALK</span>
+          <span id="ptt-label" class="ptt-label">TAP TO TALK</span>
         </button>
       </div>
 
       <!-- Talk Mode Switcher (Pill Style) -->
       <div class="mode-bar" role="tablist" aria-label="Talking mode selector">
-        <button type="button" id="mode-hold-btn" class="mode-btn active" role="tab" aria-selected="true">🖐️ Hold to Talk</button>
-        <button type="button" id="mode-tap-btn" class="mode-btn" role="tab" aria-selected="false">🎙️ Tap to Toggle</button>
+        <button type="button" id="mode-tap-btn" class="mode-btn active" role="tab" aria-selected="true">🎙️ Tap to Talk</button>
+        <button type="button" id="mode-hold-btn" class="mode-btn" role="tab" aria-selected="false">🖐️ Hold to Talk</button>
+      </div>
+
+      <!-- MOB-ST-08: Software Gain Boost Card (App Feature Parity) -->
+      <div class="gain-card">
+        <div class="gain-header">
+          <span class="gain-title">
+            <span>🔊</span>
+            <span>Software Gain Boost</span>
+          </span>
+          <span id="gain-readout-pill" class="gain-pill">+6.0 dB</span>
+        </div>
+        <div class="gain-grid">
+          <button type="button" class="gain-btn" data-gain="0">0 dB</button>
+          <button type="button" class="gain-btn active" data-gain="6">+6 dB</button>
+          <button type="button" class="gain-btn" data-gain="12">+12 dB</button>
+          <button type="button" class="gain-btn" data-gain="18">+18 dB</button>
+        </div>
+      </div>
+
+      <!-- MOB-ST-07: Stream Audio Profile Badge -->
+      <div class="stream-badge">
+        <span style="color: var(--text-muted);">🎚️ AUDIO STREAM</span>
+        <span style="color: var(--status-on-air); font-weight: 800;">High Definition Audio</span>
       </div>
 
       <!-- Stage Acoustic Shield Quick Access Pill -->
@@ -1115,6 +1583,21 @@
 
       <footer class="footer-note">HD Audio &bull; Enhanced Echo Cancellation</footer>
     </main>
+
+    <!-- 5. SAFE EXIT STAGE CONFIRMATION MODAL -->
+    <div id="exit-modal" class="exit-modal-backdrop" role="dialog" aria-modal="true">
+      <div class="exit-modal-box">
+        <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
+        <h3 style="font-size: 16px; font-weight: 800; color: #ffffff; margin-bottom: 6px;">Leave Stage?</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 18px; line-height: 1.4;">
+          Disconnect your phone microphone from the room sound system?
+        </p>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="exit-cancel-btn" style="flex: 1; padding: 10px; background: var(--bg-surface-elevated); border: 1px solid var(--border-medium); border-radius: 12px; color: var(--text-secondary); font-size: 12px; font-weight: 700; cursor: pointer;">Cancel</button>
+          <button type="button" id="exit-confirm-btn" style="flex: 1; padding: 10px; background: var(--red-primary); border: none; border-radius: 12px; color: #ffffff; font-size: 12px; font-weight: 700; cursor: pointer;">Leave</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 4. LIVE STAGE ACOUSTIC SETTINGS MODAL -->
     <div id="settings-modal" class="settings-modal-backdrop" role="dialog" aria-modal="true" aria-label="Live Audio Settings">
@@ -1179,11 +1662,16 @@
     let meterAnimationId = null;
     let isHolding = false;
     let isToggleActive = false;
-    let isToggleMode = false;
+    let isToggleMode = true;
     let isJoining = false;
     let currentParticipantIdentity = '';
     let currentParticipantName = '';
     let wakeLock = null;
+    let floorHeartbeatInterval = null;
+    let myFloorState = 'idle'; // 'idle' | 'requesting' | 'queued' | 'speaking'
+    let queueTickerInterval = null;
+    let queueRequestedAt = null;
+    let queuePosition = null;
 
     // Elements
     const joinScreen = document.getElementById('join-screen');
@@ -1446,23 +1934,29 @@
 
     // Talk Mode Switcher (Hold vs Tap)
     modeHoldBtn.addEventListener('click', () => {
-      if (!isToggleMode) return;
       isToggleMode = false;
+      isToggleActive = false;
+      isHolding = false;
       modeHoldBtn.classList.add('active');
       modeTapBtn.classList.remove('active');
-      if (isToggleActive) stopTalking();
-      pttLabel.innerText = 'HOLD TO TALK';
-      statusDesc.innerText = 'Press and hold button below to speak';
+      modeHoldBtn.setAttribute('aria-selected', 'true');
+      modeTapBtn.setAttribute('aria-selected', 'false');
+      stopTalking();
+      updateSpeakerUI(false);
+      triggerHaptic(20);
     });
 
     modeTapBtn.addEventListener('click', () => {
-      if (isToggleMode) return;
       isToggleMode = true;
+      isToggleActive = false;
+      isHolding = false;
       modeTapBtn.classList.add('active');
       modeHoldBtn.classList.remove('active');
-      if (isHolding) stopTalking();
-      pttLabel.innerText = 'TAP TO TALK';
-      statusDesc.innerText = 'Tap button below to speak hands-free';
+      modeTapBtn.setAttribute('aria-selected', 'true');
+      modeHoldBtn.setAttribute('aria-selected', 'false');
+      stopTalking();
+      updateSpeakerUI(false);
+      triggerHaptic(20);
     });
 
     // Ensure LiveKit SDK is ready
@@ -1571,7 +2065,40 @@
           handleDisconnect();
         });
 
-        await room.connect(url, token);
+        room.on(RoomEvent.DataReceived, (payload, _participant, _kind, topic) => {
+          if (topic && topic !== 'floor-control') return;
+          try {
+            const text = new TextDecoder().decode(payload);
+            const data = JSON.parse(text);
+
+            if (data.type === 'FLOOR_STATUS') {
+              handleFloorStatusUpdate(data);
+            } else if (data.type === 'REVOKE_FLOOR' && data.participantId === currentParticipantIdentity) {
+              console.log('[AirMic Web] Floor revoked by host');
+              stopTalking(false);
+            }
+          } catch (e) {
+            console.warn('[AirMic Web] Error parsing data packet:', e);
+          }
+        });
+
+        await room.connect(url, token, { autoSubscribe: false });
+
+        // Request initial floor status from Host Arbiter immediately upon connecting
+        try {
+          const reqStatusPayload = JSON.stringify({
+            type: 'GET_FLOOR_STATUS',
+            participantId: currentParticipantIdentity,
+            participantName: currentParticipantName,
+            timestamp: Date.now()
+          });
+          await room.localParticipant.publishData(new TextEncoder().encode(reqStatusPayload), {
+            reliable: true,
+            topic: 'floor-control'
+          });
+        } catch (e) {
+          console.warn('[AirMic Web] Error publishing GET_FLOOR_STATUS:', e);
+        }
         await room.localParticipant.publishTrack(localTrack, {
           name: 'participant-mic',
           audioPreset: audioSettings.quality === 'hd'
@@ -1584,6 +2111,9 @@
         setupAudioMeter(localTrack.mediaStreamTrack);
 
         roomBadgeText.innerText = `ROOM: ${rawRoom}`;
+        if (performerNameDisplay) {
+          performerNameDisplay.innerText = currentParticipantName || 'Attendee';
+        }
         updateSpeakerUI(false);
         requestWakeLock();
         showScreen('stage');
@@ -1629,12 +2159,16 @@
           const average = sum / dataArray.length;
           const percentage = Math.min(100, Math.round((average / 128) * 100));
 
-          meterFill.style.width = `${percentage}%`;
-
-          if (percentage > 5 && (isHolding || isToggleActive)) {
-            const db = Math.round(20 * Math.log10(average / 255));
-            meterDbText.innerText = `${db} dB`;
+          if (isHolding || isToggleActive) {
+            meterFill.style.width = `${percentage}%`;
+            if (percentage > 5) {
+              const db = Math.round(20 * Math.log10(average / 255));
+              meterDbText.innerText = `${db} dB`;
+            } else {
+              meterDbText.innerText = '-∞ dB';
+            }
           } else {
+            meterFill.style.width = '0%';
             meterDbText.innerText = '-∞ dB';
           }
 
@@ -1647,102 +2181,337 @@
       }
     }
 
+    function formatTimeClock(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
     // UPDATE UI FOR SPEAKING STATES
     function updateSpeakerUI(isSpeaking) {
       if (isSpeaking) {
         statusCard.className = 'speaker-status-card on-air';
         statusTitle.innerText = '🔴 ON AIR — SPEAKING';
-        statusDesc.innerText = isToggleMode ? 'Your voice is live. Tap button to mute.' : 'Your voice is live. Release to mute.';
+        statusDesc.innerText = isToggleMode ? 'Your voice is live on stage. Click button to mute.' : 'Your voice is live. Release to mute.';
         pttButton.className = 'ptt-btn on-air';
         pttButton.setAttribute('aria-pressed', 'true');
         pttLabel.innerText = isToggleMode ? 'TAP TO MUTE' : 'SPEAKING...';
       } else {
         statusCard.className = 'speaker-status-card';
         statusTitle.innerText = '⚪ MUTED (STANDBY)';
-        statusDesc.innerText = isToggleMode ? 'Tap button below to speak hands-free' : 'Press and hold button below to speak';
+        statusDesc.innerText = isToggleMode ? 'Click button below to speak or request floor' : 'Press and hold button below to speak';
         pttButton.className = 'ptt-btn';
         pttButton.setAttribute('aria-pressed', 'false');
         pttLabel.innerText = isToggleMode ? 'TAP TO TALK' : 'HOLD TO TALK';
       }
     }
 
-    // TRANSMIT VOICE
-    async function startTalking() {
+    function sendFloorMessage(msg) {
+      if (room && room.localParticipant && room.state === 'connected') {
+        try {
+          const data = new TextEncoder().encode(JSON.stringify(msg));
+          room.localParticipant.publishData(data, { reliable: true, topic: 'floor-control' });
+        } catch (e) {
+          console.warn('[AirMic Web] Floor message error:', e);
+        }
+      }
+    }
+
+    function requestFloor() {
+      myFloorState = 'requesting';
+      statusCard.className = 'speaker-status-card queued';
+      statusTitle.innerText = '⚡ REQUESTING FLOOR...';
+      statusDesc.innerText = 'Transmitting request to host audio console...';
+      pttButton.className = 'ptt-btn queued';
+      pttLabel.innerText = 'CONNECTING...';
+
+      const participantId = currentParticipantIdentity || (room && room.localParticipant && room.localParticipant.identity) || '';
+      const participantName = currentParticipantName || 'Attendee';
+
+      sendFloorMessage({
+        type: 'REQUEST_FLOOR',
+        participantId,
+        participantName,
+        timestamp: Date.now(),
+      });
+    }
+
+    async function startLiveTransmission() {
       if (!localTrack) return;
       try {
         await localTrack.unmute();
+        myFloorState = 'speaking';
+        isToggleActive = true;
         updateSpeakerUI(true);
         triggerHaptic(40);
         playChime(true);
+
+        const participantId = currentParticipantIdentity || (room && room.localParticipant && room.localParticipant.identity) || '';
+
+        if (floorHeartbeatInterval) clearInterval(floorHeartbeatInterval);
+        floorHeartbeatInterval = setInterval(() => {
+          sendFloorMessage({
+            type: 'HEARTBEAT',
+            participantId,
+            timestamp: Date.now(),
+          });
+        }, 1500);
       } catch (err) {
         console.error('[AirMic Web] Unmute error:', err);
       }
     }
 
-    async function stopTalking() {
-      if (!localTrack) return;
-      try {
-        await localTrack.mute();
-        updateSpeakerUI(false);
-        triggerHaptic(25);
-        playChime(false);
-      } catch (err) {
-        console.error('[AirMic Web] Mute error:', err);
+    async function stopTalking(sendRelease = true) {
+      if (queueTickerInterval) {
+        clearInterval(queueTickerInterval);
+        queueTickerInterval = null;
+      }
+      if (floorHeartbeatInterval) {
+        clearInterval(floorHeartbeatInterval);
+        floorHeartbeatInterval = null;
+      }
+      myFloorState = 'idle';
+      isToggleActive = false;
+      isHolding = false;
+
+      if (localTrack) {
+        try { await localTrack.mute(); } catch (_) {}
+      }
+
+      updateSpeakerUI(false);
+      triggerHaptic(25);
+      playChime(false);
+
+      if (sendRelease) {
+        const participantId = currentParticipantIdentity || (room && room.localParticipant && room.localParticipant.identity) || '';
+        sendFloorMessage({
+          type: 'RELEASE_FLOOR',
+          participantId,
+          timestamp: Date.now(),
+        });
       }
     }
 
-    // PTT Interaction Handlers
-    function onPointerPress(e) {
-      if (e) e.preventDefault();
-      if (isToggleMode) {
-        // Mode 2: Tap to Toggle
-        if (isToggleActive) {
-          isToggleActive = false;
-          stopTalking();
-        } else {
-          isToggleActive = true;
-          startTalking();
+    function renderQueuedState(pos, reqAt, currentSpeaker) {
+      if (queueTickerInterval) clearInterval(queueTickerInterval);
+
+      function updateQueueClock() {
+        const waitSec = Math.max(0, Math.floor((Date.now() - reqAt) / 1000));
+        const clockStr = formatTimeClock(waitSec);
+
+        statusCard.className = 'speaker-status-card queued';
+        statusTitle.innerText = `⏳ IN QUEUE — POSITION #${pos}`;
+        const activeNote = currentSpeaker ? `Active speaker: ${currentSpeaker.name} • ` : 'Host operator review pending • ';
+        statusDesc.innerText = `${activeNote}Waiting: ${clockStr}`;
+
+        pttButton.className = 'ptt-btn queued';
+        pttButton.setAttribute('aria-pressed', 'false');
+        pttLabel.innerText = `LEAVE QUEUE (${clockStr})`;
+      }
+
+      updateQueueClock();
+      queueTickerInterval = setInterval(updateQueueClock, 1000);
+    }
+
+    function handleFloorStatusUpdate(data) {
+      const amISpeaker = data.currentSpeaker && data.currentSpeaker.id === currentParticipantIdentity;
+      const myQueueIndex = data.queue ? data.queue.findIndex(e => e.id === currentParticipantIdentity) : -1;
+
+      if (amISpeaker) {
+        if (myFloorState !== 'speaking') {
+          if (queueTickerInterval) { clearInterval(queueTickerInterval); queueTickerInterval = null; }
+          startLiveTransmission();
         }
+      } else if (myQueueIndex !== -1) {
+        myFloorState = 'queued';
+        queuePosition = myQueueIndex + 1;
+        const entry = data.queue[myQueueIndex];
+        queueRequestedAt = entry.requestedAt || Date.now();
+
+        if (localTrack) {
+          localTrack.mute().catch(() => {});
+        }
+        if (floorHeartbeatInterval) {
+          clearInterval(floorHeartbeatInterval);
+          floorHeartbeatInterval = null;
+        }
+
+        renderQueuedState(queuePosition, queueRequestedAt, data.currentSpeaker);
       } else {
-        // Mode 1: Hold to Talk
-        if (!isHolding) {
-          isHolding = true;
-          startTalking();
+        // Neither speaking nor in queue
+        if (myFloorState === 'speaking' || myFloorState === 'queued' || myFloorState === 'requesting') {
+          if (queueTickerInterval) { clearInterval(queueTickerInterval); queueTickerInterval = null; }
+          stopTalking(false);
         }
       }
     }
 
-    function onPointerRelease(e) {
-      if (e) e.preventDefault();
-      if (!isToggleMode && isHolding) {
-        isHolding = false;
-        stopTalking();
+    // PTT Interaction Handlers (Seamless Single-Click & Hold)
+    let pointerDownTime = 0;
+    let isPointerDown = false;
+    let pointerDownActiveState = false;
+    let lastToggleTimestamp = 0;
+
+    function handlePttPointerDown(e) {
+      if (e.button && e.button !== 0) return; // Only primary mouse button
+      isPointerDown = true;
+      pointerDownTime = Date.now();
+      pointerDownActiveState = isToggleActive;
+
+      if (myFloorState === 'queued') {
+        // Clicking while queued cancels / leaves queue!
+        stopTalking(true);
+        return;
+      }
+
+      if (myFloorState === 'speaking') {
+        if (isToggleMode) {
+          // In toggle mode: clicking while speaking mutes!
+          stopTalking(true);
+        }
+        return;
+      }
+
+      // In idle or requesting state:
+      if (isToggleMode) {
+        requestFloor();
+      } else {
+        isHolding = true;
+        requestFloor();
       }
     }
 
-    // Attach Pointer Events to Giant PTT Button
-    pttButton.addEventListener('pointerdown', onPointerPress);
-    pttButton.addEventListener('pointerup', onPointerRelease);
-    pttButton.addEventListener('pointerleave', onPointerRelease);
-    pttButton.addEventListener('pointercancel', onPointerRelease);
+    function handlePttPointerUp(e) {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      const duration = Date.now() - pointerDownTime;
+      lastToggleTimestamp = Date.now();
+
+      if (!isToggleMode) {
+        // Hold mode: releasing button releases floor
+        isHolding = false;
+        stopTalking(true);
+      } else {
+        // Toggle mode: if held for > 400ms (momentary PTT gesture), release on up
+        if (duration > 400 && myFloorState === 'speaking') {
+          stopTalking(true);
+        }
+      }
+    }
+
+    function handlePttPointerCancel(e) {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+      if (!isToggleMode) {
+        isHolding = false;
+        stopTalking(true);
+      }
+    }
+
+    function handlePttPointerLeave(e) {
+      if (!isPointerDown) return;
+      if (!isToggleMode) {
+        isPointerDown = false;
+        isHolding = false;
+        stopTalking(true);
+      }
+    }
+
+    // Accessible Click / Keyboard Toggle Fallback
     pttButton.addEventListener('click', (e) => {
-      if (isToggleMode) onPointerPress(e);
+      const now = Date.now();
+      if (now - lastToggleTimestamp < 350) return;
+      lastToggleTimestamp = now;
+
+      if (myFloorState === 'queued' || myFloorState === 'speaking' || myFloorState === 'requesting') {
+        stopTalking(true);
+      } else {
+        requestFloor();
+      }
     });
 
-    // Keyboard Accessibility (Spacebar pushes to talk)
+    pttButton.addEventListener('pointerdown', handlePttPointerDown);
+    pttButton.addEventListener('pointerup', handlePttPointerUp);
+    pttButton.addEventListener('pointercancel', handlePttPointerCancel);
+    pttButton.addEventListener('pointerleave', handlePttPointerLeave);
+
+    // Keyboard Accessibility (Spacebar pushes to talk in Hold mode, single tap toggle in Toggle mode)
     window.addEventListener('keydown', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       if (stageScreen.classList.contains('active') && (e.code === 'Space' || e.key === ' ')) {
-        if (!e.repeat) onPointerPress(e);
-      }
-    });
-    window.addEventListener('keyup', (e) => {
-      if (stageScreen.classList.contains('active') && (e.code === 'Space' || e.key === ' ')) {
-        onPointerRelease(e);
+        e.preventDefault();
+        if (!e.repeat) {
+          if (isToggleMode) {
+            if (myFloorState === 'queued' || myFloorState === 'speaking' || myFloorState === 'requesting') {
+              stopTalking(true);
+            } else {
+              requestFloor();
+            }
+          } else {
+            isHolding = true;
+            requestFloor();
+          }
+        }
       }
     });
 
-    // Disconnect & Leave
+    window.addEventListener('keyup', (e) => {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (stageScreen.classList.contains('active') && (e.code === 'Space' || e.key === ' ')) {
+        e.preventDefault();
+        if (!isToggleMode) {
+          isHolding = false;
+          stopTalking(true);
+        }
+      }
+    });
+
+    // New App Feature Parity Elements
+    const performerNameDisplay = document.getElementById('performer-name-display');
+    const exitModal = document.getElementById('exit-modal');
+    const exitCancelBtn = document.getElementById('exit-cancel-btn');
+    const exitConfirmBtn = document.getElementById('exit-confirm-btn');
+    const gainReadoutPill = document.getElementById('gain-readout-pill');
+    const gainBtns = document.querySelectorAll('.gain-btn');
+    const hwBtns = document.querySelectorAll('.hw-btn');
+
+    let currentGainDb = 6;
+
+    // Gain Boost Buttons
+    gainBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        gainBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentGainDb = parseInt(btn.getAttribute('data-gain'), 10);
+        if (gainReadoutPill) {
+          gainReadoutPill.innerText = `+${currentGainDb}.0 dB`;
+        }
+        triggerHaptic(20);
+      });
+    });
+
+    // Hardware Audio Input Buttons
+    hwBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        hwBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        triggerHaptic(20);
+      });
+    });
+
+    // Disconnect & Leave with Confirmation Modal
     function handleDisconnect() {
+      if (queueTickerInterval) {
+        clearInterval(queueTickerInterval);
+        queueTickerInterval = null;
+      }
+      myFloorState = 'idle';
+      if (floorHeartbeatInterval) {
+        clearInterval(floorHeartbeatInterval);
+        floorHeartbeatInterval = null;
+      }
+      isToggleActive = false;
+      isHolding = false;
       if (meterAnimationId) cancelAnimationFrame(meterAnimationId);
       releaseWakeLock();
       if (localTrack) {
@@ -1760,7 +2529,24 @@
       showScreen('join');
     }
 
-    disconnectBtn.addEventListener('click', handleDisconnect);
+    if (disconnectBtn && exitModal) {
+      disconnectBtn.addEventListener('click', () => {
+        exitModal.classList.add('open');
+      });
+    }
+
+    if (exitCancelBtn && exitModal) {
+      exitCancelBtn.addEventListener('click', () => {
+        exitModal.classList.remove('open');
+      });
+    }
+
+    if (exitConfirmBtn && exitModal) {
+      exitConfirmBtn.addEventListener('click', () => {
+        exitModal.classList.remove('open');
+        handleDisconnect();
+      });
+    }
 
     // Form & Button Listeners for Instant 1-Tap Trigger
     joinForm.addEventListener('submit', (e) => {

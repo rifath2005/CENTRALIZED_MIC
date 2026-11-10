@@ -257,7 +257,7 @@ export const SettingsNetworkView: React.FC<SettingsNetworkViewProps> = ({
                 <button
                   style={{ background: '#2e1065', border: '1px solid #7c3aed', color: '#c084fc', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
                   onClick={() => {
-                    const pub = 'https://citizenship-treasures-cardiovascular-attacked.trycloudflare.com';
+                    const pub = 'https://centralized-mic-token-server.onrender.com';
                     setTempServer(pub);
                     if (onUpdateTokenServerUrl) { onUpdateTokenServerUrl(pub); onReconnect(); }
                   }}

@@ -44,14 +44,23 @@ export interface AuditLog {
 }
 
 // ─── Input Sanitization & Validation Schemas ──────────────────────────────
+export const EmailSchema = z
+  .string()
+  .trim()
+  .max(254)
+  .transform((val) => val.toLowerCase().replace(/\s+/g, ''))
+  .refine((val) => /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(val), {
+    message: 'Please provide a valid lowercase email address (e.g. name@domain.com)',
+  });
+
 export const LoginSchema = z.object({
-  email: z.string().trim().email().max(254),
-  password: z.string().min(1).max(128),
+  email: EmailSchema,
+  password: z.string().min(1, 'Password is required').max(128),
 });
 
 export const SignupSchema = z.object({
   fullName: z.string().trim().min(2).max(70),
-  email: z.string().trim().email().max(254),
+  email: EmailSchema,
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -269,9 +278,9 @@ router.post('/config', (req: Request, res: Response) => {
  * Check Email Availability
  */
 router.post('/check-email', (req: Request, res: Response) => {
-  const email = String(req.body.email || '').trim().toLowerCase();
-  if (!email || !email.includes('@')) {
-    return res.status(400).json({ error: 'Invalid email address' });
+  const email = String(req.body.email || '').trim().toLowerCase().replace(/\s+/g, '');
+  if (!email || !/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid lowercase email address' });
   }
 
   const exists = usersByEmail.has(email);

@@ -144,11 +144,23 @@ export default function App() {
   const {
     currentSpeaker,
     queue,
+    moderationMode,
+    setModerationMode,
     forceRevokeCurrentSpeaker,
     clearQueue,
     grantFloorTo,
     removeFromQueue,
+    advanceFloor: _advanceFloor,
   } = useHostFloorArbiter({ room });
+
+  // Live 1-second ticker for real-time queue wait timers and speaker elapsed clocks
+  const [tickerNow, setTickerNow] = useState<number>(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTickerNow(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const addTelemetryLog = (msg: string, level: 'info' | 'warn' | 'alert' | 'success' = 'info') => {
     const now = new Date();
@@ -294,10 +306,10 @@ export default function App() {
 
 
   useEffect(() => {
-    if (isAudioUnlocked && !isConnected && !isConnecting) {
+    if (!isConnected && !isConnecting) {
       connectHost();
     }
-  }, [roomName, tokenServerUrl, isAudioUnlocked, isConnected, isConnecting, connectHost]);
+  }, [roomName, tokenServerUrl, isConnected, isConnecting, connectHost]);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVol = parseFloat(e.target.value);
@@ -369,6 +381,9 @@ export default function App() {
   };
 
   const handleGrantSpeaker = (id: string, name: string) => {
+    if (!isAudioUnlocked) {
+      handleUnlockAudio();
+    }
     grantFloorTo(id, name);
     addTelemetryLog(`FLOOR GRANTED: ${name} is now LIVE ON-AIR.`, 'success');
   };
@@ -479,29 +494,29 @@ export default function App() {
 
       {/* 1. FIXED TOP BROADCAST HEADER (h-16) */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl z-50 shadow-[0_1px_8px_rgba(0,0,0,0.6)] flex items-center justify-between px-3 md:px-4 border-b border-[#222834]">
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             {/* ON-AIR Status Pill */}
-            <div className="flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834] shadow-inner">
+            <div className="flex items-center gap-1.5 sm:gap-2 bg-[#10141c] px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-[#222834] shadow-inner">
               <div className="relative flex items-center justify-center">
                 <span className={`absolute w-3.5 h-3.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] animate-ping opacity-75' : 'bg-[#10b981]/40'}`} />
                 <span className={`relative w-2.5 h-2.5 rounded-full ${currentSpeaker ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#10b981]'}`} />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
+                  <span className={`text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider ${currentSpeaker ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
                     {currentSpeaker ? 'ON-AIR' : 'STANDBY'}
                   </span>
                   <span className="px-1 py-0.2 rounded bg-[#181d28] text-[8px] font-mono text-[#10b981] font-bold uppercase">
                     LIVE
                   </span>
                 </div>
-                <span className="text-[9px] font-mono text-[#94a3b8] uppercase tracking-wider truncate max-w-[140px]">
-                  {currentSpeaker ? currentSpeaker.name : 'CH-01 FEED • MAIN STAGE'}
+                <span className="text-[9px] font-mono text-[#94a3b8] uppercase tracking-wider truncate max-w-[80px] sm:max-w-[140px]">
+                  {currentSpeaker ? currentSpeaker.name : 'CH-01 FEED'}
                 </span>
               </div>
             </div>
 
-            <div className="h-6 w-px bg-[#222834]" />
+            <div className="hidden sm:block h-6 w-px bg-[#222834]" />
 
             {/* RTT & PTP Telemetry */}
             <div className="hidden sm:flex items-center gap-2 bg-[#10141c] px-3 py-1.5 rounded-lg border border-[#222834]">
@@ -572,37 +587,38 @@ export default function App() {
           </div>
 
           {/* Header Right: Full Screen QR + Safety Interlock + Stopwatch + Operator Profile */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             {/* Full Screen QR Code button (Full Laptop Screen QR Cover) */}
             <button
               onClick={() => setIsFullScreenQrOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1c2434] border border-[#222834] hover:border-[#ef4444] text-[#f1f5f9] text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-[#141923] hover:bg-[#1c2434] border border-[#222834] hover:border-[#ef4444] text-[#f1f5f9] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase transition-all shadow-sm"
               title="Open full size QR code and big room code covering laptop screen for audience scanning"
               type="button"
             >
-              <span className="material-symbols-outlined text-[#38bdf8] text-[18px]">qr_code_scanner</span>
+              <span className="material-symbols-outlined text-[#38bdf8] text-[16px] sm:text-[18px]">qr_code_scanner</span>
               <span className="hidden sm:inline">FULL SCREEN QR</span>
             </button>
 
             {/* Guarded Panic Cut Cluster */}
-            <div className="flex items-center bg-[#10141c] p-1 rounded-lg border border-[#222834] shadow-inner">
+            <div className="flex items-center bg-[#10141c] p-0.5 sm:p-1 rounded-lg border border-[#222834] shadow-inner">
               <button
                 onClick={handleToggleSafetyArm}
-                className={`px-2.5 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
+                className={`px-1.5 sm:px-2.5 py-1 rounded font-mono text-[10px] sm:text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
                   isSafetyArmed
                     ? 'bg-[#f59e0b] text-[#1a1000] shadow-[0_0_8px_#f59e0b]'
                     : 'bg-[#181d28] hover:bg-[#202530] text-[#94a3b8]'
                 }`}
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px] text-[#f59e0b]">shield</span>
-                <span>{isSafetyArmed ? 'ARMED (5s)' : 'ARM CUT'}</span>
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px] text-[#f59e0b]">shield</span>
+                <span className="hidden sm:inline">{isSafetyArmed ? 'ARMED (5s)' : 'ARM CUT'}</span>
+                <span className="sm:hidden">{isSafetyArmed ? 'ARM' : 'CUT'}</span>
               </button>
 
               <button
                 onClick={handleTriggerPanicMute}
                 disabled={!isSafetyArmed && !isEmergencyMuted}
-                className={`ml-1 px-3 py-1 rounded font-mono text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
+                className={`ml-1 px-2 sm:px-3 py-1 rounded font-mono text-[10px] sm:text-[11px] uppercase font-bold flex items-center gap-1 transition-all ${
                   isEmergencyMuted
                     ? 'bg-[#ef4444] text-white shadow-[0_0_14px_#ef4444] animate-pulse cursor-pointer'
                     : isSafetyArmed
@@ -611,9 +627,9 @@ export default function App() {
                 }`}
                 type="button"
               >
-                <span className="material-symbols-outlined text-[16px] text-white">mic_off</span>
+                <span className="material-symbols-outlined text-[14px] sm:text-[16px] text-white">mic_off</span>
                 <span className="tracking-wider text-white">
-                  {isEmergencyMuted ? 'UNMUTE PA' : 'PANIC MUTE'}
+                  {isEmergencyMuted ? 'UNMUTE' : 'MUTE'}
                 </span>
               </button>
             </div>
@@ -678,8 +694,8 @@ export default function App() {
           </div>
         </header>
 
-      {/* 2. PERSISTENT LEFT NAVIGATION SIDEBAR (w-64) */}
-      <aside className="fixed left-0 top-16 bottom-0 w-64 bg-[#080a0e] z-40 flex flex-col justify-between py-4 px-2.5 border-r border-[#222834] shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
+      {/* 2. PERSISTENT LEFT NAVIGATION SIDEBAR (w-64 on desktop, bottom bar on mobile) */}
+      <aside className="hidden md:flex fixed left-0 top-16 bottom-0 w-64 bg-[#080a0e] z-40 flex-col justify-between py-4 px-2.5 border-r border-[#222834] shadow-[2px_0_12px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-4">
           {/* Brand header */}
           <div className="px-2 pb-2 border-b border-[#222834]">
@@ -849,8 +865,8 @@ export default function App() {
         </div>
       </aside>
 
-      {/* 3. MAIN CONTENT CONTAINER (with pl-64 and pt-16) */}
-      <div className="pl-64">
+      {/* 3. MAIN CONTENT CONTAINER (pl-0 on mobile, pl-64 on desktop) */}
+      <div className="pl-0 md:pl-64 pb-20 md:pb-6">
         <main className="w-full min-h-screen pt-16 bg-[#111317]">
           {error && (
             <div className="bg-[#93000a]/25 border-b border-[#ff544c] text-[#ffb4ac] px-4 py-2 text-xs font-mono flex items-center justify-between">
@@ -869,17 +885,17 @@ export default function App() {
           )}
           {activeView === 'admin' ? (
             /* ADMINISTRATOR SYSTEM & STORAGE CONTROL PANEL */
-            <div className="p-4 md:p-6">
+            <div className="p-2.5 sm:p-4 md:p-6">
               <AdminUsersView currentUser={currentUser} tokenServerUrl={tokenServerUrl} />
             </div>
           ) : activeView === 'transmitter' ? (
             /* ATTENDEE TRANSMITTER PREVIEW DOCK */
-            <div className="p-4 md:p-6">
+            <div className="p-2.5 sm:p-4 md:p-6">
               <TransmitterPreviewView roomCode={roomName} tokenServerUrl={tokenServerUrl} />
             </div>
           ) : activeView === 'dsp' ? (
             /* AUDIO DSP & HARDWARE CONFIGURATION */
-            <div className="p-4 md:p-6">
+            <div className="p-2.5 sm:p-4 md:p-6">
               <AudioDspConfigView
                 audioGraph={audioGraph}
                 volume={volume}
@@ -895,7 +911,7 @@ export default function App() {
             </div>
           ) : activeView === 'settings' ? (
             /* TELEMETRY & NETWORK SETTINGS */
-            <div className="p-4 md:p-6">
+            <div className="p-2.5 sm:p-4 md:p-6">
               <SettingsNetworkView
                 roomCode={roomName}
                 tokenServerUrl={tokenServerUrl}
@@ -909,7 +925,7 @@ export default function App() {
             </div>
           ) : (
             /* OPERATOR CONSOLE (AV MODERATOR WORKSTATION) */
-            <div className="flex flex-col w-full p-4 gap-4">
+            <div className="flex flex-col w-full p-2.5 sm:p-4 gap-3 sm:gap-4">
               {/* QUICK CONTROL TELEMETRY BAR */}
               <section aria-label="Quick Control Bar" className="w-full bg-[#10141c] rounded-xl p-3 shadow-lg border border-[#222834] flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -1174,16 +1190,49 @@ export default function App() {
                 {/* COLUMN 2: Floor Request Queue Triage (col-span-5) */}
                 <div className="lg:col-span-5 flex flex-col gap-4">
                   <section aria-label="Floor Request Queue" aria-live="polite" className="w-full bg-[#10141c] rounded-xl p-3 shadow-md border border-[#222834] flex flex-col gap-2">
-                    <div className="flex items-center justify-between pb-1 border-b border-[#222834]">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#222834] gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#f59e0b] text-[22px]">queue_music</span>
                         <div>
                           <h3 className="text-sm font-bold text-[#f1f5f9]">Floor Request Triage</h3>
-                          <p className="text-[11px] font-mono text-[#94a3b8]">Live mic access queue awaiting operator grant</p>
+                          <p className="text-[11px] font-mono text-[#94a3b8]">Live mic access queue with real-time wait telemetry</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181d28] text-[#f59e0b] uppercase font-bold">
+
+                      <div className="flex items-center gap-2">
+                        {/* Floor Moderation Mode Toggle */}
+                        <div className="flex items-center gap-1 bg-[#141923] p-0.5 rounded-lg border border-[#222834]" title="Switch between manual operator approval or automatic vacant floor assignment">
+                          <button
+                            onClick={() => {
+                              setModerationMode('moderated');
+                              addTelemetryLog('FLOOR MODE: Moderated Triage Queue enabled. Host operator grant required.', 'info');
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                              moderationMode === 'moderated'
+                                ? 'bg-[#f59e0b] text-[#080a0e] shadow-sm'
+                                : 'text-[#94a3b8] hover:text-[#f1f5f9]'
+                            }`}
+                            type="button"
+                          >
+                            🛡️ MODERATED
+                          </button>
+                          <button
+                            onClick={() => {
+                              setModerationMode('auto');
+                              addTelemetryLog('FLOOR MODE: Auto-Pass Floor enabled. First vacant request takes floor automatically.', 'info');
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all ${
+                              moderationMode === 'auto'
+                                ? 'bg-[#10b981] text-[#080a0e] shadow-sm'
+                                : 'text-[#94a3b8] hover:text-[#f1f5f9]'
+                            }`}
+                            type="button"
+                          >
+                            ⚡ AUTO-PASS
+                          </button>
+                        </div>
+
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#181d28] text-[#f59e0b] uppercase font-bold border border-[#f59e0b]/30">
                           {queue.length} IN QUEUE
                         </span>
                         {queue.length > 0 && (
@@ -1191,6 +1240,7 @@ export default function App() {
                             onClick={clearQueue}
                             className="text-[#94a3b8] hover:text-[#f1f5f9] text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-[#141923] transition-colors"
                             type="button"
+                            title="Clear all waiting requests"
                           >
                             CLEAR
                           </button>
@@ -1198,19 +1248,39 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Quick Grant Banner if floor is vacant and attendees are waiting */}
+                    {queue.length > 0 && !currentSpeaker && (
+                      <div className="flex items-center justify-between p-2 rounded-lg bg-[#10b981]/10 border border-[#10b981]/30">
+                        <div className="flex items-center gap-2 text-xs text-[#10b981] font-mono">
+                          <span className="material-symbols-outlined text-[18px]">mic</span>
+                          <span>Floor vacant &bull; Next in line: <strong>{queue[0].name}</strong></span>
+                        </div>
+                        <button
+                          onClick={() => handleGrantSpeaker(queue[0].id, queue[0].name)}
+                          className="px-2.5 py-1 rounded bg-[#10b981] hover:bg-[#059669] text-white text-[10px] font-mono uppercase font-bold transition-all shadow flex items-center gap-1"
+                          type="button"
+                        >
+                          <span>GRANT #1 NOW</span>
+                        </button>
+                      </div>
+                    )}
+
                     {/* Request Triage List */}
                     {queue.length === 0 ? (
                       <div className="py-8 text-center text-xs text-[#94a3b8] border border-dashed border-[#222834] rounded-xl bg-[#080a0e]/40">
                         <span className="material-symbols-outlined text-[28px] text-slate-600 mb-1 block">mic_none</span>
-                        <span>Floor queue is currently vacant.</span>
+                        <span className="font-medium text-slate-300">Floor queue is currently vacant.</span>
                         <p className="text-[10px] text-slate-500 mt-1">
-                          Attendees who press Hold-to-Talk or Tap-to-Talk will appear here instantly.
+                          Attendees who tap or hold to talk on their phone or laptop appear here with live wait counters.
                         </p>
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
                         {queue.map((entry, index) => {
-                          const waitSec = Math.floor((Date.now() - entry.requestedAt) / 1000);
+                          const waitSec = Math.max(0, Math.floor((tickerNow - entry.requestedAt) / 1000));
+                          const isMobileApp = entry.id.startsWith('phone-');
+                          const deviceLabel = isMobileApp ? '📱 APP' : '🌐 WEB';
+
                           return (
                             <div
                               key={entry.id}
@@ -1218,48 +1288,59 @@ export default function App() {
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-2.5">
-                                  <span className="text-base font-mono font-bold text-slate-300 w-6">
+                                  <span className="text-base font-mono font-bold text-[#f59e0b] w-6 flex items-center justify-center bg-[#181d28] rounded py-1 border border-[#222834]">
                                     {String(index + 1).padStart(2, '0')}
                                   </span>
                                   <div className="flex flex-col">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                       <span className="text-sm font-bold text-[#f1f5f9]">{entry.name}</span>
-                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#080a0e] text-[#10b981] uppercase">
+                                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#080a0e] text-[#94a3b8] border border-[#222834]">
+                                        {deviceLabel}
+                                      </span>
+                                      <span className="text-[8px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#10b981]/15 text-[#10b981] uppercase">
                                         MIC READY
                                       </span>
                                     </div>
-                                    <span className="text-[11px] text-[#94a3b8]">ID: {entry.id.slice(0, 16)}</span>
+                                    <span className="text-[10px] font-mono text-[#94a3b8] mt-0.5">ID: {entry.id.slice(0, 16)}</span>
                                   </div>
                                 </div>
+
+                                {/* Real-time Live Wait Time Badge */}
                                 <div className="flex flex-col items-end font-mono">
-                                  <span className="text-xs font-bold text-[#f1f5f9]">{formatSpeakerClock(waitSec)}</span>
-                                  <span className="text-[9px] text-[#94a3b8] uppercase">WAIT TIME</span>
+                                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#f59e0b]/15 border border-[#f59e0b]/40 text-[#f59e0b]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#f59e0b] animate-ping" />
+                                    <span className="text-xs font-bold font-mono tracking-wider">{formatSpeakerClock(waitSec)}</span>
+                                  </div>
+                                  <span className="text-[8px] text-[#94a3b8] uppercase font-bold mt-0.5">WAIT TIME</span>
                                 </div>
                               </div>
 
                               <div className="flex items-center justify-between pt-1 border-t border-[#222834]">
                                 <div className="flex items-center gap-3 text-[10px] font-mono text-[#94a3b8]">
-                                  <span>BAT: <strong className="text-[#10b981]">94%</strong></span>
-                                  <span>RF: <strong className="text-[#10b981]">-58 dBm</strong></span>
+                                  <span>BAT: <strong className="text-[#10b981]">95%</strong></span>
+                                  <span>RF: <strong className="text-[#10b981]">-52 dBm</strong></span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <button
                                     onClick={() => handleGrantSpeaker(entry.id, entry.name)}
-                                    className="px-3 py-1 rounded bg-[#10b981] hover:bg-[#059669] text-white text-[10px] font-mono uppercase font-bold transition-all shadow"
+                                    className="px-3 py-1.5 rounded bg-[#10b981] hover:bg-[#059669] text-white text-[11px] font-mono uppercase font-bold transition-all shadow flex items-center gap-1 active:scale-95"
                                     type="button"
+                                    title="Grant live microphone floor to this speaker"
                                   >
-                                    GRANT FLOOR
+                                    <span className="material-symbols-outlined text-[14px]">mic</span>
+                                    <span>GRANT FLOOR</span>
                                   </button>
                                   <button
                                     onClick={() => addTelemetryLog(`PFL CUE: Pre-fade listen armed for ${entry.name}.`, 'info')}
                                     className="px-2.5 py-1 rounded bg-[#080a0e] hover:bg-[#181e2b] text-[#f59e0b] text-[10px] font-mono uppercase font-bold transition-all border border-[#222834]"
                                     type="button"
+                                    title="Pre-fade listen on monitor headphones"
                                   >
                                     CUE PFL
                                   </button>
                                   <button
                                     onClick={() => removeFromQueue(entry.id)}
-                                    className="p-1 rounded bg-[#080a0e] hover:bg-[#b91c1c] text-[#94a3b8] hover:text-white transition-all"
+                                    className="p-1 rounded bg-[#080a0e] hover:bg-[#b91c1c] text-[#94a3b8] hover:text-white transition-all border border-[#222834]"
                                     title="Decline request"
                                     type="button"
                                   >
@@ -1459,6 +1540,7 @@ export default function App() {
                     <RoomQRCode
                       roomCode={roomName}
                       tokenServerUrl={tokenServerUrl}
+                      publicOnlineUrl={DEFAULT_PUBLIC_TUNNEL_URL}
                       onOpenFullScreen={() => setIsFullScreenQrOpen(true)}
                     />
                   </div>
@@ -1505,11 +1587,95 @@ export default function App() {
         onClose={() => setIsFullScreenQrOpen(false)}
         roomCode={roomName}
         tokenServerUrl={tokenServerUrl}
+        publicOnlineUrl={DEFAULT_PUBLIC_TUNNEL_URL}
         memberCount={memberCount}
         currentSpeaker={currentSpeaker}
         members={activeAttendees}
         queue={queue}
       />
+
+      {/* 5. MOBILE BOTTOM NAVIGATION BAR (< md breakpoint) */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#080a0e]/95 backdrop-blur-xl border-t border-[#222834] z-50 flex items-center justify-around px-2 shadow-2xl pb-[env(safe-area-inset-bottom)]"
+      >
+        <button
+          onClick={() => setActiveView('console')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+            activeView === 'console' ? 'text-[#ef4444]' : 'text-[#94a3b8] hover:text-white'
+          }`}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">tune</span>
+          <span className="text-[10px] font-mono font-bold uppercase mt-0.5">Console</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('transmitter')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+            activeView === 'transmitter' ? 'text-[#ef4444]' : 'text-[#94a3b8] hover:text-white'
+          }`}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">podcasts</span>
+          <span className="text-[10px] font-mono font-bold uppercase mt-0.5">Mic</span>
+        </button>
+
+        <button
+          onClick={() => setIsFullScreenQrOpen(true)}
+          className="flex flex-col items-center justify-center flex-1 py-1 text-[#38bdf8] hover:text-sky-300 transition-all"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+          <span className="text-[10px] font-mono font-bold uppercase mt-0.5">QR</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('dsp')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+            activeView === 'dsp' ? 'text-[#ef4444]' : 'text-[#94a3b8] hover:text-white'
+          }`}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">alt_route</span>
+          <span className="text-[10px] font-mono font-bold uppercase mt-0.5">DSP</span>
+        </button>
+
+        <button
+          onClick={() => setActiveView('settings')}
+          className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+            activeView === 'settings' ? 'text-[#ef4444]' : 'text-[#94a3b8] hover:text-white'
+          }`}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">vital_signs</span>
+          <span className="text-[10px] font-mono font-bold uppercase mt-0.5">Network</span>
+        </button>
+
+        {currentUser?.role === 'admin' ? (
+          <button
+            onClick={() => setActiveView('admin')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+              activeView === 'admin' ? 'text-amber-400' : 'text-[#94a3b8] hover:text-white'
+            }`}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+            <span className="text-[10px] font-mono font-bold uppercase mt-0.5">Admin</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setActiveView('auth')}
+            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
+              (activeView as string) === 'auth' ? 'text-[#10b981]' : 'text-[#94a3b8] hover:text-white'
+            }`}
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[20px]">verified_user</span>
+            <span className="text-[10px] font-mono font-bold uppercase mt-0.5">User</span>
+          </button>
+        )}
+      </nav>
     </div>
   );
 }

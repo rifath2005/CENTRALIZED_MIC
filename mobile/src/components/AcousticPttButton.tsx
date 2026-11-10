@@ -42,12 +42,13 @@ export const AcousticPttButton: React.FC<AcousticPttButtonProps> = ({
   onPressIn,
   onPressOut,
   onTogglePress,
-  onLeaveQueue: _onLeaveQueue,
+  onLeaveQueue,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const glowOpacityAnim = useRef(new Animated.Value(0.1)).current;
   const glowScaleAnim = useRef(new Animated.Value(1)).current;
   const [talkSeconds, setTalkSeconds] = useState(0);
+  const [queueWaitSeconds, setQueueWaitSeconds] = useState(0);
 
   // Live talk duration timer
   useEffect(() => {
@@ -65,33 +66,50 @@ export const AcousticPttButton: React.FC<AcousticPttButtonProps> = ({
     };
   }, [holdState]);
 
-  // Radiating broadcast glow animation when speaking
+  // Live queue wait duration timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (holdState === 'queued') {
+      setQueueWaitSeconds(0);
+      timer = setInterval(() => {
+        setQueueWaitSeconds((s) => s + 1);
+      }, 1000);
+    } else {
+      setQueueWaitSeconds(0);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [holdState]);
+
+  // Radiating broadcast glow animation when speaking or queued
   useEffect(() => {
     let loopAnim: Animated.CompositeAnimation | null = null;
-    if (holdState === 'speaking') {
+    if (holdState === 'speaking' || holdState === 'queued') {
+      const isQueue = holdState === 'queued';
       loopAnim = Animated.loop(
         Animated.parallel([
           Animated.sequence([
             Animated.timing(glowScaleAnim, {
-              toValue: 1.18,
-              duration: 900,
+              toValue: isQueue ? 1.10 : 1.18,
+              duration: isQueue ? 1200 : 900,
               useNativeDriver: true,
             }),
             Animated.timing(glowScaleAnim, {
               toValue: 1,
-              duration: 900,
+              duration: isQueue ? 1200 : 900,
               useNativeDriver: true,
             }),
           ]),
           Animated.sequence([
             Animated.timing(glowOpacityAnim, {
-              toValue: 0.65,
-              duration: 900,
+              toValue: isQueue ? 0.45 : 0.65,
+              duration: isQueue ? 1200 : 900,
               useNativeDriver: true,
             }),
             Animated.timing(glowOpacityAnim, {
-              toValue: 0.2,
-              duration: 900,
+              toValue: 0.15,
+              duration: isQueue ? 1200 : 900,
               useNativeDriver: true,
             }),
           ]),
@@ -143,6 +161,11 @@ export const AcousticPttButton: React.FC<AcousticPttButtonProps> = ({
 
   const handleToggle = () => {
     if (disabled) return;
+    if (holdState === 'queued') {
+      triggerHaptic('selection');
+      onLeaveQueue();
+      return;
+    }
     if (interactionMode === 'toggle') {
       triggerHaptic(holdState === 'speaking' ? 'selection' : 'impactHeavy');
       onTogglePress();
@@ -180,13 +203,13 @@ export const AcousticPttButton: React.FC<AcousticPttButtonProps> = ({
     glowColor = acousticTheme.colors.secondary;
   } else if (isQueued) {
     mainLabel = `IN QUEUE #${queuePosition ?? 1}`;
-    subLabel = 'HOLDING YOUR SPOT IN LINE';
+    subLabel = `WAITING ${formatTimer(queueWaitSeconds)} • TAP TO LEAVE`;
     iconGlyph = '⏳';
     wellBg = '#472a00'; // Amber well
-    wellBorder = acousticTheme.colors.primaryContainer;
-    iconBg = acousticTheme.colors.primaryContainer;
-    labelColor = acousticTheme.colors.primary;
-    glowColor = acousticTheme.colors.primaryContainer;
+    wellBorder = '#f59e0b';
+    iconBg = '#78350f';
+    labelColor = '#fbbf24';
+    glowColor = '#f59e0b';
   } else if (isRequesting) {
     mainLabel = 'CONNECTING...';
     subLabel = 'CONNECTING TO STAGE';

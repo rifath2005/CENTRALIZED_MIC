@@ -15,11 +15,13 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
   const [currentSpeaker, setCurrentSpeaker] = useState<SpeakerInfo | null>(null);
   const [queue, setQueue] = useState<QueueEntry[]>([]);
   const [epoch, setEpoch] = useState<number>(1);
+  const [moderationMode, setModerationMode] = useState<'moderated' | 'auto'>('moderated');
 
   const currentSpeakerRef = useRef<SpeakerInfo | null>(null);
   const queueRef = useRef<QueueEntry[]>([]);
   const epochRef = useRef<number>(1);
   const lastHeartbeatTimeRef = useRef<number>(Date.now());
+  const moderationModeRef = useRef<'moderated' | 'auto'>('moderated');
 
   // Keep refs in sync with state
   useEffect(() => {
@@ -33,6 +35,10 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
   useEffect(() => {
     epochRef.current = epoch;
   }, [epoch]);
+
+  useEffect(() => {
+    moderationModeRef.current = moderationMode;
+  }, [moderationMode]);
 
   /**
    * Broadcast authoritative floor status to all participants in the room
@@ -71,18 +77,22 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
    */
   const advanceFloor = useCallback(
     (reason: string) => {
-      console.log(`[FloorArbiter] Advancing floor. Reason: ${reason}`);
-      const remainingQueue = [...queueRef.current];
-      const nextInLine = remainingQueue.shift() || null;
-
+      console.log(`[FloorArbiter] Advancing floor. Reason: ${reason} [Mode: ${moderationModeRef.current}]`);
       let nextSpeaker: SpeakerInfo | null = null;
-      if (nextInLine) {
-        nextSpeaker = {
-          id: nextInLine.id,
-          name: nextInLine.name,
-          grantedAt: Date.now(),
-        };
-        lastHeartbeatTimeRef.current = Date.now();
+      let remainingQueue = [...queueRef.current];
+
+      if (moderationModeRef.current === 'auto') {
+        const nextInLine = remainingQueue.shift() || null;
+        if (nextInLine) {
+          nextSpeaker = {
+            id: nextInLine.id,
+            name: nextInLine.name,
+            grantedAt: Date.now(),
+          };
+          lastHeartbeatTimeRef.current = Date.now();
+        }
+      } else {
+        nextSpeaker = null;
       }
 
       currentSpeakerRef.current = nextSpeaker;
@@ -205,10 +215,17 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
 
         if (data.type === 'REQUEST_FLOOR') {
           const { participantId, participantName } = data;
-          console.log(`[FloorArbiter] Floor requested by ${participantName} (${participantId})`);
+          const requestedAt = (data as any).timestamp || Date.now();
+          console.log(`[FloorArbiter] Floor requested by ${participantName} (${participantId}) [Mode: ${moderationModeRef.current}]`);
 
-          // Case A: Floor is vacant -> grant immediately
-          if (!currentSpeakerRef.current) {
+          // If participant is already active speaker, refresh heartbeat
+          if (currentSpeakerRef.current?.id === participantId) {
+            lastHeartbeatTimeRef.current = Date.now();
+            return;
+          }
+
+          if (moderationModeRef.current === 'auto' && !currentSpeakerRef.current) {
+            // Auto Mode & Vacant -> grant immediately
             const newSpeaker: SpeakerInfo = {
               id: participantId,
               name: participantName,
@@ -218,20 +235,13 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
             lastHeartbeatTimeRef.current = Date.now();
             setCurrentSpeaker(newSpeaker);
             broadcastFloorStatus(newSpeaker, queueRef.current);
-          }
-          // Case B: Floor is held -> enqueue requester if not already speaking or queued
-          else {
-            if (currentSpeakerRef.current.id === participantId) {
-              // Already speaker, refresh heartbeat
-              lastHeartbeatTimeRef.current = Date.now();
-              return;
-            }
-
+          } else {
+            // Moderated Mode OR Floor is held -> enqueue requester if not already queued
             const isAlreadyQueued = queueRef.current.some((e) => e.id === participantId);
             if (!isAlreadyQueued) {
               const updatedQueue = [
                 ...queueRef.current,
-                { id: participantId, name: participantName, requestedAt: Date.now() },
+                { id: participantId, name: participantName, requestedAt },
               ];
               queueRef.current = updatedQueue;
               setQueue(updatedQueue);
@@ -253,6 +263,9 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
               broadcastFloorStatus(currentSpeakerRef.current, filteredQueue);
             }
           }
+        } else if (data.type === 'GET_FLOOR_STATUS') {
+          console.log(`[FloorArbiter] GET_FLOOR_STATUS requested by ${(data as any).participantName || (data as any).participantId}`);
+          broadcastFloorStatus(currentSpeakerRef.current, queueRef.current);
         } else if (data.type === 'HEARTBEAT') {
           if (currentSpeakerRef.current?.id === data.participantId) {
             lastHeartbeatTimeRef.current = Date.now();
@@ -281,11 +294,19 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
       }
     };
 
+    // Proactively send floor status to newly connected attendee
+    const handleParticipantConnected = (participant: RemoteParticipant) => {
+      console.log(`[FloorArbiter] Attendee connected: ${participant.identity}. Sending current floor status.`);
+      broadcastFloorStatus(currentSpeakerRef.current, queueRef.current);
+    };
+
     room.on(RoomEvent.DataReceived, handleDataReceived);
+    room.on(RoomEvent.ParticipantConnected, handleParticipantConnected);
     room.on(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
 
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived);
+      room.off(RoomEvent.ParticipantConnected, handleParticipantConnected);
       room.off(RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
     };
   }, [room, advanceFloor, broadcastFloorStatus]);
@@ -310,9 +331,12 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
   return {
     currentSpeaker,
     queue,
+    moderationMode,
+    setModerationMode,
     forceRevokeCurrentSpeaker,
     clearQueue,
     grantFloorTo,
     removeFromQueue,
+    advanceFloor,
   };
 }
