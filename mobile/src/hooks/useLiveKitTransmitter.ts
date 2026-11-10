@@ -202,8 +202,8 @@ export function useLiveKitTransmitter({
         }
       }, 80);
 
-      // 4. Connect to SFU
-      await livekitRoom.connect(url, token);
+      // 4. Connect to SFU (disable autoSubscribe for pure microphone transmitter)
+      await livekitRoom.connect(url, token, { autoSubscribe: false });
       setRoom(livekitRoom);
 
       return () => {

@@ -171,10 +171,18 @@ export function useFloorControl({
 
     room.on(RoomEvent.DataReceived, handleDataReceived);
 
+    // Request initial floor status from Host Arbiter immediately upon connecting
+    sendFloorMessage({
+      type: 'GET_FLOOR_STATUS',
+      participantId,
+      participantName,
+      timestamp: Date.now(),
+    });
+
     return () => {
       room.off(RoomEvent.DataReceived, handleDataReceived);
     };
-  }, [room, participantId]);
+  }, [room, participantId, participantName, sendFloorMessage]);
 
   // Periodic heartbeat while holding floor (every 1.5s) to prevent stuck floor
   useEffect(() => {

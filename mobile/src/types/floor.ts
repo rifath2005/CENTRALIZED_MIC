@@ -3,7 +3,8 @@ export type FloorMessageType =
   | 'RELEASE_FLOOR'
   | 'FLOOR_STATUS'
   | 'HEARTBEAT'
-  | 'REVOKE_FLOOR';
+  | 'REVOKE_FLOOR'
+  | 'GET_FLOOR_STATUS';
 
 export interface SpeakerInfo {
   id: string;
@@ -49,12 +50,20 @@ export interface FloorRevokeMessage {
   reason?: string;
 }
 
+export interface FloorGetStatusMessage {
+  type: 'GET_FLOOR_STATUS';
+  participantId: string;
+  participantName?: string;
+  timestamp: number;
+}
+
 export type FloorMessage =
   | FloorRequestMessage
   | FloorReleaseMessage
   | FloorStatusMessage
   | FloorHeartbeatMessage
-  | FloorRevokeMessage;
+  | FloorRevokeMessage
+  | FloorGetStatusMessage;
 
 export type ConnectionState = 'offline' | 'connecting' | 'connected' | 'reconnecting';
 
