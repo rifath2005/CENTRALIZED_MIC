@@ -7,7 +7,16 @@ import { z } from 'zod';
 
 const router = Router();
 
-const JWT_SECRET = process.env.AUTH_SECRET || process.env.LIVEKIT_API_SECRET || 'centralized-mic-super-secret-key-2026';
+let configuredSecret = process.env.AUTH_SECRET || process.env.LIVEKIT_API_SECRET;
+if (!configuredSecret) {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('[SECURITY] AUTH_SECRET / LIVEKIT_API_SECRET not set in production. Generating secure ephemeral 256-bit key.');
+    configuredSecret = crypto.randomBytes(32).toString('hex');
+  } else {
+    configuredSecret = 'centralized-mic-super-secret-key-2026';
+  }
+}
+const JWT_SECRET = configuredSecret;
 let currentGoogleClientId = process.env.GOOGLE_CLIENT_ID || '523129607801-ot70ums883plmfi2ie3b7bhhag4lb6ti.apps.googleusercontent.com';
 
 // ─── File-Based Persistent Storage Paths ──────────────────────────────────
@@ -302,31 +311,41 @@ router.post('/google', async (req: Request, res: Response) => {
     let name = manualName || 'Google User';
     let picture = manualPicture;
 
-    // 1. If Google ID token credential provided, verify with Google Identity API
+    // 1. If Google ID token credential provided, verify strictly with Google Identity API
     if (credential) {
       try {
         const googleVerifyRes = await fetch(
           `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
         );
-        if (googleVerifyRes.ok) {
-          const payload = await googleVerifyRes.json();
-          email = payload.email;
-          name = payload.name || name;
-          picture = payload.picture || picture;
-        } else {
-          // Attempt decoding JWT payload if direct verification returned non-200
-          const parts = credential.split('.');
-          if (parts.length === 3) {
-            const decoded = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-            if (decoded.email) {
-              email = decoded.email;
-              name = decoded.name || name;
-              picture = decoded.picture || picture;
-            }
-          }
+        if (!googleVerifyRes.ok) {
+          logAudit('LOGIN_FAILED', 'unknown-google-token', 'failure', 'Google ID token rejected by Google OAuth2 API', req.ip);
+          return res.status(401).json({ error: 'Google authentication token is invalid or expired.' });
         }
+        const payload = (await googleVerifyRes.json()) as {
+          email?: string;
+          name?: string;
+          picture?: string;
+          aud?: string;
+          email_verified?: string | boolean;
+        };
+
+        // Validate token audience against configured Google Client ID
+        if (currentGoogleClientId && payload.aud && payload.aud !== currentGoogleClientId) {
+          logAudit('LOGIN_FAILED', payload.email || 'unknown', 'failure', 'Google ID token audience mismatch', req.ip);
+          return res.status(401).json({ error: 'Google ID token was issued for an unauthorized client application.' });
+        }
+
+        if (payload.email_verified === false || payload.email_verified === 'false') {
+          logAudit('LOGIN_FAILED', payload.email || 'unknown', 'failure', 'Google email unverified', req.ip);
+          return res.status(401).json({ error: 'Your Google email address is not verified by Google.' });
+        }
+
+        email = payload.email;
+        name = payload.name || name;
+        picture = payload.picture || picture;
       } catch (verifyErr) {
-        console.warn('[Google Auth] Remote verify warning, parsing client payload:', verifyErr);
+        console.error('[Google Auth] Network error connecting to Google tokeninfo API:', verifyErr);
+        return res.status(502).json({ error: 'Unable to reach Google authentication service. Please check network connectivity.' });
       }
     }
 
@@ -348,9 +367,14 @@ router.post('/google', async (req: Request, res: Response) => {
       logAudit('GOOGLE_LOGIN', normalizedEmail, 'success', `Logged in via Google (${user.role})`, req.ip);
     } else {
       // New user signup via Google
-      // First user or email with 'admin' gets admin role, others get operator
-      const isFirstUser = usersByEmail.size <= 2;
-      const role: 'admin' | 'operator' = isFirstUser || normalizedEmail.includes('admin') ? 'admin' : 'operator';
+      // Role assignment: Only designated bootstrap admins or the first user get admin role
+      const BOOTSTRAP_ADMINS = (process.env.ADMIN_EMAILS || 'babsword3@gmail.com,admin@centralizedmic.com')
+        .toLowerCase()
+        .split(',')
+        .map((e) => e.trim());
+      const isDesignatedAdmin = BOOTSTRAP_ADMINS.includes(normalizedEmail);
+      const isFirstUser = usersByEmail.size === 0;
+      const role: 'admin' | 'operator' = isDesignatedAdmin || isFirstUser ? 'admin' : 'operator';
       user = {
         id: `usr-g-${crypto.randomBytes(6).toString('hex')}`,
         fullName: name,

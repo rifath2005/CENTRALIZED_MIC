@@ -242,7 +242,12 @@ export function useHostFloorArbiter({ room }: UseHostFloorArbiterProps) {
               const updatedQueue = [
                 ...queueRef.current,
                 { id: participantId, name: participantName, requestedAt },
-              ];
+              ].sort((a, b) => {
+                if (a.requestedAt !== b.requestedAt) {
+                  return a.requestedAt - b.requestedAt;
+                }
+                return a.id.localeCompare(b.id);
+              });
               queueRef.current = updatedQueue;
               setQueue(updatedQueue);
               broadcastFloorStatus(currentSpeakerRef.current, updatedQueue);

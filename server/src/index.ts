@@ -65,15 +65,28 @@ app.get('/download/apk', (_req: Request, res: Response) => {
   }
 });
 
-// Rate limiter: 100 requests per 15 minutes per IP
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+// High-density venue rate limiter for token endpoints (/api/token/host & /api/token/participant)
+// Allows up to 1,200 token connection requests per 5 minutes per public IP,
+// accommodating large auditoriums and boardrooms behind a single venue NAT router.
+const tokenLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  max: 1200,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many token requests from this IP, please try again later.' },
+  message: { error: 'High traffic volume on stage token service. Please retry in a few moments.' },
 });
-app.use('/api/', limiter);
+
+// General API rate limiter for room discovery & status
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' },
+});
+
+app.use('/api/token/', tokenLimiter);
+app.use('/api/', generalLimiter);
 app.use('/api/auth', authRouter);
 
 // Configuration & credentials

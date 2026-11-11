@@ -423,8 +423,17 @@ export default function App() {
   };
 
   const handleDeviceSelect = async (deviceId: string) => {
-    await audioGraph.setOutputDevice(deviceId);
-    addTelemetryLog(`DEVICE ROUTING: Output assigned to device ID ${deviceId.slice(0, 8)}...`, 'info');
+    const success = await audioGraph.setOutputDevice(deviceId);
+    if (success) {
+      addTelemetryLog(`DEVICE ROUTING: Output assigned to device ID ${deviceId.slice(0, 8)}...`, 'info');
+    } else {
+      const isSupported = audioGraph.isSinkIdSupported();
+      if (!isSupported) {
+        addTelemetryLog(`DEVICE ROUTING: Browser does not support custom setSinkId. Using default OS soundcard output.`, 'warn');
+      } else {
+        addTelemetryLog(`DEVICE ROUTING: Device routing unconfirmed. Retaining default output.`, 'warn');
+      }
+    }
   };
 
   const handlePlayTestTone = () => {

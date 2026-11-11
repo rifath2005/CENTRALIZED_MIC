@@ -541,6 +541,18 @@ export class AudioProcessingGraph {
   }
 
   /**
+   * Checks whether the current browser engine supports hardware audio sink routing
+   */
+  public isSinkIdSupported(): boolean {
+    if (typeof window === 'undefined') return false;
+    return (
+      (this.ctx !== null && 'setSinkId' in this.ctx) ||
+      (typeof AudioContext !== 'undefined' && 'setSinkId' in AudioContext.prototype) ||
+      (typeof HTMLMediaElement !== 'undefined' && 'setSinkId' in HTMLMediaElement.prototype)
+    );
+  }
+
+  /**
    * Routes audio output to specific soundcard / interface (e.g. Dante, USB interface)
    */
   public async setOutputDevice(deviceId: string): Promise<boolean> {
@@ -551,6 +563,15 @@ export class AudioProcessingGraph {
         return true;
       } catch (err) {
         console.warn('[AudioGraph] setSinkId failed on AudioContext, falling back:', err);
+      }
+    }
+    if (this.audioElement && 'setSinkId' in this.audioElement) {
+      try {
+        await (this.audioElement as any).setSinkId(deviceId);
+        console.log(`[AudioGraph] AudioElement sink set to deviceId: ${deviceId}`);
+        return true;
+      } catch (err) {
+        console.warn('[AudioGraph] setSinkId failed on audioElement:', err);
       }
     }
     return false;

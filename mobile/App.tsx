@@ -23,8 +23,8 @@ import { AcousticSegmentedInput } from './src/components/AcousticSegmentedInput'
 import { NativeAudio } from './src/native/NativeAudioConfig';
 import { acousticTheme } from './src/theme/acousticTheme';
 
-// Hardcoded Cloud Token Broker URL
-const TOKEN_SERVER_URL = 'https://centralized-mic-token-server.onrender.com';
+// Default Cloud Token Broker URL
+const DEFAULT_TOKEN_SERVER_URL = 'https://centralized-mic-token-server.onrender.com';
 
 // Room code limit (compact STG-709 is 7 chars, allow up to 12)
 const MAX_ROOM_CODE_LENGTH = 12;
@@ -33,6 +33,7 @@ const MAX_NAME_LENGTH = 28;
 export default function App() {
   // Demo room code: STG-709 (compact 7 characters, strictly under 10)
   const [roomCode, setRoomCode] = useState('STG-709');
+  const [serverUrl, setServerUrl] = useState<string>(DEFAULT_TOKEN_SERVER_URL);
   const [userName, setUserName] = useState('');
   const [interactionMode, setInteractionMode] = useState<MicInteractionMode>('hold');
   const [audioInputDevice, setAudioInputDevice] = useState<'builtin' | 'interface' | 'bluetooth'>('builtin');
@@ -61,7 +62,7 @@ export default function App() {
     unmuteMicrophone,
     muteMicrophone,
   } = useLiveKitTransmitter({
-    tokenServerUrl: TOKEN_SERVER_URL,
+    tokenServerUrl: serverUrl,
     roomName: roomCode.trim().toUpperCase(),
     participantName: effectiveName,
     participantIdentity: participantId,
@@ -135,10 +136,26 @@ export default function App() {
     const trimmed = rawText.trim();
     let target = trimmed;
 
+    // If QR code contains an HTTP/HTTPS URL, dynamically bind to that server endpoint
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      try {
+        const urlMatch = trimmed.match(/^(https?:\/\/[^/?#]+)/i);
+        if (urlMatch && urlMatch[1]) {
+          const origin = urlMatch[1];
+          if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) {
+            setServerUrl(origin);
+          }
+        }
+      } catch {}
+    }
+
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         const parsed = JSON.parse(trimmed);
         if (parsed.room) target = String(parsed.room);
+        if (parsed.server && typeof parsed.server === 'string') {
+          setServerUrl(parsed.server.trim());
+        }
       } catch {
         // Fallback to raw text
       }
