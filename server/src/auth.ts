@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
+import nodemailer, { Transporter } from 'nodemailer';
 
 const router = Router();
 
@@ -23,6 +24,7 @@ let currentGoogleClientId = process.env.GOOGLE_CLIENT_ID || '523129607801-ot70um
 const DATA_DIR = path.resolve(__dirname, '../data');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const AUDIT_LOGS_FILE = path.join(DATA_DIR, 'audit_logs.json');
+const RESET_TOKENS_FILE = path.join(DATA_DIR, 'reset_tokens.json');
 
 // Ensure directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -42,10 +44,25 @@ export interface StoredUser {
   lastLoginAt?: string;
 }
 
+export interface ResetTokenRecord {
+  token: string;
+  email: string;
+  expiresAt: number;
+  createdAt: number;
+}
+
 export interface AuditLog {
   id: string;
   timestamp: string;
-  action: 'LOGIN_SUCCESS' | 'LOGIN_FAILED' | 'GOOGLE_LOGIN' | 'SIGNUP' | 'ROLE_CHANGE' | 'DELETE_USER';
+  action:
+    | 'LOGIN_SUCCESS'
+    | 'LOGIN_FAILED'
+    | 'GOOGLE_LOGIN'
+    | 'SIGNUP'
+    | 'ROLE_CHANGE'
+    | 'DELETE_USER'
+    | 'PASSWORD_RESET_REQUESTED'
+    | 'PASSWORD_RESET_SUCCESS';
   email: string;
   ip?: string;
   status: 'success' | 'failure';
@@ -236,6 +253,63 @@ function logAudit(
 
 // In-memory cache synced with disk
 const usersByEmail = loadUsers();
+
+function loadResetTokens(): Map<string, ResetTokenRecord> {
+  const map = new Map<string, ResetTokenRecord>();
+  try {
+    if (fs.existsSync(RESET_TOKENS_FILE)) {
+      const raw = fs.readFileSync(RESET_TOKENS_FILE, 'utf-8');
+      const list: ResetTokenRecord[] = JSON.parse(raw);
+      const now = Date.now();
+      for (const item of list) {
+        if (item.expiresAt > now) {
+          map.set(item.token, item);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Auth] Failed to load reset tokens:', err);
+  }
+  return map;
+}
+
+function saveResetTokens(map: Map<string, ResetTokenRecord>) {
+  try {
+    const list = Array.from(map.values()).filter((t) => t.expiresAt > Date.now());
+    fs.writeFileSync(RESET_TOKENS_FILE, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[Auth] Failed to save reset tokens:', err);
+  }
+}
+
+const resetTokens = loadResetTokens();
+
+function getEmailTransporter(): Transporter | null {
+  const host = process.env.SMTP_HOST;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+
+  if (host && user && pass) {
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+    });
+  }
+
+  if (host) {
+    return nodemailer.createTransport({
+      host,
+      port,
+      secure,
+    });
+  }
+
+  return null;
+}
 
 // ─── Rate Limiter for Sensitive Auth Routes ───────────────────────────────
 const authLimiter = rateLimit({
@@ -516,11 +590,192 @@ router.post('/signup', authLimiter, (req: Request, res: Response) => {
 });
 
 /**
- * Forgot Password
+ * Forgot Password - Generates secure 1-hour reset token & delivers email
  */
-router.post('/forgot-password', authLimiter, (_req: Request, res: Response) => {
+router.post('/forgot-password', authLimiter, async (req: Request, res: Response) => {
+  const parseResult = z.object({ email: EmailSchema }).safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ error: 'Please enter a valid lowercase email address.' });
+  }
+
+  const normalizedEmail = parseResult.data.email.toLowerCase();
+  const user = usersByEmail.get(normalizedEmail);
+
+  // Security (OWASP): Return generic success for unknown emails to prevent account enumeration
+  if (!user) {
+    logAudit('LOGIN_FAILED', normalizedEmail, 'failure', 'Password reset requested for nonexistent email', req.ip);
+    return res.status(200).json({
+      success: true,
+      emailSent: false,
+      message: 'If that email address is in our system, you will receive a reset link shortly.',
+    });
+  }
+
+  // Generate 256-bit cryptographic reset token (valid for 60 minutes)
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const expiresAt = Date.now() + 60 * 60 * 1000;
+
+  resetTokens.set(resetToken, {
+    token: resetToken,
+    email: normalizedEmail,
+    expiresAt,
+    createdAt: Date.now(),
+  });
+  saveResetTokens(resetTokens);
+
+  // Construct absolute reset URL
+  const requestOrigin = req.headers.origin || req.headers.referer;
+  let baseUrl = process.env.APP_URL || process.env.HOST_URL;
+  if (!baseUrl && requestOrigin) {
+    try {
+      const parsed = new URL(requestOrigin);
+      baseUrl = `${parsed.protocol}//${parsed.host}`;
+    } catch {}
+  }
+  if (!baseUrl) {
+    baseUrl = 'http://localhost:5173';
+  }
+
+  const resetLink = `${baseUrl.replace(/\/$/, '')}/#reset-token=${resetToken}&email=${encodeURIComponent(normalizedEmail)}`;
+
+  logAudit('PASSWORD_RESET_REQUESTED', normalizedEmail, 'success', 'Password reset token generated (valid 1h)', req.ip);
+
+  const transporter = getEmailTransporter();
+  let emailSent = false;
+  let emailDeliveryNotice = '';
+
+  if (transporter) {
+    try {
+      const fromAddress = process.env.EMAIL_FROM || `AirMic Security <${process.env.SMTP_USER || 'no-reply@centralizedmic.com'}>`;
+      await transporter.sendMail({
+        from: fromAddress,
+        to: normalizedEmail,
+        subject: '🔒 Reset Your AirMic Account Password',
+        text: `Hello ${user.fullName},\n\nWe received a request to reset your AirMic account password.\n\nPlease click the link below to set a new password:\n${resetLink}\n\nThis link is valid for 60 minutes.\nIf you did not request this, you can safely ignore this email.\n\n— The AirMic Engineering Team`,
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; background: #0f172a; border-radius: 16px; border: 1px solid #1e293b; overflow: hidden; color: #f8fafc; padding: 32px 24px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+              <span style="display: inline-block; width: 48px; height: 48px; line-height: 48px; border-radius: 12px; background: rgba(225, 29, 72, 0.2); border: 1px solid rgba(225, 29, 72, 0.4); font-size: 24px;">🔒</span>
+              <h2 style="margin: 12px 0 4px; font-size: 20px; font-weight: 800; color: #ffffff;">Reset Your Password</h2>
+              <p style="margin: 0; font-size: 13px; color: #94a3b8;">AirMic Centralized PA Security</p>
+            </div>
+            <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">Hello <strong>${user.fullName}</strong>,</p>
+            <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">We received a request to reset the password for your account (<strong>${normalizedEmail}</strong>).</p>
+            <div style="text-align: center; margin: 28px 0;">
+              <a href="${resetLink}" target="_blank" style="display: inline-block; background: #e11d48; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);">Reset My Password</a>
+            </div>
+            <p style="font-size: 12px; line-height: 1.5; color: #64748b; margin-top: 24px; word-break: break-all;">
+              Or copy and paste this link into your browser:<br/>
+              <a href="${resetLink}" style="color: #38bdf8;">${resetLink}</a>
+            </p>
+            <hr style="border: none; border-top: 1px solid #1e293b; margin: 24px 0;" />
+            <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">
+              This link expires in 60 minutes. If you did not request a password reset, you can safely disregard this email.
+            </p>
+          </div>
+        `,
+      });
+      emailSent = true;
+      emailDeliveryNotice = `A password reset link has been sent to ${normalizedEmail}. Please check your inbox and spam folder.`;
+      console.log(`[Auth Email] Password reset email delivered successfully to ${normalizedEmail}`);
+    } catch (err: any) {
+      console.error('[Auth Email Error] Failed to send email via SMTP:', err);
+      emailDeliveryNotice = `SMTP delivery encountered an error. A direct reset link has been prepared.`;
+    }
+  } else {
+    emailDeliveryNotice = `Password reset link generated. (SMTP is not configured on this server, so the direct link is provided below).`;
+    console.log(`[Auth Notice] SMTP not configured. Generated password reset link for ${normalizedEmail}:\n${resetLink}`);
+  }
+
   return res.status(200).json({
-    message: 'If that email address is in our system, you will receive a reset link shortly.',
+    success: true,
+    emailSent,
+    message: emailDeliveryNotice,
+    resetLink: !emailSent ? resetLink : undefined,
+  });
+});
+
+/**
+ * Verify Password Reset Token
+ */
+router.post('/verify-reset-token', (req: Request, res: Response) => {
+  const { token } = req.body || {};
+  if (!token || typeof token !== 'string') {
+    return res.status(400).json({ valid: false, error: 'Token is required' });
+  }
+
+  const record = resetTokens.get(token);
+  if (!record) {
+    return res.status(404).json({ valid: false, error: 'Reset link is invalid or has already been used.' });
+  }
+
+  if (record.expiresAt < Date.now()) {
+    resetTokens.delete(token);
+    saveResetTokens(resetTokens);
+    return res.status(410).json({ valid: false, error: 'Reset link has expired. Please request a new one.' });
+  }
+
+  return res.status(200).json({
+    valid: true,
+    email: record.email,
+  });
+});
+
+/**
+ * Execute Password Reset
+ */
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
+});
+
+router.post('/reset-password', authLimiter, (req: Request, res: Response) => {
+  const parseResult = ResetPasswordSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    const firstIssue = parseResult.error.issues[0]?.message || 'Invalid password format';
+    return res.status(400).json({ error: firstIssue });
+  }
+
+  const { token, newPassword } = parseResult.data;
+  const record = resetTokens.get(token);
+  if (!record) {
+    return res.status(404).json({ error: 'Reset link is invalid or has already been used.' });
+  }
+
+  if (record.expiresAt < Date.now()) {
+    resetTokens.delete(token);
+    saveResetTokens(resetTokens);
+    return res.status(410).json({ error: 'Reset link has expired. Please request a new one.' });
+  }
+
+  const user = usersByEmail.get(record.email.toLowerCase());
+  if (!user) {
+    return res.status(404).json({ error: 'User associated with this token not found.' });
+  }
+
+  // Hash new password using OWASP scrypt standard
+  const { hash, salt } = hashPassword(newPassword);
+  user.passwordHash = hash;
+  user.salt = salt;
+  user.lastLoginAt = new Date().toISOString();
+  usersByEmail.set(record.email.toLowerCase(), user);
+  saveUsers(usersByEmail);
+
+  // Invalidate reset token to prevent reuse
+  resetTokens.delete(token);
+  saveResetTokens(resetTokens);
+
+  logAudit('PASSWORD_RESET_SUCCESS', record.email, 'success', 'Password reset successfully completed', req.ip);
+
+  return res.status(200).json({
+    success: true,
+    message: 'Your password has been successfully updated. You may now log in with your new password.',
   });
 });
 

@@ -1,5 +1,68 @@
 [
   {
+    "id": "log-1794382785331-ya9r",
+    "timestamp": "2026-11-11T07:39:45.331Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1794382781007-633w",
+    "timestamp": "2026-11-11T07:39:41.007Z",
+    "action": "PASSWORD_RESET_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Password reset successfully completed"
+  },
+  {
+    "id": "log-1794382776598-fwqt",
+    "timestamp": "2026-11-11T07:39:36.598Z",
+    "action": "PASSWORD_RESET_REQUESTED",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Password reset token generated (valid 1h)"
+  },
+  {
+    "id": "log-1794382766266-mouh",
+    "timestamp": "2026-11-11T07:39:26.266Z",
+    "action": "LOGIN_FAILED",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "failure",
+    "details": "Invalid credentials provided"
+  },
+  {
+    "id": "log-1794382762340-2t4i",
+    "timestamp": "2026-11-11T07:39:22.340Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
+    "id": "log-1794382753928-dzao",
+    "timestamp": "2026-11-11T07:39:13.928Z",
+    "action": "PASSWORD_RESET_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Password reset successfully completed"
+  },
+  {
+    "id": "log-1794382745750-ufvh",
+    "timestamp": "2026-11-11T07:39:05.750Z",
+    "action": "PASSWORD_RESET_REQUESTED",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Password reset token generated (valid 1h)"
+  },
+  {
     "id": "log-1794289924527-ahzh",
     "timestamp": "2026-11-10T05:52:04.527Z",
     "action": "LOGIN_SUCCESS",

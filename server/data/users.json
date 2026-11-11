@@ -14,12 +14,12 @@
     "id": "op-default-01",
     "fullName": "System Operator",
     "email": "operator@centralizedmic.io",
-    "passwordHash": "d780b68853427152e419bef0a720154169ac0e6553b264a1745a6d31bbd7f809be853a472d773389fd76e91266966afb313eabbd49049547028b3c139ff04eb3",
-    "salt": "a15fa30762ad72b472cabd8cce9b8e17",
+    "passwordHash": "246ac706e57a8b6e9e85d0311a674d4331ab7275d74aa8f1f779b36cf60dff9537731900b31a691b5e92a4706b4f899120375204bb34cd7bcf897273da6c60be",
+    "salt": "bcb78907e15e25428f15529f39ec4491",
     "role": "operator",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.388Z",
-    "lastLoginAt": "2026-11-10T05:52:04.526Z"
+    "lastLoginAt": "2026-11-11T07:39:45.330Z"
   },
   {
     "id": "usr-g-7b970d04b9a5",

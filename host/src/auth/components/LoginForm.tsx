@@ -10,6 +10,7 @@ interface LoginFormProps {
   onOpenForgotPassword: (email?: string) => void;
   tokenServerUrl?: string;
   addToast: (type: 'success' | 'error' | 'warning' | 'info', message: string, title?: string) => void;
+  initialEmail?: string;
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({
@@ -18,9 +19,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onOpenForgotPassword,
   tokenServerUrl = 'http://localhost:4000',
   addToast,
+  initialEmail,
 }) => {
   const [formData, setFormData] = useState<LoginFormData>(() => {
-    const savedEmail = typeof window !== 'undefined' ? localStorage.getItem('saved_operator_email') || '' : '';
+    const savedEmail = initialEmail || (typeof window !== 'undefined' ? localStorage.getItem('saved_operator_email') || '' : '');
     const normalized = normalizeEmail(savedEmail);
     return {
       email: normalized,
@@ -30,7 +32,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   // Strict email-first flow state: Password field stays hidden until email is validated as a correctly formatted address
-  const [isPasswordUnlocked, setIsPasswordUnlocked] = useState<boolean>(false);
+  const [isPasswordUnlocked, setIsPasswordUnlocked] = useState<boolean>(() => {
+    const savedEmail = initialEmail || (typeof window !== 'undefined' ? localStorage.getItem('saved_operator_email') || '' : '');
+    return Boolean(savedEmail && !validateEmail(savedEmail));
+  });
+
+  // Sync initialEmail if changed dynamically
+  React.useEffect(() => {
+    if (initialEmail) {
+      const normalized = normalizeEmail(initialEmail);
+      setFormData((prev) => ({ ...prev, email: normalized }));
+      if (!validateEmail(normalized)) {
+        setIsPasswordUnlocked(true);
+      }
+    }
+  }, [initialEmail]);
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<ValidationErrors>({});

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LoginForm } from './components/LoginForm';
 import { SignupForm } from './components/SignupForm';
 import { ForgotPasswordModal } from './components/ForgotPasswordModal';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { TermsModal } from './components/TermsModal';
 import { ToastContainer } from './components/Toast';
 import { AuthTab, AuthUser, ToastMessage } from './types';
@@ -32,6 +33,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+  const [loginPrefillEmail, setLoginPrefillEmail] = useState('');
+  const [resetTokenState, setResetTokenState] = useState<{
+    isOpen: boolean;
+    token: string;
+    email: string;
+  }>({
+    isOpen: false,
+    token: '',
+    email: '',
+  });
+
   const [termsModalState, setTermsModalState] = useState<{
     isOpen: boolean;
     tab: 'terms' | 'privacy';
@@ -39,6 +51,32 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     isOpen: false,
     tab: 'terms',
   });
+
+  // Check URL hash for password reset token on mount & on hash change
+  useEffect(() => {
+    const handleHashCheck = () => {
+      if (typeof window === 'undefined') return;
+      const hash = window.location.hash.replace(/^#/, '');
+      if (hash.includes('reset-token=')) {
+        const params = new URLSearchParams(hash);
+        const token = params.get('reset-token');
+        const email = params.get('email') || '';
+        if (token) {
+          setResetTokenState({
+            isOpen: true,
+            token,
+            email,
+          });
+        }
+      }
+    };
+
+    handleHashCheck();
+    window.addEventListener('hashchange', handleHashCheck);
+    return () => {
+      window.removeEventListener('hashchange', handleHashCheck);
+    };
+  }, []);
 
   // Sync theme with HTML document
   useEffect(() => {
@@ -242,6 +280,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   onOpenForgotPassword={handleOpenForgotPassword}
                   tokenServerUrl={tokenServerUrl}
                   addToast={addToast}
+                  initialEmail={loginPrefillEmail}
                 />
               ) : (
                 <SignupForm
@@ -263,7 +302,36 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       <ForgotPasswordModal
         isOpen={isForgotModalOpen}
         initialEmail={forgotEmail}
+        tokenServerUrl={tokenServerUrl}
         onClose={() => setIsForgotModalOpen(false)}
+        onResetLinkTriggered={(token, email) => {
+          setResetTokenState({
+            isOpen: true,
+            token,
+            email,
+          });
+        }}
+      />
+
+      <ResetPasswordModal
+        isOpen={resetTokenState.isOpen}
+        token={resetTokenState.token}
+        initialEmail={resetTokenState.email}
+        tokenServerUrl={tokenServerUrl}
+        onClose={() => setResetTokenState((prev) => ({ ...prev, isOpen: false }))}
+        onSuccess={(email) => {
+          setLoginPrefillEmail(email);
+          setActiveTab('login');
+          addToast(
+            'success',
+            'Your password has been changed successfully. You can now log in with your new credentials.',
+            'Password Updated'
+          );
+        }}
+        onRequestNewLink={() => {
+          setForgotEmail(resetTokenState.email);
+          setIsForgotModalOpen(true);
+        }}
       />
 
       <TermsModal
