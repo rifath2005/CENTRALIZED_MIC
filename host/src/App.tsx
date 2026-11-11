@@ -14,6 +14,7 @@ import { BoardroomMember } from './types';
 import { AuthPage } from './auth/AuthPage';
 import { AuthUser } from './auth/types';
 import { AdminUsersView } from './components/AdminUsersView';
+import { OperatorPendingApprovalView } from './components/OperatorPendingApprovalView';
 
 export type HostViewMode = 'console' | 'transmitter' | 'dsp' | 'settings' | 'auth' | 'admin';
 
@@ -97,6 +98,29 @@ export default function App() {
   const [isEditingRoom, setIsEditingRoom] = useState(false);
   const [tempRoomInput, setTempRoomInput] = useState('STG-709');
   const [copiedRoomCode, setCopiedRoomCode] = useState(false);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+
+  // Poll for pending operator approvals if user is an administrator
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
+    const fetchPendingCount = async () => {
+      try {
+        const res = await fetch(`${tokenServerUrl.replace(/\/$/, '')}/api/auth/admin/users`, {
+          headers: { Authorization: `Bearer ${currentUser.token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const count = (data.users || []).filter((u: any) => u.status === 'pending').length;
+          setPendingApprovalsCount(count);
+        }
+      } catch {}
+    };
+
+    fetchPendingCount();
+    const interval = setInterval(fetchPendingCount, 12000);
+    return () => clearInterval(interval);
+  }, [currentUser, tokenServerUrl]);
 
   // Safety Interlock Cut: Guarded toggle button
   const [isSafetyArmed, setIsSafetyArmed] = useState(false);
@@ -475,6 +499,33 @@ export default function App() {
     );
   }
 
+  // ─── OPERATOR APPROVAL GATE ─────────────────────────────────────────────
+  // If operator is pending administrator approval or declined, block broadcast access
+  if (currentUser.role !== 'admin' && (currentUser.status === 'pending' || currentUser.status === 'rejected')) {
+    return (
+      <OperatorPendingApprovalView
+        currentUser={currentUser}
+        tokenServerUrl={tokenServerUrl}
+        onStatusApproved={async (approvedUser) => {
+          try {
+            await handleUnlockAudio();
+          } catch (e) {
+            console.warn('[Audio] Auto unlock error:', e);
+          }
+          setCurrentUser(approvedUser);
+          localStorage.setItem('centralized_mic_current_user', JSON.stringify(approvedUser));
+          addTelemetryLog(`AUTH: ${approvedUser.fullName} approved by administrator. Broadcaster unlocked.`, 'success');
+          setActiveView('console');
+        }}
+        onSignOut={() => {
+          setCurrentUser(null);
+          localStorage.removeItem('centralized_mic_current_user');
+          setActiveView('console');
+        }}
+      />
+    );
+  }
+
   // Explicit Auth Profile navigation for logged in user
   if (activeView === 'auth') {
     return (
@@ -815,9 +866,15 @@ export default function App() {
                   <span className="material-symbols-outlined text-[18px] text-amber-400">admin_panel_settings</span>
                   <span className="text-amber-200">Admin Control</span>
                 </div>
-                <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30">
-                  USERS
-                </span>
+                {pendingApprovalsCount > 0 ? (
+                  <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse">
+                    {pendingApprovalsCount} PENDING
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-red-600/20 text-red-400 border border-red-500/30">
+                    USERS
+                  </span>
+                )}
               </button>
             )}
 
@@ -1669,7 +1726,14 @@ export default function App() {
             }`}
             type="button"
           >
-            <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+            <div className="relative flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">admin_panel_settings</span>
+              {pendingApprovalsCount > 0 && (
+                <span className="absolute -top-1 -right-2 px-1 py-0.2 rounded-full bg-amber-500 text-[8px] font-mono font-bold text-black animate-pulse">
+                  {pendingApprovalsCount}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] font-mono font-bold uppercase mt-0.5">Admin</span>
           </button>
         ) : (

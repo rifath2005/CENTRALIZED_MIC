@@ -49,6 +49,7 @@ export interface AuthUser {
   fullName: string;
   email: string;
   role: 'operator' | 'admin' | 'presenter';
+  status?: 'pending' | 'approved' | 'rejected';
   authProvider?: 'password' | 'google';
   picture?: string;
   token: string;
@@ -61,6 +62,7 @@ export interface AdminUserSummary {
   fullName: string;
   email: string;
   role: 'operator' | 'admin';
+  status?: 'pending' | 'approved' | 'rejected';
   authProvider: 'password' | 'google';
   picture?: string;
   createdAt: string;

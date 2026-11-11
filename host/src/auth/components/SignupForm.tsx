@@ -157,10 +157,17 @@ export const SignupForm: React.FC<SignupFormProps> = ({
     setErrors((prev) => ({ ...prev, [field]: fieldError }));
   };
 
+  // Strict email-first gate: Email must be formatted properly and not taken before password creation unlocks
+  const isEmailValid = Boolean(
+    formData.email &&
+    !validateEmail(formData.email) &&
+    emailStatus !== 'taken'
+  );
+
   // Form validity for submit button state
   const isFormValid =
     formData.fullName.trim().length >= 2 &&
-    !validateEmail(formData.email) &&
+    isEmailValid &&
     passwordStrength.score >= 3 && // Requires Good or Strong
     formData.confirmPassword === formData.password &&
     formData.agreeTerms;
@@ -239,7 +246,15 @@ export const SignupForm: React.FC<SignupFormProps> = ({
         return;
       }
 
-      addToast('success', 'Your account has been created successfully!', 'Welcome to Centralized Mic');
+      if (data.user?.status === 'pending') {
+        addToast(
+          'info',
+          'Registration submitted! Your operator account is currently awaiting administrator approval.',
+          'Approval Pending'
+        );
+      } else {
+        addToast('success', 'Your account has been created successfully!', 'Welcome to Centralized Mic');
+      }
       onSuccess(data.user);
     } catch {
       const errMsg = `Cannot reach registration service at ${tokenServerUrl}. Please verify server is running on port 4000.`;
@@ -326,88 +341,115 @@ export const SignupForm: React.FC<SignupFormProps> = ({
           }
         />
 
-        {/* Password */}
-        <div>
-          <FormInput
-            id="signup-password"
-            label="Password"
-            isPassword
-            placeholder="At least 8 characters"
-            leftIcon="lock"
-            autoComplete="new-password"
-            value={formData.password}
-            touched={touched.password}
-            error={errors.password}
-            onChange={(e) => handleChange('password', e.target.value)}
-            onBlur={() => handleBlur('password')}
-            required
-          />
+        {/* Progressive Disclosure: Password Creation unlocks when email is validated */}
+        {!isEmailValid ? (
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700/70 flex items-center gap-3 text-slate-500 dark:text-slate-400">
+            <div className="w-9 h-9 rounded-xl bg-slate-200/80 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 text-slate-400 dark:text-slate-500 shadow-inner">
+              <span className="material-symbols-outlined text-[20px]">lock</span>
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+                Password Setup Locked
+              </span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+                Enter your full name and a valid, available operator email address above to create your password.
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3.5 animate-fadeIn">
+            {/* Email Verified Confirmation Pill */}
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
+              <span className="material-symbols-outlined text-[18px] text-emerald-500 flex-shrink-0">
+                verified
+              </span>
+              <span>Email verified! You can now create your new account password below:</span>
+            </div>
 
-          {/* Live Strength Meter and Checklist */}
-          <PasswordStrengthMeter
-            strength={passwordStrength}
-            password={formData.password}
-          />
-        </div>
+            {/* Password */}
+            <div>
+              <FormInput
+                id="signup-password"
+                label="Create password"
+                isPassword
+                placeholder="At least 8 characters (Upper, number, symbol)"
+                leftIcon="lock"
+                autoComplete="new-password"
+                value={formData.password}
+                touched={touched.password}
+                error={errors.password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onBlur={() => handleBlur('password')}
+                required
+              />
 
-        {/* Confirm Password */}
-        <FormInput
-          id="signup-confirm-password"
-          label="Confirm password"
-          isPassword
-          placeholder="Re-enter password"
-          leftIcon="lock"
-          autoComplete="new-password"
-          value={formData.confirmPassword}
-          touched={touched.confirmPassword}
-          error={errors.confirmPassword}
-          onChange={(e) => handleChange('confirmPassword', e.target.value)}
-          onBlur={() => handleBlur('confirmPassword')}
-          required
-        />
+              {/* Live Strength Meter and Checklist */}
+              <PasswordStrengthMeter
+                strength={passwordStrength}
+                password={formData.password}
+              />
+            </div>
 
-        {/* Terms Checkbox */}
-        <div className="pt-1">
-          <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-slate-600 dark:text-slate-300">
-            <input
-              type="checkbox"
-              id="signup-agree-terms"
-              checked={formData.agreeTerms}
-              onChange={(e) => handleChange('agreeTerms', e.target.checked)}
-              onBlur={() => handleBlur('agreeTerms')}
-              className="w-4 h-4 mt-0.5 rounded text-red-600 focus:ring-red-500/40 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer flex-shrink-0"
+            {/* Confirm Password */}
+            <FormInput
+              id="signup-confirm-password"
+              label="Confirm password"
+              isPassword
+              placeholder="Re-enter password"
+              leftIcon="lock_clock"
+              autoComplete="new-password"
+              value={formData.confirmPassword}
+              touched={touched.confirmPassword}
+              error={errors.confirmPassword}
+              onChange={(e) => handleChange('confirmPassword', e.target.value)}
+              onBlur={() => handleBlur('confirmPassword')}
               required
             />
-            <span className="leading-relaxed">
-              I agree to the{' '}
-              <button
-                type="button"
-                onClick={() => onOpenTerms('terms')}
-                className="text-red-600 dark:text-red-400 font-semibold underline hover:text-red-700"
-              >
-                Terms of Service
-              </button>{' '}
-              &amp;{' '}
-              <button
-                type="button"
-                onClick={() => onOpenTerms('privacy')}
-                className="text-red-600 dark:text-red-400 font-semibold underline hover:text-red-700"
-              >
-                Privacy Policy
-              </button>
-            </span>
-          </label>
-          {touched.agreeTerms && errors.agreeTerms && (
-            <div
-              id="signup-agree-terms-error"
-              role="alert"
-              className="flex items-center gap-1.5 mt-1 text-xs text-red-600 dark:text-red-400"
-            >
-              <span className="material-symbols-outlined text-[16px] flex-shrink-0">error</span>
-              <span>{errors.agreeTerms}</span>
+
+            {/* Terms Checkbox */}
+            <div className="pt-1">
+              <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-slate-600 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  id="signup-agree-terms"
+                  checked={formData.agreeTerms}
+                  onChange={(e) => handleChange('agreeTerms', e.target.checked)}
+                  onBlur={() => handleBlur('agreeTerms')}
+                  className="w-4 h-4 mt-0.5 rounded text-red-600 focus:ring-red-500/40 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer flex-shrink-0"
+                  required
+                />
+                <span className="leading-relaxed">
+                  I agree to the{' '}
+                  <button
+                    type="button"
+                    onClick={() => onOpenTerms('terms')}
+                    className="text-red-600 dark:text-red-400 font-semibold underline hover:text-red-700"
+                  >
+                    Terms of Service
+                  </button>{' '}
+                  &amp;{' '}
+                  <button
+                    type="button"
+                    onClick={() => onOpenTerms('privacy')}
+                    className="text-red-600 dark:text-red-400 font-semibold underline hover:text-red-700"
+                  >
+                    Privacy Policy
+                  </button>
+                </span>
+              </label>
+              {touched.agreeTerms && errors.agreeTerms && (
+                <div
+                  id="signup-agree-terms-error"
+                  role="alert"
+                  className="flex items-center gap-1.5 mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  <span className="material-symbols-outlined text-[16px] flex-shrink-0">error</span>
+                  <span>{errors.agreeTerms}</span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Submit Button */}
         <button

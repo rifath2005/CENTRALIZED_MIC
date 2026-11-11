@@ -8,7 +8,8 @@
     "role": "admin",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.268Z",
-    "lastLoginAt": "2026-10-31T04:48:59.468Z"
+    "lastLoginAt": "2026-11-11T12:39:23.061Z",
+    "status": "approved"
   },
   {
     "id": "op-default-01",
@@ -19,7 +20,8 @@
     "role": "operator",
     "authProvider": "password",
     "createdAt": "2026-10-26T11:07:33.388Z",
-    "lastLoginAt": "2026-11-11T07:39:45.330Z"
+    "lastLoginAt": "2026-11-11T09:33:42.989Z",
+    "status": "approved"
   },
   {
     "id": "usr-g-7b970d04b9a5",
@@ -29,7 +31,8 @@
     "authProvider": "google",
     "picture": "https://lh3.googleusercontent.com/a/default-user=s96-c",
     "createdAt": "2026-10-26T11:08:09.408Z",
-    "lastLoginAt": "2026-10-26T11:08:09.408Z"
+    "lastLoginAt": "2026-10-26T11:08:09.408Z",
+    "status": "approved"
   },
   {
     "id": "usr-g-5a094667fba0",
@@ -39,7 +42,8 @@
     "authProvider": "google",
     "picture": "https://lh3.googleusercontent.com/test.png",
     "createdAt": "2026-10-26T11:34:47.035Z",
-    "lastLoginAt": "2026-10-26T11:34:47.035Z"
+    "lastLoginAt": "2026-10-26T11:34:47.035Z",
+    "status": "approved"
   },
   {
     "id": "usr-g-17d2d185f1b5",
@@ -48,7 +52,8 @@
     "role": "operator",
     "authProvider": "google",
     "createdAt": "2026-10-26T11:44:17.281Z",
-    "lastLoginAt": "2026-10-26T11:44:17.282Z"
+    "lastLoginAt": "2026-10-26T11:44:17.282Z",
+    "status": "approved"
   },
   {
     "id": "usr-g-bd208bcfdc5d",
@@ -58,7 +63,8 @@
     "authProvider": "google",
     "picture": "https://lh3.googleusercontent.com/a/ACg8ocLCHqyB0eMOugoTBZ4HuQuu-IZ3-d7XAHNhhgZHIaBs0-Y4GQ=s96-c",
     "createdAt": "2026-10-26T12:21:36.584Z",
-    "lastLoginAt": "2026-10-27T09:34:31.868Z"
+    "lastLoginAt": "2026-11-11T12:24:39.978Z",
+    "status": "approved"
   },
   {
     "id": "usr-g-985aa7982a58",
@@ -68,6 +74,7 @@
     "authProvider": "google",
     "picture": "https://lh3.googleusercontent.com/a/ACg8ocLB6Md8XTNAdf_GP-bTM3xsAdNhLj-S9zd8F1-QtNUkpcWoPg=s96-c",
     "createdAt": "2026-10-27T04:30:17.469Z",
-    "lastLoginAt": "2026-10-27T04:30:17.469Z"
+    "lastLoginAt": "2026-10-27T04:30:17.469Z",
+    "status": "approved"
   }
 ]

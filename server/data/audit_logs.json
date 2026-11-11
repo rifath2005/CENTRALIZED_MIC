@@ -1,5 +1,59 @@
 [
   {
+    "id": "log-1794400790470-duu3",
+    "timestamp": "2026-11-11T12:39:50.470Z",
+    "action": "DELETE_USER",
+    "email": "newop@test.com",
+    "ip": "::1",
+    "status": "success",
+    "details": "User revoked by admin"
+  },
+  {
+    "id": "log-1794400776226-5en5",
+    "timestamp": "2026-11-11T12:39:36.226Z",
+    "action": "USER_APPROVED",
+    "email": "newop@test.com",
+    "ip": "::1",
+    "status": "success",
+    "details": "User status changed to approved"
+  },
+  {
+    "id": "log-1794400763062-iuyr",
+    "timestamp": "2026-11-11T12:39:23.062Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "admin@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as admin"
+  },
+  {
+    "id": "log-1794400750413-l6fj",
+    "timestamp": "2026-11-11T12:39:10.413Z",
+    "action": "SIGNUP_PENDING_APPROVAL",
+    "email": "newop@test.com",
+    "ip": "::1",
+    "status": "success",
+    "details": "New operator registered (awaiting administrator approval)"
+  },
+  {
+    "id": "log-1794399879979-8n1u",
+    "timestamp": "2026-11-11T12:24:39.979Z",
+    "action": "GOOGLE_LOGIN",
+    "email": "babsword3@gmail.com",
+    "ip": "::ffff:192.168.1.37",
+    "status": "success",
+    "details": "Logged in via Google (operator)"
+  },
+  {
+    "id": "log-1794389622989-hfyi",
+    "timestamp": "2026-11-11T09:33:42.989Z",
+    "action": "LOGIN_SUCCESS",
+    "email": "operator@centralizedmic.io",
+    "ip": "::1",
+    "status": "success",
+    "details": "Logged in as operator"
+  },
+  {
     "id": "log-1794382785331-ya9r",
     "timestamp": "2026-11-11T07:39:45.331Z",
     "action": "LOGIN_SUCCESS",

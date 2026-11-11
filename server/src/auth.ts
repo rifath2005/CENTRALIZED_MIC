@@ -38,6 +38,7 @@ export interface StoredUser {
   passwordHash?: string;
   salt?: string;
   role: 'operator' | 'admin';
+  status: 'pending' | 'approved' | 'rejected';
   authProvider: 'password' | 'google';
   picture?: string;
   createdAt: string;
@@ -59,6 +60,9 @@ export interface AuditLog {
     | 'LOGIN_FAILED'
     | 'GOOGLE_LOGIN'
     | 'SIGNUP'
+    | 'SIGNUP_PENDING_APPROVAL'
+    | 'USER_APPROVED'
+    | 'USER_REJECTED'
     | 'ROLE_CHANGE'
     | 'DELETE_USER'
     | 'PASSWORD_RESET_REQUESTED'
@@ -166,7 +170,12 @@ function loadUsers(): Map<string, StoredUser> {
     if (fs.existsSync(USERS_FILE)) {
       const raw = fs.readFileSync(USERS_FILE, 'utf-8');
       const list: StoredUser[] = JSON.parse(raw);
-      list.forEach((u) => map.set(u.email.toLowerCase(), u));
+      list.forEach((u) => {
+        if (!u.status) {
+          u.status = 'approved';
+        }
+        map.set(u.email.toLowerCase(), u);
+      });
     }
   } catch (err) {
     console.error('[Auth Storage] Failed to load users.json, re-initializing:', err);
@@ -183,6 +192,7 @@ function loadUsers(): Map<string, StoredUser> {
       passwordHash: hash,
       salt,
       role: 'admin',
+      status: 'approved',
       authProvider: 'password',
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
@@ -200,6 +210,7 @@ function loadUsers(): Map<string, StoredUser> {
       passwordHash: hash,
       salt,
       role: 'operator',
+      status: 'approved',
       authProvider: 'password',
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
@@ -449,11 +460,13 @@ router.post('/google', async (req: Request, res: Response) => {
       const isDesignatedAdmin = BOOTSTRAP_ADMINS.includes(normalizedEmail);
       const isFirstUser = usersByEmail.size === 0;
       const role: 'admin' | 'operator' = isDesignatedAdmin || isFirstUser ? 'admin' : 'operator';
+      const status: 'approved' | 'pending' = role === 'admin' ? 'approved' : 'pending';
       user = {
         id: `usr-g-${crypto.randomBytes(6).toString('hex')}`,
         fullName: name,
         email: normalizedEmail,
         role,
+        status,
         authProvider: 'google',
         picture,
         createdAt: new Date().toISOString(),
@@ -461,13 +474,20 @@ router.post('/google', async (req: Request, res: Response) => {
       };
       usersByEmail.set(normalizedEmail, user);
       saveUsers(usersByEmail);
-      logAudit('SIGNUP', normalizedEmail, 'success', `Registered via Google (${role})`, req.ip);
+      logAudit(
+        status === 'approved' ? 'SIGNUP' : 'SIGNUP_PENDING_APPROVAL',
+        normalizedEmail,
+        'success',
+        `Registered via Google (${role}, status: ${status})`,
+        req.ip
+      );
     }
 
     const token = generateToken({
       sub: user.id,
       email: user.email,
       role: user.role,
+      status: user.status || 'approved',
       name: user.fullName,
       authProvider: 'google',
     });
@@ -479,6 +499,7 @@ router.post('/google', async (req: Request, res: Response) => {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
+        status: user.status || 'approved',
         authProvider: 'google',
         picture: user.picture,
       },
@@ -517,6 +538,7 @@ router.post('/login', authLimiter, (req: Request, res: Response) => {
     sub: user.id,
     email: user.email,
     role: user.role,
+    status: user.status || 'approved',
     name: user.fullName,
     authProvider: user.authProvider || 'password',
   });
@@ -528,6 +550,7 @@ router.post('/login', authLimiter, (req: Request, res: Response) => {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      status: user.status || 'approved',
       authProvider: user.authProvider || 'password',
       picture: user.picture,
     },
@@ -559,6 +582,7 @@ router.post('/signup', authLimiter, (req: Request, res: Response) => {
     passwordHash: hash,
     salt,
     role: 'operator',
+    status: 'pending',
     authProvider: 'password',
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
@@ -567,12 +591,13 @@ router.post('/signup', authLimiter, (req: Request, res: Response) => {
   usersByEmail.set(normalizedEmail, newUser);
   saveUsers(usersByEmail);
 
-  logAudit('SIGNUP', normalizedEmail, 'success', 'New operator registered', req.ip);
+  logAudit('SIGNUP_PENDING_APPROVAL', normalizedEmail, 'success', 'New operator registered (awaiting administrator approval)', req.ip);
 
   const token = generateToken({
     sub: newUser.id,
     email: newUser.email,
     role: newUser.role,
+    status: newUser.status,
     name: newUser.fullName,
     authProvider: 'password',
   });
@@ -584,8 +609,10 @@ router.post('/signup', authLimiter, (req: Request, res: Response) => {
       fullName: newUser.fullName,
       email: newUser.email,
       role: newUser.role,
+      status: newUser.status,
       authProvider: 'password',
     },
+    message: 'Operator account created successfully. Awaiting administrator approval.',
   });
 });
 
@@ -805,6 +832,7 @@ router.get('/me', (req: Request, res: Response) => {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
+      status: user.status || 'approved',
       authProvider: user.authProvider,
       picture: user.picture,
       createdAt: user.createdAt,
@@ -839,6 +867,7 @@ router.get('/admin/users', requireAdmin, (_req: Request, res: Response) => {
     fullName: u.fullName,
     email: u.email,
     role: u.role,
+    status: u.status || 'approved',
     authProvider: u.authProvider || 'password',
     picture: u.picture,
     createdAt: u.createdAt,
@@ -853,6 +882,55 @@ router.get('/admin/users', requireAdmin, (_req: Request, res: Response) => {
     storageLocation: USERS_FILE,
     fileSizeBytes: stats?.size || 0,
     lastModified: stats?.mtime?.toISOString() || null,
+  });
+});
+
+/**
+ * Admin: Update user approval status (Approve / Reject / Pending)
+ */
+router.patch('/admin/users/:id/status', requireAdmin, (req: Request, res: Response) => {
+  const userId = req.params.id;
+  const newStatus = req.body.status;
+
+  if (newStatus !== 'approved' && newStatus !== 'rejected' && newStatus !== 'pending') {
+    return res.status(400).json({ error: 'Invalid status. Must be approved, rejected, or pending.' });
+  }
+
+  let targetUser: StoredUser | undefined;
+  for (const user of usersByEmail.values()) {
+    if (user.id === userId) {
+      targetUser = user;
+      break;
+    }
+  }
+
+  if (!targetUser) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Prevent changing status of root administrator
+  if (targetUser.role === 'admin' && newStatus !== 'approved') {
+    return res.status(400).json({ error: 'Administrators are always approved.' });
+  }
+
+  targetUser.status = newStatus;
+  usersByEmail.set(targetUser.email.toLowerCase(), targetUser);
+  saveUsers(usersByEmail);
+
+  const auditAction: AuditLog['action'] =
+    newStatus === 'approved' ? 'USER_APPROVED' : newStatus === 'rejected' ? 'USER_REJECTED' : 'ROLE_CHANGE';
+
+  logAudit(auditAction, targetUser.email, 'success', `User status changed to ${newStatus}`, req.ip);
+
+  return res.status(200).json({
+    message: `User status successfully updated to ${newStatus}`,
+    user: {
+      id: targetUser.id,
+      fullName: targetUser.fullName,
+      email: targetUser.email,
+      role: targetUser.role,
+      status: targetUser.status,
+    },
   });
 });
 
@@ -880,6 +958,10 @@ router.patch('/admin/users/:id/role', requireAdmin, (req: Request, res: Response
   }
 
   targetUser.role = newRole;
+  // If promoted to admin, ensure they are also approved
+  if (newRole === 'admin') {
+    targetUser.status = 'approved';
+  }
   usersByEmail.set(targetUser.email.toLowerCase(), targetUser);
   saveUsers(usersByEmail);
 
@@ -892,6 +974,7 @@ router.patch('/admin/users/:id/role', requireAdmin, (req: Request, res: Response
       fullName: targetUser.fullName,
       email: targetUser.email,
       role: targetUser.role,
+      status: targetUser.status,
     },
   });
 });
