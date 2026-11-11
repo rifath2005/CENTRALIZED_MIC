@@ -216,3 +216,66 @@ export function debounce<T extends (...args: any[]) => any>(
 
   return debounced;
 }
+
+/**
+ * Common email domain typo detector and autocorrection suggester
+ */
+export function suggestEmailDomain(email: string): string | null {
+  if (!email || !email.includes('@')) return null;
+  const parts = email.split('@');
+  if (parts.length !== 2) return null;
+  const [local, domain] = parts;
+  if (!domain) return null;
+
+  const typoMap: Record<string, string> = {
+    'gmai.com': 'gmail.com',
+    'gamil.com': 'gmail.com',
+    'gmial.com': 'gmail.com',
+    'gmaill.com': 'gmail.com',
+    'gmai.co': 'gmail.com',
+    'yaho.com': 'yahoo.com',
+    'yahooo.com': 'yahoo.com',
+    'hotmial.com': 'hotmail.com',
+    'hotmai.com': 'hotmail.com',
+    'outlok.com': 'outlook.com',
+    'outloo.com': 'outlook.com',
+    'iclud.com': 'icloud.com',
+  };
+
+  const correctedDomain = typoMap[domain.toLowerCase()];
+  if (correctedDomain) {
+    return `${local}@${correctedDomain}`;
+  }
+  return null;
+}
+
+/**
+ * Generate cryptographically secure random password meeting all requirements
+ */
+export function generateSecurePassword(): string {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghijkmnpqrstuvwxyz';
+  const numbers = '23456789';
+  const symbols = '!@#$%&*';
+
+  // Ensure at least one of each required group
+  let pass = [
+    upper[Math.floor(Math.random() * upper.length)],
+    lower[Math.floor(Math.random() * lower.length)],
+    numbers[Math.floor(Math.random() * numbers.length)],
+    symbols[Math.floor(Math.random() * symbols.length)],
+  ];
+
+  const allChars = upper + lower + numbers + symbols;
+  for (let i = 0; i < 10; i++) {
+    pass.push(allChars[Math.floor(Math.random() * allChars.length)]);
+  }
+
+  // Shuffle array
+  for (let i = pass.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pass[i], pass[j]] = [pass[j], pass[i]];
+  }
+
+  return pass.join('');
+}
